@@ -1,0 +1,56 @@
+# Video mode:
+video_mode: "1280x960"
+
+# Image Format Control parameters
+image_format_color_coding: 'BayerGB8'
+image_format_roi_width: 1288
+image_format_roi_height: 964
+image_format_x_offset: 0
+image_format_y_offset: 0
+# Frames per second:
+# @todo At higher frequencies it seems there's less blur, but we have to test by
+# saving images while the robot is moving in compare the saved images.
+acquisition_frame_rate: &frame_rate 10.0 #&frame_rate 30.0
+acquisition_frame_rate_enable: true  #TODO: changed to "enabled"
+frame_rate_auto: "Continuous"
+
+# Exposure settings:
+exposure_mode: "Timed"
+exposure_auto: "Continuous"
+exposure: 0.0
+exposure_time: 32754.1
+auto_exposure_time_upper_limit: 32754.1
+
+# Shutter settings:
+auto_shutter: false
+shutter_speed: 0.033333333
+
+# Gain settings:
+gain_selector: "All"
+auto_gain: "Continuous"
+gain: 0.0
+
+# White balance settings:
+auto_white_balance: false
+white_balance_blue_ratio: 2
+white_balance_red_ratio: 2
+
+# Brightness:
+brightness: 1.5
+
+# Gamma:
+gamma: 1.0
+
+# Sharpness
+sharpness: 1024
+
+
+# tilt: 0
+# pan: 0
+
+# Frame ID:
+# Note the frame ID should be set outside, in order to support multiple/stereo cameras.
+#frame_id: camera_optical_frame
+
+# Diagnostics configuration:
+desired_freq: *frame_rate
