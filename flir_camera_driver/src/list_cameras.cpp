@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    @file list_cameras.cpp
    @author Chad Rockey
    @date January 10, 2012
-   @brief Executable that lists the attached pointgrey cameras and exits.
+   @brief Executable that lists the attached flir cameras and exits.
 
    @attention Copyright (C) 2012
    @attention National Robotics Engineering Center
@@ -47,11 +47,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <flycapture/FlyCapture2.h>
 #include <iostream>
 #include <string>
-#include "pointgrey_camera_driver/PointGreyCamera.h"
+#include "flir_camera_driver/FlirCamera.h"
 
 using namespace FlyCapture2;
 
-#define PGERROR(error, msg) PointGreyCamera::handleError(msg, error)
+#define PGERROR(error, msg) FlirCamera::handleError(msg, error)
 
 void printCameraInfo(const CameraInfo& cinfo) {
   std::cout << "Serial: " << cinfo.serialNumber
@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
       }
     } else {
       // No cameras found
-      std::cout << "No PointGrey cameras detected on this computer."
+      std::cout << "No Flir cameras detected on this computer."
                 << std::endl << std::endl;
 
       std::cout << "Note that you may need to restart udev and "

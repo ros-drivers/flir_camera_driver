@@ -1,5 +1,5 @@
 <launch>
-   <!-- Determine this using rosrun pointgrey_camera_driver list_cameras.
+   <!-- Determine this using rosrun flir_camera_driver list_cameras.
        If not specified, defaults to first camera found. -->
   <arg name="camera_name" default="camera" />
   <arg name="camera_serial" default="16401534" />
@@ -9,7 +9,7 @@
     <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node"/>
 
     <node pkg="nodelet" type="nodelet" name="camera_nodelet"
-          args="load pointgrey_camera_driver/PointGreyCameraNodelet camera_nodelet_manager" >
+          args="load flir_camera_driver/FlirCameraNodelet camera_nodelet_manager" >
 
       <param name="frame_id" value="camera" />
       <param name="serial" value="$(arg camera_serial)" />

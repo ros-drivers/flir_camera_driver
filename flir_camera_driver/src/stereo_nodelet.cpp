@@ -33,7 +33,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <pluginlib/class_list_macros.h>
 #include <nodelet/nodelet.h>
 
-#include "pointgrey_camera_driver/PointGreyCamera.h" // The actual standalone library for the PointGreys
+#include "flir_camera_driver/FlirCamera.h" // The actual standalone library for the Flirs
 
 #include <image_transport/image_transport.h> // ROS library that allows sending compressed images
 #include <camera_info_manager/camera_info_manager.h> // ROS library that publishes CameraInfo topics
@@ -50,15 +50,15 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <dynamic_reconfigure/server.h> // Needed for the dynamic_reconfigure gui service to run
 
-namespace pointgrey_camera_driver
+namespace flir_camera_driver
 {
 
-class PointGreyStereoCameraNodelet: public nodelet::Nodelet
+class FlirStereoCameraNodelet: public nodelet::Nodelet
 {
 public:
-  PointGreyStereoCameraNodelet() {}
+  FlirStereoCameraNodelet() {}
 
-  ~PointGreyStereoCameraNodelet()
+  ~FlirStereoCameraNodelet()
   {
     pubThread_->interrupt();
     pubThread_->join();
@@ -73,7 +73,7 @@ private:
   * \param config  camera_library::CameraConfig object passed by reference.  Values will be changed to those the driver is currently using.
   * \param level driver_base reconfiguration level.  See driver_base/SensorLevels.h for more information.
   */
-  // void paramCallback(pointgrey_camera_driver::PointGreyConfig &config, uint32_t level)
+  // void paramCallback(flir_camera_driver::FlirConfig &config, uint32_t level)
   // {
 
   //   // Stereo is only active in this mode (16 bits, 8 for each image)
@@ -82,7 +82,7 @@ private:
   //   try
   //   {
   //     NODELET_DEBUG("Dynamic reconfigure callback with level: %d", level);
-  //     pg_.setNewConfiguration(config, level);
+  //     flir_.setNewConfiguration(config, level);
 
   //     // Store needed parameters for the metadata message
   //     gain_ = config.gain;
@@ -173,12 +173,12 @@ private:
       try
       {
         NODELET_INFO("\033[96mConnecting to camera serial: %u", serial);
-        pg_.setDesiredCamera(serial);
+        flir_.setDesiredCamera(serial);
         NODELET_DEBUG("Actually connecting to camera.");
-        pg_.connect();
+        flir_.connect();
         connected = true;
         NODELET_DEBUG("Setting timeout to: %f.", timeout);
-        pg_.setTimeout(timeout);
+        flir_.setTimeout(timeout);
       }
       catch(std::runtime_error& e)
       {
@@ -188,8 +188,8 @@ private:
     }
 
     // Start up the dynamic_reconfigure service, note that this needs to stick around after this function ends
-    srv_ = boost::make_shared <dynamic_reconfigure::Server<pointgrey_camera_driver::PointGreyConfig> > (pnh);
-    dynamic_reconfigure::Server<pointgrey_camera_driver::PointGreyConfig>::CallbackType f =  boost::bind(&pointgrey_camera_driver::PointGreyStereoCameraNodelet::paramCallback, this, _1, _2);
+    srv_ = boost::make_shared <dynamic_reconfigure::Server<flir_camera_driver::FlirConfig> > (pnh);
+    dynamic_reconfigure::Server<flir_camera_driver::FlirConfig>::CallbackType f =  boost::bind(&flir_camera_driver::FlirStereoCameraNodelet::paramCallback, this, _1, _2);
     srv_->setCallback(f);
 
     // Start the camera info manager and attempt to load any configurations
@@ -212,13 +212,13 @@ private:
     rit_pub_ = rit_->advertiseCamera("image_raw", 5);
 
     // Set up diagnostics
-    updater_.setHardwareID("pointgrey_camera " + serial);
+    updater_.setHardwareID("flir_camera " + serial);
 
     ///< @todo Move this to diagnostics
     temp_pub_ = nh.advertise<std_msgs::Float64>("temp", 5);
 
     // Subscribe to gain and white balance changes
-    sub_ = nh.subscribe("image_exposure_sequence", 10, &pointgrey_camera_driver::PointGreyStereoCameraNodelet::gainWBCallback, this);
+    sub_ = nh.subscribe("image_exposure_sequence", 10, &flir_camera_driver::FlirStereoCameraNodelet::gainWBCallback, this);
 
     volatile bool started = false;
     while(!started)
@@ -226,10 +226,10 @@ private:
       try
       {
         NODELET_DEBUG("Starting camera capture.");
-        pg_.start();
+        flir_.start();
         started = true;
         // Start the thread to loop through and publish messages
-        pubThread_ = boost::shared_ptr< boost::thread > (new boost::thread(boost::bind(&pointgrey_camera_driver::PointGreyStereoCameraNodelet::devicePoll, this)));
+        pubThread_ = boost::shared_ptr< boost::thread > (new boost::thread(boost::bind(&flir_camera_driver::FlirStereoCameraNodelet::devicePoll, this)));
       }
       catch(std::runtime_error& e)
       {
@@ -242,16 +242,16 @@ private:
   /*!
   * \brief Cleans up the memory and disconnects the camera.
   *
-  * This function is called from the deconstructor since pg_.stop() and pg_.disconnect() could throw exceptions.
+  * This function is called from the deconstructor since flir_.stop() and flir_.disconnect() could throw exceptions.
   */
   void cleanUp()
   {
     try
     {
       NODELET_DEBUG("Stopping camera capture.");
-      pg_.stop();
+      flir_.stop();
       NODELET_DEBUG("Disconnecting from camera.");
-      pg_.disconnect();
+      flir_.disconnect();
     }
     catch(std::runtime_error& e)
     {
@@ -272,7 +272,7 @@ private:
       {
         sensor_msgs::ImagePtr image(new sensor_msgs::Image);
         sensor_msgs::ImagePtr second_image(new sensor_msgs::Image);
-        pg_.grabStereoImage(*image, frame_id_, *second_image, second_frame_id_);
+        flir_.grabStereoImage(*image, frame_id_, *second_image, second_frame_id_);
 
         ros::Time time = ros::Time::now();
         image->header.stamp = time;
@@ -297,7 +297,7 @@ private:
         it_pub_.publish(image, ci_);
         rit_pub_.publish(second_image, rci_);
         std_msgs::Float64 temp;
-        temp.data = pg_.getCameraTemperature();
+        temp.data = flir_.getCameraTemperature();
         temp_pub_.publish(temp);
       }
       catch(CameraTimeoutException& e)
@@ -310,10 +310,10 @@ private:
         try
         {
           // Something terrible has happened, so let's just disconnect and reconnect to see if we can recover.
-          pg_.disconnect();
+          flir_.disconnect();
           ros::Duration(1.0).sleep(); // sleep for one second each time
-          pg_.connect();
-          pg_.start();
+          flir_.connect();
+          flir_.start();
         }
         catch(std::runtime_error& e2)
         {
@@ -331,10 +331,10 @@ private:
     {
       NODELET_DEBUG("Gain callback:  Setting gain to %f and white balances to %u, %u", msg.gain, msg.white_balance_blue, msg.white_balance_red);
       gain_ = msg.gain;
-      pg_.setGain(gain_);
+      flir_.setGain(gain_);
       wb_blue_ = msg.white_balance_blue;
       wb_red_ = msg.white_balance_red;
-      pg_.setBRWhiteBalance(false, wb_blue_, wb_red_);
+      flir_.setBRWhiteBalance(false, wb_blue_, wb_red_);
     }
     catch(std::runtime_error& e)
     {
@@ -342,7 +342,7 @@ private:
     }
   }
 
-  boost::shared_ptr<dynamic_reconfigure::Server<pointgrey_camera_driver::PointGreyConfig> > srv_; ///< Needed to initialize and keep the dynamic_reconfigure::Server in scope.
+  boost::shared_ptr<dynamic_reconfigure::Server<flir_camera_driver::FlirConfig> > srv_; ///< Needed to initialize and keep the dynamic_reconfigure::Server in scope.
   boost::shared_ptr<image_transport::ImageTransport> it_; ///< Needed to initialize and keep the ImageTransport in scope.
   boost::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_; ///< Needed to initialize and keep the CameraInfoManager in scope.
   image_transport::CameraPublisher it_pub_; ///< CameraInfoManager ROS publisher
@@ -353,7 +353,7 @@ private:
   double min_freq_;
   double max_freq_;
 
-  PointGreyCamera pg_; ///< Instance of the PointGreyCamera library, used to interface with the hardware.
+  FlirCamera flir_; ///< Instance of the FlirCamera library, used to interface with the hardware.
   sensor_msgs::CameraInfoPtr ci_; ///< Camera Info message.
   std::string frame_id_; ///< Frame id for the camera messages, defaults to 'camera'
   boost::shared_ptr<boost::thread> pubThread_; ///< The thread that reads and publishes the images.
@@ -379,5 +379,5 @@ private:
   bool do_rectify_; ///< Whether or not to rectify as if part of an image.  Set to false if whole image, and true if in ROI mode.
 };
 
-PLUGINLIB_EXPORT_CLASS(pointgrey_camera_driver::PointGreyStereoCameraNodelet, nodelet::Nodelet)  // Needed for Nodelet declaration
+PLUGINLIB_EXPORT_CLASS(flir_camera_driver::FlirStereoCameraNodelet, nodelet::Nodelet)  // Needed for Nodelet declaration
 }

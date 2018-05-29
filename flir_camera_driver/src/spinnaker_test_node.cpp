@@ -16,7 +16,7 @@ Redistribution and use in source and binary forms, with or without modification,
 // #include "SpinGenApi/SpinnakerGenApi.h"
 
 
-namespace pointgrey_camera_driver
+namespace flir_camera_driver
 {
 
 class SpinnakerTestNode
@@ -67,13 +67,13 @@ void SpinnakerTestNode::test()
   }
 }
 
-}  // namespace pointgrey_camera_driver
+}  // namespace flir_camera_driver
 
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "spinnaker_test_node");
-  pointgrey_camera_driver::SpinnakerTestNode node;
+  flir_camera_driver::SpinnakerTestNode node;
   ros::spin();
   return 0;
 }

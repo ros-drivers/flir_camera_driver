@@ -33,13 +33,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "pointgrey_camera_node");
+  ros::init(argc, argv, "flir_camera_node");
 
   // This is code based nodelet loading, the preferred nodelet launching is done through roslaunch
   nodelet::Loader nodelet;
   nodelet::M_string remap(ros::names::getRemappings());
   nodelet::V_string nargv;
-  nodelet.load("pointgrey_camera_node", "pointgrey_camera_driver/PointGreyStereoCameraNodelet", remap, nargv);
+  nodelet.load("flir_camera_node", "flir_camera_driver/FlirStereoCameraNodelet", remap, nargv);
 
   ros::spin();
 

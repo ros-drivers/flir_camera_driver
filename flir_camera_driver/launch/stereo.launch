@@ -15,7 +15,7 @@
 
       <!-- Both cameras are not loaded into one nodelet manager to avoid the namespacing issue. -->
       <node pkg="nodelet" type="nodelet" name="camera_nodelet"
-            args="load pointgrey_camera_driver/PointGreyCameraNodelet /camera_nodelet_manager" >
+            args="load flir_camera_driver/FlirCameraNodelet /camera_nodelet_manager" >
         <param name="frame_id" value="camera_left" />
         <param name="serial" value="$(arg left_camera_serial)" />
 
@@ -37,7 +37,7 @@
     <group ns="right" >
 
       <node pkg="nodelet" type="nodelet" name="camera_nodelet"
-            args="load pointgrey_camera_driver/PointGreyCameraNodelet /camera_nodelet_manager" >
+            args="load flir_camera_driver/FlirCameraNodelet /camera_nodelet_manager" >
         <param name="frame_id" value="camera_right" />
         <param name="serial" value="$(arg right_camera_serial)" />
 
