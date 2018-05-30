@@ -39,10 +39,11 @@ message(STATUS "libSpinnaker library: ${Spinnaker_LIBRARIES}")
 message(STATUS "libSpinnaker include: ${Spinnaker_INCLUDE_DIRS}")
 
 
-include_directories(include
+include_directories(SYSTEM
                     ${Spinnaker_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     ${OpenCV_INCLUDE_DIRS})
+include_directories(include)
 
 add_library(FlirCameraLib src/FlirCamera.cpp)
 
