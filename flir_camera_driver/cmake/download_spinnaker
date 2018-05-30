@@ -33,6 +33,7 @@ import tarfile
 import urllib
 import urllib2
 import os
+import glob
 
 logging.basicConfig(level=logging.INFO)
 
@@ -44,46 +45,59 @@ LOGIN_DATA = {
 
 ARCHS = {
     'i386': (
-        'https://www.ptgrey.com/support/downloads/10825/',
-        'spinnaker_1_2_0_16_i386',
-        'usr/lib/libSpinnaker.so.1.2.0.16'),
+        'https://www.ptgrey.com/support/downloads/11047/',
+        'spinnaker-1.13.0.31-i386',
+        'usr/lib/libSpinnaker.so.1.13.0.31'),
     'x86_64': (
-        'https://www.ptgrey.com/support/downloads/10824/',
-        'spinnaker_1_2_0_16_amd64',
-        'usr/lib/libSpinnaker.so.1.2.0.16')
+        'https://www.ptgrey.com/support/downloads/11048/',
+        'spinnaker-1.13.0.31-amd64',
+        'usr/lib/libSpinnaker.so.1.13.0.31')
     }
 
 
 archive_url, folder_name, shared_library = ARCHS[sys.argv[1]]
 destination_folder = sys.argv[2]
 
+
 if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
-    logging.info("Logging into ptgrey.com.")
-    cj = cookielib.CookieJar()
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-    opener.addheaders = [
-        ('User-agent', 'Mozilla/5.0'),
-        ('Referer', 'https://www.ptgrey.com')]
-    opener.open(LOGIN_URL, urllib.urlencode(LOGIN_DATA))
+    if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
+        logging.info("Logging into ptgrey.com.")
+        cj = cookielib.CookieJar()
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        opener.addheaders = [
+            ('User-agent', 'Mozilla/5.0'),
+            ('Referer', 'https://www.ptgrey.com')]
+        opener.open(LOGIN_URL, urllib.urlencode(LOGIN_DATA))
 
-    logging.info("Downloading SDK archive.")
-    resp = opener.open(archive_url)
+        logging.info("Downloading SDK archive.")
+        resp = opener.open(archive_url)
 
-    logging.info("Unpacking tarball.")
-    with tarfile.open(mode="r:gz", fileobj=cStringIO.StringIO(resp.read())) as tar:
-        tar.extractall()
+        logging.info("Unpacking tarball.")
+        with tarfile.open(mode="r:gz", fileobj=cStringIO.StringIO(resp.read())) as tar:
+            tar.extractall()
+
+    logging.info("Unpacking debs.")
+    debs = glob.glob(os.path.join(os.getcwd(), folder_name, "libspinvideoencoder-*.deb"))
+    debs += glob.glob(os.path.join(os.getcwd(), folder_name, "libspinnaker-*.deb"))
+    for deb in debs:
+        subprocess.call(['dpkg', '-x', deb, os.path.join(os.getcwd(), folder_name)])
 
     if not os.path.exists(os.path.join(os.getcwd(), "usr")):
         os.mkdir(os.path.join(os.getcwd(), "usr"))
 
     # For every folder/file, copy it into the /usr folder we just created.
-    for filename in os.listdir(os.path.join(os.getcwd(), folder_name)):
-        if not os.path.exists(os.path.join(os.getcwd(), "usr/", filename)):
-            shutil.move(os.path.join(os.getcwd(), folder_name, filename), os.path.join(os.getcwd(), "usr/", filename))
+    for filename in os.listdir(os.path.join(os.getcwd(), folder_name, "usr")):
+        if not os.path.exists(os.path.join(os.getcwd(), "usr", filename)):
+            shutil.move(os.path.join(os.getcwd(), folder_name, "usr", filename), os.path.join(os.getcwd(), "usr", filename))
 
     # now we do some thing for XML files; copy them next to the catkin binary
-    xml_path = os.path.join(os.getcwd(), "usr/bin/")
+    xml_path = os.path.join(os.getcwd(), "usr/lib/")
     xml_files = os.listdir(xml_path)
+
+    try:
+        os.makedirs(destination_folder) #This is set to flir_spinnaker_camera should it be flir_camera_driver?
+    except:
+        logging.info("Error XML folder either exists or can't be created.")
 
     for files in xml_files:
         if files.endswith(".xml"):
