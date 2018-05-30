@@ -14,7 +14,8 @@ Redistribution and use in source and binary forms, with or without modification,
 // Spinnaker Includes
 #include "Spinnaker.h"
 // #include "SpinGenApi/SpinnakerGenApi.h"
-
+using namespace Spinnaker;
+using namespace Spinnaker::GenApi;
 
 namespace flir_camera_driver
 {
@@ -55,7 +56,7 @@ void SpinnakerTestNode::test()
     std::printf("\033[91mNO Cameras Connected! \n\n");
     // Clear camera list before releasing system
     camList.Clear();
-
+    interfaceList.Clear();
     // Release system
     system->ReleaseInstance();
 
@@ -63,10 +64,21 @@ void SpinnakerTestNode::test()
   }
   else
   {
-    std::printf("\033[92m[%d] Cameras Connected! \n\n", numCameras);
+    for(unsigned int i = 0; i < numCameras; i++)
+    {
+      CameraPtr pCam = camList[i];
+      INodeMap & nodeMapTLDevice = pCam->GetTLDeviceNodeMap();
+      CStringPtr ptrDeviceSerialNumber = nodeMapTLDevice.GetNode("DeviceSerialNumber");
+      if(IsAvailable(ptrDeviceSerialNumber) && IsReadable(ptrDeviceSerialNumber))
+      {
+        std::cout << "\033[92m[" << i << "]\t" << ptrDeviceSerialNumber->ToString() << std::endl;
+      }
+    }
   }
+  camList.Clear();
+  interfaceList.Clear();
+  system->ReleaseInstance();
 }
-
 }  // namespace flir_camera_driver
 
 
