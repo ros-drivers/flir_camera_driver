@@ -78,7 +78,7 @@ if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
 
     logging.info("Unpacking debs.")
     debs = glob.glob(os.path.join(os.getcwd(), folder_name, "libspinvideoencoder-*.deb"))
-    debs += glob.glob(os.path.join(os.getcwd(), folder_name, "libspinnaker-*.deb"))
+    debs += glob.glob(os.path.join(os.getcwd(), folder_name, "*spinnaker-*.deb"))
     for deb in debs:
         subprocess.call(['dpkg', '-x', deb, os.path.join(os.getcwd(), folder_name)])
 
