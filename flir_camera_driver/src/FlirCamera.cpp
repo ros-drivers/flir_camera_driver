@@ -52,6 +52,8 @@ FlirCamera::FlirCamera()
 
 FlirCamera::~FlirCamera()
 {
+  camList_.Clear();
+  system_->ReleaseInstance();
 }
 
 
@@ -375,7 +377,25 @@ int FlirCamera::connect()
       }
     }
 
-    // TODO @tthomas - check if interface is GigE and connect to GigE cam
+    Spinnaker::GenApi::INodeMap & genTLNodeMap = pCam_->GetTLDeviceNodeMap();
+    Spinnaker::GenApi::CEnumerationPtr device_type_ptr =
+                                    static_cast<Spinnaker::GenApi::CEnumerationPtr>(genTLNodeMap.GetNode("DeviceType"));
+
+    if(IsAvailable(device_type_ptr) && IsReadable(device_type_ptr)){
+      ROS_INFO_STREAM("FlirCamera::connect Detected device type: " << device_type_ptr->ToString());
+
+      if(device_type_ptr->GetCurrentEntry() == device_type_ptr->GetEntryByName("U3V"))
+      {
+        Spinnaker::GenApi::CEnumerationPtr device_speed_ptr =
+                            static_cast<Spinnaker::GenApi::CEnumerationPtr>(genTLNodeMap.GetNode("DeviceCurrentSpeed"));
+        if(IsAvailable(device_speed_ptr) && IsReadable(device_speed_ptr))
+        {
+          if(device_speed_ptr->GetCurrentEntry() != device_speed_ptr->GetEntryByName("SuperSpeed"))
+            ROS_ERROR_STREAM("FlirCamera::connect U3V Device not running at Super-Speed. Check Cables! ");
+        }
+      }
+      // TODO @tthomas - check if interface is GigE and connect to GigE cam
+    }
 
     try
     {
