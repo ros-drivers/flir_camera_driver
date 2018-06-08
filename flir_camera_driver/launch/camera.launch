@@ -6,9 +6,9 @@
   <arg name="calibrated" default="0" />
 
   <group ns="$(arg camera_name)">
-    <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node"/>
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
 
-    <node pkg="nodelet" type="nodelet" name="camera_nodelet"
+    <node pkg="nodelet" type="nodelet" name="flir_camera_nodelet"
           args="load flir_camera_driver/FlirCameraNodelet camera_nodelet_manager" >
 
       <param name="frame_id" value="camera" />

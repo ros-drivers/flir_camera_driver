@@ -49,6 +49,7 @@ add_library(FlirCameraLib src/FlirCamera.cpp)
 
 # Include the Spinnaker Libs
 target_link_libraries(FlirCameraLib
+                      Camera
                       ${Spinnaker_LIBRARIES}
                       ${catkin_LIBRARIES}
                       ${OpenCV_LIBRARIES})
@@ -68,9 +69,12 @@ target_link_libraries(spinnaker_test_node
 add_dependencies(FlirCameraLib ${PROJECT_NAME}_gencfg)
 
 
+add_library(Camera src/camera.cpp)
+target_link_libraries(Camera ${catkin_LIBRARIES})
+add_dependencies(Camera ${PROJECT_NAME}_gencfg)
 
 add_library(FlirCameraNodelet src/nodelet.cpp)
-target_link_libraries(FlirCameraNodelet FlirCameraLib ${catkin_LIBRARIES})
+target_link_libraries(FlirCameraNodelet FlirCameraLib Camera ${catkin_LIBRARIES})
 
 # add_library(FlirStereoCameraNodelet src/stereo_nodelet.cpp)
 # target_link_libraries(FlirStereoCameraNodelet FlirCameraLib ${catkin_LIBRARIES})
@@ -93,6 +97,7 @@ target_link_libraries(FlirCameraNodelet FlirCameraLib ${catkin_LIBRARIES})
 install(TARGETS
   FlirCameraLib
   FlirCameraNodelet
+  Camera
   # FlirStereoCameraNodelet
   # flir_camera_node
   # flir_list_cameras

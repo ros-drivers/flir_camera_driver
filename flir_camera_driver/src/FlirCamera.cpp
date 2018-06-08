@@ -37,12 +37,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ros/ros.h>
 
-
+namespace flir_camera_driver {
 FlirCamera::FlirCamera()
-  : system_(Spinnaker::System::GetInstance())
+  : serial_(0)
+  , system_(Spinnaker::System::GetInstance())
   , camList_(system_->GetCameras())
   , pCam_(NULL)
-  , serial_(0)
   , captureRunning_(false)
 {
   unsigned int num_cameras = camList_.GetSize();
@@ -59,60 +59,7 @@ FlirCamera::~FlirCamera()
 
 bool FlirCamera::setFrameRate(const float frame_rate)
 {
-  // This enables the "AcquisitionFrameRateEnabled"
-  //======================================
-
-  Spinnaker::GenApi::CBooleanPtr ptrAcquisitionFrameRateEnable = node_map_->GetNode("AcquisitionFrameRateEnabled");
-  if (!IsAvailable(ptrAcquisitionFrameRateEnable) || !IsWritable(ptrAcquisitionFrameRateEnable))
-  {
-    ROS_ERROR_ONCE("Unable to enable the AcquisitionFrameRateEnable. Aborting... \n");
-    return false;
-  }
-  ptrAcquisitionFrameRateEnable->SetValue(true);
-  //=============================================================================
-
-
-  // This sets the "AcquisitionFrameRateAuto" to "Off"
-  //======================================
-
-  Spinnaker::GenApi::CEnumerationPtr ptrFrameRateAuto = node_map_->GetNode("AcquisitionFrameRateAuto");
-  if (!IsAvailable(ptrFrameRateAuto) || !IsWritable(ptrFrameRateAuto))
-  {
-    ROS_ERROR_ONCE("Unable to set FrameRateAuto to continuous (enum retrieval). Aborting...\n");
-    return false;
-  }
-
-  Spinnaker::GenApi::CEnumEntryPtr ptrFrameRateAutoOff = ptrFrameRateAuto->GetEntryByName("Off");
-  if (!IsAvailable(ptrFrameRateAutoOff) || !IsReadable(ptrFrameRateAutoOff))
-  {
-    ROS_ERROR_ONCE("Unable to set FrameRateAuto to continuous (enum retrieval). Aborting...\n");
-    return false;
-  }
-
-  int64_t frameRateAutoOff = ptrFrameRateAutoOff->GetValue();
-  ptrFrameRateAuto->SetIntValue(frameRateAutoOff);
-  //=============================================================================
-
-
-  // This sets the "AcquisitionFrameRate" to X FPS
-  // ========================================
-
-  Spinnaker::GenApi::CFloatPtr ptrAcquisitionFrameRate = node_map_->GetNode("AcquisitionFrameRate");
-  if (!IsAvailable(ptrAcquisitionFrameRate) || !IsWritable(ptrAcquisitionFrameRate))
-  {
-    ROS_ERROR_ONCE("Unable to set AcquisitionFrameRate. Aborting...\n");
-    return false;
-  }
-
-  ROS_DEBUG_STREAM_ONCE("Minimum Frame Rate: \t " << ptrAcquisitionFrameRate->GetMin());
-  ROS_DEBUG_STREAM_ONCE("Maximum Frame rate: \t " << ptrAcquisitionFrameRate->GetMax());
-
-
-  // Finally Set the Frame Rate
-  ptrAcquisitionFrameRate->SetValue(frame_rate);
-
-
-  ROS_DEBUG_STREAM_ONCE("Current Frame rate: \t " << ptrAcquisitionFrameRate->GetValue());
+  return camera_->setFrameRate(frame_rate);
 }
 
 bool FlirCamera::setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level)
@@ -126,111 +73,8 @@ bool FlirCamera::setNewConfiguration(flir_camera_driver::FlirConfig &config, con
   // Activate mutex to prevent us from grabbing images during this time
   boost::mutex::scoped_lock scopedLock(mutex_);
 
-  // return true if we can set values as desired.
-  bool retVal = true;
+  return camera_->setNewConfiguration(config, level);
 
-  float temp_frame_rate = config.acquisition_frame_rate;
-  retVal = setFrameRate(temp_frame_rate);
-
-  // Set Trigger and Strobe Settings
-  // NOTE: The trigger must be disabled (i.e. TriggerMode = "Off") in order to configure whether the source is software or hardware.
-  retVal = setProperty("TriggerMode", std::string("Off"));
-  retVal = setProperty("TriggerSource", config.trigger_source);
-  retVal = setProperty("TriggerSelector", config.trigger_selector);
-  retVal = setProperty("TriggerActivation", config.trigger_activation_mode);
-  retVal = setProperty("TriggerMode", config.enable_trigger);
-
-  retVal = setProperty("LineSelector", config.line_selector);
-  retVal = setProperty("LineMode", config.line_mode);
-  retVal = setProperty("LineSource", config.line_source);
-
-  // Set auto exposure
-  retVal = setProperty("ExposureMode", config.exposure_mode);
-  retVal = setProperty("ExposureAuto", config.exposure_auto);
-
-
-  // Set Video Mode, Image and Pixel formats
-  // retVal = FlirCamera::setVideoMode(config.video_mode);
-  // retVal = FlirCamera::setImageControlFormats(config);
-
-  /*
-  TODO @tthomas: Revisit/Debug setProperty method for setting frame rate and other properties
-  retVal = setProperty("AcquisitionFrameRateAuto", "Off");
-  retVal = setProperty("AcquisitionFrameRateEnabled", true);
-
-
-  // retVal = setProperty("AcquisitionFrameRate", config.acquisition_frame_rate);
-  // TODO @tthomas: streamline double& to float& conversions
-  float temp_frame_rate = config.acquisition_frame_rate;
-  retVal = setProperty("AcquisitionFrameRate", temp_frame_rate);  // Feature AcquisitionFrameRate not writable.
-  */
-
-
-  // Set sharpness
-  if (config.sharpening_enable)
-  {
-    retVal = setProperty("SharpeningAuto", config.auto_sharpness);
-    // retVal = setProperty("Sharpening", config.sharpness);
-    float temp_sharpness = config.sharpness;
-    float temp_sharpening_threshold = config.sharpening_threshold;
-    retVal = setProperty("Sharpening", temp_sharpness);
-    retVal = setProperty("SharpeningThreshold", temp_sharpening_threshold);
-  }
-
-  // Set saturation
-  if (config.saturation_enable)
-  {
-    retVal = setProperty("SaturationEnable", config.saturation_enable);
-    float temp_saturation = config.saturation;
-    retVal = setProperty("Saturation", temp_saturation);
-  }
-
-
-  // Set shutter time/speed
-  if (config.exposure_auto.compare(std::string("Off")) == 0)
-  {
-    float temp_exposure_time = config.exposure_time;
-    retVal = setProperty("ExposureTime", temp_exposure_time);
-  }
-
-  float temp_auto_exposure_exposure_time_upper_limit= config.auto_exposure_time_upper_limit;
-  retVal = setProperty("AutoExposureTimeUpperLimit", temp_auto_exposure_exposure_time_upper_limit);
-
-
-  // Set gain
-  retVal = setProperty("GainSelector", config.gain_selector);
-  retVal = setProperty("GainAuto", config.auto_gain);
-
-  float temp_gain = config.gain;
-  retVal = setProperty("Gain", temp_gain);
-
-  // Set brightness
-  float temp_brightness = config.brightness;
-  retVal = setProperty("BlackLevel", temp_brightness);
-
-  // Set gamma
-  if (config.gamma_enable)
-  {
-    retVal = setProperty("GammaEnable", config.gamma_enable);
-
-    float temp_gamma = config.gamma;
-    retVal = setProperty("Gamma", temp_gamma);
-  }
-
-  // Set white balance
-  retVal = setProperty("BalanceWhiteAuto", config.auto_white_balance);
-  retVal = setProperty("BalanceRatioSelector", "Blue");
-
-  float temp_white_balance_blue_ratio = config.white_balance_blue_ratio;
-  retVal = setProperty("BalanceRatio", temp_white_balance_blue_ratio);
-
-  retVal = setProperty("BalanceRatioSelector", "Red");
-  float temp_white_balance_red_ratio = config.white_balance_red_ratio;
-  retVal = setProperty("BalanceRatio", temp_white_balance_red_ratio);
-
-
-
-  return retVal;
 
 }  // end setNewConfiguration
 
@@ -241,7 +85,7 @@ void FlirCamera::setGain(const float& gain)
   pCam_->GainAuto.SetValue(Spinnaker::GainAutoEnums::GainAuto_Off);
 
   // Set gain
-  setProperty("Gain", gain);
+  setProperty(node_map_, "Gain", gain);
 }
 
 
@@ -256,19 +100,19 @@ bool FlirCamera::setVideoMode(const std::string& videoMode)
 
   if (videoMode.compare("1280x960") == 0)
   {
-    retVal = setProperty("VideoMode", "Mode0");
+    retVal = setProperty(node_map_, "VideoMode", "Mode0");
   }
   else if (videoMode.compare("640x480_pixel_aggregation") == 0)
   {
-    retVal = setProperty("VideoMode", "Mode1");
+    retVal = setProperty(node_map_, "VideoMode", "Mode1");
   }
   else if (videoMode.compare("640x480_pixel_decimation") == 0)
   {
-    retVal = setProperty("VideoMode", "Mode4");
+    retVal = setProperty(node_map_, "VideoMode", "Mode4");
   }
   else if (videoMode.compare("320x240") == 0)
   {
-    retVal = setProperty("VideoMode", "Mode5");
+    retVal = setProperty(node_map_, "VideoMode", "Mode5");
   }
   else
   {
@@ -288,16 +132,16 @@ bool FlirCamera::setImageControlFormats(flir_camera_driver::FlirConfig &config)
   bool retVal = true;
 
   // Apply minimum to offset X
-  retVal = setProperty("OffsetX", config.image_format_x_offset);
+  retVal = setProperty(node_map_, "OffsetX", config.image_format_x_offset);
   // Apply minimum to offset Y
-  retVal = setProperty("OffsetY", config.image_format_y_offset);
+  retVal = setProperty(node_map_, "OffsetY", config.image_format_y_offset);
 
   // Set maximum width
-  retVal = setProperty("Width", config.image_format_roi_width);
-  retVal = setProperty("Height", config.image_format_roi_height);
+  retVal = setProperty(node_map_, "Width", config.image_format_roi_width);
+  retVal = setProperty(node_map_, "Height", config.image_format_roi_height);
 
   // Set Pixel Format
-  retVal = setProperty("PixelFormat", config.image_format_color_coding);
+  retVal = setProperty(node_map_, "PixelFormat", config.image_format_color_coding);
 
   return retVal;
 }
@@ -405,6 +249,9 @@ int FlirCamera::connect()
       // Retrieve GenICam nodemap
       node_map_ = &pCam_->GetNodeMap();
 
+      //TODO @mhosmar - detect model and set camera_ accordingly;
+      camera_.reset(new Camera(node_map_));
+
       // Configure chunk data - Enable Metadata
       // err = FlirCamera::ConfigureChunkData(*node_map_);
       if (err < 0)
@@ -414,14 +261,13 @@ int FlirCamera::connect()
 
       // NOTE: Brightness is termed black level in GenICam
       float black_level = 1.7;
-      setProperty("BlackLevel", black_level);
+      setProperty(node_map_, "BlackLevel", black_level);
     }
     catch (const Spinnaker::Exception &e)
     {
       ROS_ERROR_STREAM_ONCE("FlirCamera::connect Failed to connect to camera. Error: " << e.what());
       result = -1;
     }
-    return result;
 
     // TODO: Get camera info to check if camera is running in color or mono mode
     /*
@@ -431,6 +277,7 @@ int FlirCamera::connect()
     isColor_ = cInfo.isColorCamera;
     */
   }
+  return result;
 }
 
 int FlirCamera::disconnect()
@@ -474,7 +321,7 @@ int FlirCamera::start()
   catch (Spinnaker::Exception &e)
   {
     ROS_ERROR_STREAM_ONCE("FlirCamera::start Failed to start capture with Error: " << e.what());
-    int result = -1;
+    result = -1;
   }
   return result;
 }
@@ -535,33 +382,34 @@ int FlirCamera::grabImage(sensor_msgs::Image &image, const std::string &frame_id
         // Set the image encoding
         std::string imageEncoding = sensor_msgs::image_encodings::MONO8;
 
-        Spinnaker::GenApi::IEnumerationT<Spinnaker::PixelColorFilterEnums>& bayer_format = pCam_->PixelColorFilter;
+        Spinnaker::GenApi::CEnumerationPtr color_filter_ptr =
+                              static_cast<Spinnaker::GenApi::CEnumerationPtr>(node_map_->GetNode("PixelColorFilter"));
 
-
+        Spinnaker::GenICam::gcstring color_filter_str = color_filter_ptr->ToString();
         Spinnaker::GenICam::gcstring bayer_rg_str = "BayerRG";
         Spinnaker::GenICam::gcstring bayer_gr_str = "BayerGR";
         Spinnaker::GenICam::gcstring bayer_gb_str = "BayerGB";
         Spinnaker::GenICam::gcstring bayer_bg_str = "BayerBG";
 
         // if(isColor_ && bayer_format != NONE)
-        if (bayer_format != Spinnaker::PixelColorFilter_None)
+        if (color_filter_ptr->GetCurrentEntry() != color_filter_ptr->GetEntryByName("None"))
         {
           if (bitsPerPixel == 16)
           {
             // 16 Bits per Pixel
-            if ((*bayer_format).compare(bayer_rg_str) == 0)
+            if (color_filter_str.compare(bayer_rg_str) == 0)
             {
               imageEncoding = sensor_msgs::image_encodings::BAYER_RGGB16;
             }
-            else if ((*bayer_format).compare(bayer_gr_str) == 0)
+            else if (color_filter_str.compare(bayer_gr_str) == 0)
             {
               imageEncoding = sensor_msgs::image_encodings::BAYER_GRBG16;
             }
-            else if ((*bayer_format).compare(bayer_gb_str) == 0)
+            else if (color_filter_str.compare(bayer_gb_str) == 0)
             {
               imageEncoding = sensor_msgs::image_encodings::BAYER_GBRG16;
             }
-            else if ((*bayer_format).compare(bayer_bg_str) == 0)
+            else if (color_filter_str.compare(bayer_bg_str) == 0)
             {
               imageEncoding = sensor_msgs::image_encodings::BAYER_BGGR16;
             }
@@ -573,19 +421,19 @@ int FlirCamera::grabImage(sensor_msgs::Image &image, const std::string &frame_id
           else
           {
             // 8 Bits per Pixel
-            if ((*bayer_format).compare(bayer_rg_str) == 0)
+            if (color_filter_str.compare(bayer_rg_str) == 0)
             {
               imageEncoding = sensor_msgs::image_encodings::BAYER_RGGB8;
             }
-            else if ((*bayer_format).compare(bayer_gr_str) == 0)
+            else if (color_filter_str.compare(bayer_gr_str) == 0)
             {
               imageEncoding = sensor_msgs::image_encodings::BAYER_GRBG8;
             }
-            else if ((*bayer_format).compare(bayer_gb_str) == 0)
+            else if (color_filter_str.compare(bayer_gb_str) == 0)
             {
               imageEncoding = sensor_msgs::image_encodings::BAYER_GBRG8;
             }
-            else if ((*bayer_format).compare(bayer_bg_str) == 0)
+            else if (color_filter_str.compare(bayer_bg_str) == 0)
             {
               imageEncoding = sensor_msgs::image_encodings::BAYER_BGGR8;
             }
@@ -704,175 +552,6 @@ void FlirCamera::setDesiredCamera(const uint32_t &id)
 // }
 
 
-
-bool FlirCamera::setProperty(const std::string &property_name, const std::string &entry_name)
-{
-  // *** NOTES ***
-  // Enumeration nodes are slightly more complicated to set than other
-  // nodes. This is because setting an enumeration node requires working
-  // with two nodes instead of the usual one.
-  //
-  // As such, there are a number of steps to setting an enumeration node:
-  // retrieve the enumeration node from the nodemap, retrieve the desired
-  // entry node from the enumeration node, retrieve the integer value from
-  // the entry node, and set the new value of the enumeration node with
-  // the integer value from the entry node.
-  Spinnaker::GenApi::CEnumerationPtr enumerationPtr = node_map_->GetNode(property_name.c_str());
-
-  if (!Spinnaker::GenApi::IsImplemented(enumerationPtr))
-  {
-    ROS_ERROR_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Enumeration name " << property_name << " not implemented.");
-    return false;
-  }
-
-  if (Spinnaker::GenApi::IsAvailable(enumerationPtr))
-  {
-    if (Spinnaker::GenApi::IsWritable(enumerationPtr))
-    {
-      Spinnaker::GenApi::CEnumEntryPtr enumEmtryPtr = enumerationPtr->GetEntryByName(entry_name.c_str());
-
-      if (Spinnaker::GenApi::IsAvailable(enumEmtryPtr))
-      {
-        if (Spinnaker::GenApi::IsReadable(enumEmtryPtr))
-        {
-          enumerationPtr->SetIntValue(enumEmtryPtr->GetValue());
-
-          ROS_INFO_STREAM_ONCE("[FlirCamera]: (" << serial_ <<  ") " << property_name << " set to " <<
-            enumerationPtr->GetCurrentEntry()->GetSymbolic() << ".");
-
-          return true;
-        }
-        else
-        {
-          ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Entry name " << entry_name << " not writable.");
-        }
-      }
-      else
-      {
-        ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Entry name " << entry_name << " not available.");
-      }
-    }
-    else
-    {
-      ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Enumeration " << property_name << " not writable.");
-    }
-  }
-  else
-  {
-    ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Enumeration " << property_name << " not available.");
-  }
-  return false;
-}
-
-bool FlirCamera::setProperty(const std::string &property_name, const float& value)
-{
-  Spinnaker::GenApi::CFloatPtr floatPtr = node_map_->GetNode(property_name.c_str());
-
-  if (!Spinnaker::GenApi::IsImplemented(floatPtr))
-  {
-    ROS_ERROR_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Feature name " << property_name << " not implemented.");
-    return false;
-  }
-  if (Spinnaker::GenApi::IsAvailable(floatPtr))
-  {
-    if (Spinnaker::GenApi::IsWritable(floatPtr))
-    {
-      floatPtr->SetValue(value);
-      ROS_INFO_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") " <<  property_name << " set to " << floatPtr->GetValue() << ".");
-      return true;
-    } else {
-      ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Feature " <<
-       property_name << " not writable.");
-    }
-  } else {
-    ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Feature " <<
-      property_name << " not available.");
-  }
-  return false;
-}
-
-
-bool FlirCamera::setProperty(const std::string &property_name, const bool &value)
-{
-  Spinnaker::GenApi::CBooleanPtr boolPtr = node_map_->GetNode(property_name.c_str());
-  if (!Spinnaker::GenApi::IsImplemented(boolPtr))
-  {
-    ROS_ERROR_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Feature name " << property_name << " not implemented.");
-    return false;
-  }
-  if (Spinnaker::GenApi::IsAvailable(boolPtr))
-  {
-    if (Spinnaker::GenApi::IsWritable(boolPtr))
-    {
-      boolPtr->SetValue(value);
-      ROS_INFO_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") " << property_name << " set to " << boolPtr->GetValue() << ".");
-      return true;
-    }
-    else
-    {
-      ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Feature " << property_name << " not writable.");
-    }
-  }
-  else
-  {
-    ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Feature " <<  property_name << " not available.");
-  }
-  return false;
-}
-
-bool FlirCamera::setProperty(const std::string &property_name, const int &value)
-{
-  Spinnaker::GenApi::CIntegerPtr intPtr = node_map_->GetNode(property_name.c_str());
-  if (!Spinnaker::GenApi::IsImplemented(intPtr))
-  {
-    ROS_ERROR_STREAM_ONCE("[FlirCamera]: (" << serial_ <<  ") Feature name " << property_name << " not implemented.");
-    return false;
-  }
-  if (Spinnaker::GenApi::IsAvailable(intPtr))
-  {
-    if (Spinnaker::GenApi::IsWritable(intPtr))
-    {
-      intPtr->SetValue(value);
-      ROS_INFO_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") " << property_name << " set to " << intPtr->GetValue() << ".");
-      return true;
-    }
-    else
-    {
-      ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Feature " << property_name << " not writable.");
-    }
-  }
-  else
-  {
-    ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Feature " << property_name << " not available.");
-  }
-  return false;
-}
-
-bool FlirCamera::setMaxInt(const std::string &property_name)
-{
-  Spinnaker::GenApi::CIntegerPtr intPtr =  node_map_->GetNode(property_name.c_str());
-
-  if (Spinnaker::GenApi::IsAvailable(intPtr))
-  {
-    if (Spinnaker::GenApi::IsWritable(intPtr))
-    {
-      intPtr->SetValue(intPtr->GetMax());
-      ROS_INFO_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") " << property_name << " set to " << intPtr->GetValue() << ".");
-      return true;
-    }
-    else
-    {
-      ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Feature " << property_name << " not writable.");
-    }
-  }
-  else
-  {
-    ROS_WARN_STREAM_ONCE("[FlirCamera]: (" << serial_ << ") Feature " << property_name << " not available.");
-  }
-  return false;
-}
-
-
 int FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
 {
   int result = 0;
@@ -921,7 +600,7 @@ int FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
 
     ROS_INFO_STREAM_ONCE("Enabling entries...");
 
-    for (int i = 0; i < entries.size(); i++)
+    for (unsigned int i = 0; i < entries.size(); i++)
     {
       // Select entry to be enabled
       Spinnaker::GenApi::CEnumEntryPtr ptrChunkSelectorEntry = entries.at(i);
@@ -961,4 +640,5 @@ int FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
     result = -1;
   }
   return result;
+}
 }

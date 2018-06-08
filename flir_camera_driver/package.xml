@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>flir_camera_driver</name>
-  <version>0.13.1</version>
-  <description>Point Grey camera driver based on libflycapture2.</description>
+  <version>0.0.0</version>
+  <description>Flir camera driver based on Spinnaker.</description>
 
-  <maintainer email="mpurvis@clearpathrobotics.com">Mike Purvis</maintainer>
+  <maintainer email="mhosmar@clearpathrobotics.com">Mike Hosmar</maintainer>
 
   <license>BSD</license>
 
@@ -14,8 +14,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>curl</build_depend>  <!-- to get ca-certificates for downloading flycapture -->
-  <build_depend>dpkg</build_depend>  <!-- for unpacking flycapture debs -->
+  <build_depend>curl</build_depend>  <!-- to get ca-certificates for downloading Spinnaker -->
+  <build_depend>dpkg</build_depend>  <!-- for unpacking Spinnaker debs -->
 
   <depend>roscpp</depend>
   <depend>nodelet</depend>
@@ -27,13 +27,12 @@
   <depend>dynamic_reconfigure</depend>
   <depend>diagnostic_updater</depend>
 
-  <!-- Dependencies of libflycapture -->
+  <!-- Dependencies of libSpinnaker -->
   <depend>libusb-1.0-dev</depend>
-  <depend>libraw1394-dev</depend>
 
   <exec_depend>image_proc</exec_depend>
   <exec_depend>stereo_image_proc</exec_depend>
-  
+
   <test_depend>roslaunch</test_depend>
   <test_depend>roslint</test_depend>
 
