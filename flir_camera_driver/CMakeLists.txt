@@ -69,7 +69,7 @@ target_link_libraries(spinnaker_test_node
 add_dependencies(FlirCameraLib ${PROJECT_NAME}_gencfg)
 
 
-add_library(Camera src/camera.cpp)
+add_library(Camera src/camera.cpp src/cm3.cpp)
 target_link_libraries(Camera ${catkin_LIBRARIES})
 add_dependencies(Camera ${PROJECT_NAME}_gencfg)
 
