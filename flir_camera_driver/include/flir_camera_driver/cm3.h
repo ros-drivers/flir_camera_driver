@@ -8,6 +8,8 @@ class Cm3 : public Camera
 public:
   Cm3(Spinnaker::GenApi::INodeMap* node_map);
   ~Cm3();
+  bool setFrameRate(const float frame_rate);
+  bool setNewConfiguration(FlirConfig& config, const uint32_t& level);
 };
 }
 #endif  // CM3_H

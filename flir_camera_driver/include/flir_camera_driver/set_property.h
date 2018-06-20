@@ -7,7 +7,7 @@
 
 namespace flir_camera_driver
 {
-bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& property_name, const std::string& entry_name)
+inline bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& property_name, const std::string& entry_name)
 {
   // *** NOTES ***
   // Enumeration nodes are slightly more complicated to set than other
@@ -67,7 +67,7 @@ bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& prope
   return false;
 }
 
-bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& property_name, const float& value)
+inline bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& property_name, const float& value)
 {
   Spinnaker::GenApi::CFloatPtr floatPtr = node_map->GetNode(property_name.c_str());
 
@@ -97,7 +97,7 @@ bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& prope
   return false;
 }
 
-bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& property_name, const bool& value)
+inline bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& property_name, const bool& value)
 {
   Spinnaker::GenApi::CBooleanPtr boolPtr = node_map->GetNode(property_name.c_str());
   if (!Spinnaker::GenApi::IsImplemented(boolPtr))
@@ -126,7 +126,7 @@ bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& prope
   return false;
 }
 
-bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& property_name, const int& value)
+inline bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& property_name, const int& value)
 {
   Spinnaker::GenApi::CIntegerPtr intPtr = node_map->GetNode(property_name.c_str());
   if (!Spinnaker::GenApi::IsImplemented(intPtr))
@@ -155,7 +155,7 @@ bool setProperty(Spinnaker::GenApi::INodeMap *node_map, const std::string& prope
   return false;
 }
 
-bool setMaxInt(Spinnaker::GenApi::INodeMap *node_map, const std::string& property_name)
+inline bool setMaxInt(Spinnaker::GenApi::INodeMap *node_map, const std::string& property_name)
 {
   Spinnaker::GenApi::CIntegerPtr intPtr = node_map->GetNode(property_name.c_str());
 

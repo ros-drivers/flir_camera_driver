@@ -7,7 +7,7 @@ bool Camera::setFrameRate(const float frame_rate)
   // This enables the "AcquisitionFrameRateEnabled"
   //======================================
 
-  Spinnaker::GenApi::CBooleanPtr ptrAcquisitionFrameRateEnable = node_map_->GetNode("AcquisitionFrameRateEnabled");
+  Spinnaker::GenApi::CBooleanPtr ptrAcquisitionFrameRateEnable = node_map_->GetNode("AcquisitionFrameRateEnable");
   if (!IsAvailable(ptrAcquisitionFrameRateEnable) || !IsWritable(ptrAcquisitionFrameRateEnable))
   {
     ROS_ERROR_ONCE("Unable to enable the AcquisitionFrameRateEnable. Aborting... %u %u \n",

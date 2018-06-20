@@ -17,8 +17,8 @@ class Camera
 public:
   Camera(Spinnaker::GenApi::INodeMap *node_map);
   ~Camera();
-  bool setFrameRate(const float frame_rate);
-  bool setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level);
+  virtual bool setFrameRate(const float frame_rate);
+  virtual bool setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level);
 
 protected:
   Spinnaker::GenApi::INodeMap *node_map_;
