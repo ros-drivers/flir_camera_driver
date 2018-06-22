@@ -153,44 +153,9 @@ public:
   * \param id serial number for the camera.  Should be something like 10491081.
   */
   void setDesiredCamera(const uint32_t &id);
-
-  /*!
-  * \brief Set parameters relative to GigE cameras.
-  *
-  * \param auto_packet_size Flag stating if packet size should be automatically determined or not.
-  * \param packet_size The packet size value to use if auto_packet_size is false.
-  */
-  // TODO(tthomas): Implement later
-  // void setGigEParameters(bool auto_packet_size, unsigned int packet_size, unsigned int packet_delay);
-
   std::vector<uint32_t> getAttachedCameras();
 
-  /*!
-  * \brief Gets the current operating temperature.
-  *
-  * Gets the camera's current reported operating temperature.
-  *
-  * \return The reported temperature in Celsius.
-  */
-  // TODO(tthomas): Implement later
-  // float getCameraTemperature();
-
   void setGain(const float& gain);
-
-  // TODO(tthomas): Implement the following methods later
-  // void setBRWhiteBalance(bool auto_white_balance, uint16_t &blue, uint16_t &red);
-
-  // uint getGain();
-
-  // uint getShutter();
-
-  // uint getBrightness();
-
-  // uint getExposure();
-
-  // uint getWhiteBalance();
-
-  // uint getROIPosition();
 
   uint32_t getSerial()
   {
@@ -242,66 +207,7 @@ private:
   // and each image.
   int ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap);
 
-  /*!
-  * \brief Changes the video mode of the connected camera.
-  *
-  * This function will change the camera to the desired videomode and allow up the maximum framerate for that mode.
-  * \param videoMode string of desired video mode, will be changed if unsupported.
-  */
-  // void setVideoMode(FlyCapture2::VideoMode &videoMode);
-  bool setVideoMode(const std::string& videoMode);
-
-  bool setImageControlFormats(flir_camera_driver::FlirConfig &config);
-
-
-  /*!
-  * \brief Gets the current frame rate.
-  *
-  * Gets the camera's current reported frame rate.
-  *
-  * \return The reported frame rate.
-  */
-  // TODO(tthomas): Implement later
-  // float getCameraFrameRate();
-
-
-  /*!
-  * \brief Will autoconfigure the packet size of the GigECamera with the given GUID.
-  *
-  * Note that this is expected only to work for GigE cameras, and only if the camera
-  * is not connected.
-  *
-  * \param guid the camera to autoconfigure
-  */
-  // TODO(tthomas): Implement later
-  // void setupGigEPacketSize(FlyCapture2::PGRGuid & guid);
-
-  /*!
-  * \brief Will configure the packet size of the GigECamera with the given GUID to a given value.
-  *
-  * Note that this is expected only to work for GigE cameras, and only if the camera
-  * is not connected.
-  *
-  * \param guid the camera to autoconfigure
-  * \param packet_size The packet size value to use.
-  */
-  // TODO(tthomas): Implement later
-  // void setupGigEPacketSize(FlyCapture2::PGRGuid & guid, unsigned int packet_size);
-
-  /*!
-  * \brief Will configure the packet delay of the GigECamera with the given GUID to a given value.
-  *
-  * Note that this is expected only to work for GigE cameras, and only if the camera
-  * is not connected.
-  *
-  * \param guid the camera to autoconfigure
-  * \param packet_delay The packet delay value to use.
-  */
-  // TODO(tthomas): Implement later
-  // void setupGigEPacketDelay(FlyCapture2::PGRGuid & guid, unsigned int packet_delay);
-
 public:
-  bool setFrameRate(const float frame_rate);
 
 };
 }

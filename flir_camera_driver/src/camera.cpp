@@ -175,6 +175,120 @@ bool Camera::setNewConfiguration(FlirConfig& config, const uint32_t& level)
   return retVal;
 }
 
+bool Camera::setVideoMode(const std::string& videoMode)
+{
+
+  ROS_INFO_STREAM_ONCE("\n\n videoMode: " << videoMode << "\n\n");
+
+  // return true if we can set the video mode as desired.
+  bool retVal = true;
+
+  if (videoMode.compare("1280x960") == 0)
+  {
+    retVal = setProperty(node_map_, "VideoMode", "Mode0");
+  }
+  else if (videoMode.compare("640x480_pixel_aggregation") == 0)
+  {
+    retVal = setProperty(node_map_, "VideoMode", "Mode1");
+  }
+  else if (videoMode.compare("640x480_pixel_decimation") == 0)
+  {
+    retVal = setProperty(node_map_, "VideoMode", "Mode4");
+  }
+  else if (videoMode.compare("320x240") == 0)
+  {
+    retVal = setProperty(node_map_, "VideoMode", "Mode5");
+  }
+  else
+  {
+    ROS_ERROR_ONCE("Video Mode Unknown!");
+    retVal = false;
+  }
+
+  return retVal;
+}
+
+
+// Image Size and Pixel Format
+bool Camera::setImageControlFormats(flir_camera_driver::FlirConfig &config)
+{
+
+  // return true if we can set values as desired.
+  bool retVal = true;
+
+  // Apply minimum to offset X
+  retVal = setProperty(node_map_, "OffsetX", config.image_format_x_offset);
+  // Apply minimum to offset Y
+  retVal = setProperty(node_map_, "OffsetY", config.image_format_y_offset);
+
+  // Set maximum width
+  retVal = setProperty(node_map_, "Width", config.image_format_roi_width);
+  retVal = setProperty(node_map_, "Height", config.image_format_roi_height);
+
+  // Set Pixel Format
+  retVal = setProperty(node_map_, "PixelFormat", config.image_format_color_coding);
+
+  return retVal;
+}
+
+/*
+void Camera::setGigEParameters(bool auto_packet_size, unsigned int packet_size, unsigned int packet_delay)
+{
+}
+
+void Camera::setupGigEPacketSize(PGRGuid & guid)
+{
+}
+
+void Camera::setupGigEPacketSize(PGRGuid & guid, unsigned int packet_size)
+{
+
+}
+
+void Camera::setupGigEPacketDelay(PGRGuid & guid, unsigned int packet_delay)
+{
+}
+
+*/
+
+// uint FlirCamera::getGain()
+// {
+//   return metadata_.embeddedGain >> 20;
+// }
+
+// uint Camera::getShutter()
+// {
+//   return metadata_.embeddedShutter >> 20;
+// }
+
+// uint Camera::getBrightness()
+// {
+//   return metadata_.embeddedTimeStamp >> 20;
+// }
+
+// uint Camera::getExposure()
+// {
+//   return metadata_.embeddedBrightness >> 20;
+// }
+
+// uint Camera::getWhiteBalance()
+// {
+//   return metadata_.embeddedExposure >> 8;
+// }
+
+// uint Camera::getROIPosition()
+// {
+//   return metadata_.embeddedROIPosition >> 24;
+// }
+
+//float Camera::getCameraTemperature()
+//{
+//}
+
+//float Camera::getCameraFrameRate()
+//{
+//}
+
 Camera::Camera(Spinnaker::GenApi::INodeMap* node_map)
 {
   node_map_ = node_map;

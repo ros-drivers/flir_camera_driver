@@ -56,12 +56,6 @@ FlirCamera::~FlirCamera()
   system_->ReleaseInstance();
 }
 
-
-bool FlirCamera::setFrameRate(const float frame_rate)
-{
-  return camera_->setFrameRate(frame_rate);
-}
-
 bool FlirCamera::setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level)
 {
   // Check if camera is connected
@@ -87,102 +81,6 @@ void FlirCamera::setGain(const float& gain)
   // Set gain
   setProperty(node_map_, "Gain", gain);
 }
-
-
-
-bool FlirCamera::setVideoMode(const std::string& videoMode)
-{
-
-  ROS_INFO_STREAM_ONCE("\n\n videoMode: " << videoMode << "\n\n");
-
-  // return true if we can set the video mode as desired.
-  bool retVal = true;
-
-  if (videoMode.compare("1280x960") == 0)
-  {
-    retVal = setProperty(node_map_, "VideoMode", "Mode0");
-  }
-  else if (videoMode.compare("640x480_pixel_aggregation") == 0)
-  {
-    retVal = setProperty(node_map_, "VideoMode", "Mode1");
-  }
-  else if (videoMode.compare("640x480_pixel_decimation") == 0)
-  {
-    retVal = setProperty(node_map_, "VideoMode", "Mode4");
-  }
-  else if (videoMode.compare("320x240") == 0)
-  {
-    retVal = setProperty(node_map_, "VideoMode", "Mode5");
-  }
-  else
-  {
-    ROS_ERROR_ONCE("Video Mode Unknown!");
-    retVal = false;
-  }
-
-  return retVal;
-
-}
-
-// Image Size and Pixel Format
-bool FlirCamera::setImageControlFormats(flir_camera_driver::FlirConfig &config)
-{
-
-  // return true if we can set values as desired.
-  bool retVal = true;
-
-  // Apply minimum to offset X
-  retVal = setProperty(node_map_, "OffsetX", config.image_format_x_offset);
-  // Apply minimum to offset Y
-  retVal = setProperty(node_map_, "OffsetY", config.image_format_y_offset);
-
-  // Set maximum width
-  retVal = setProperty(node_map_, "Width", config.image_format_roi_width);
-  retVal = setProperty(node_map_, "Height", config.image_format_roi_height);
-
-  // Set Pixel Format
-  retVal = setProperty(node_map_, "PixelFormat", config.image_format_color_coding);
-
-  return retVal;
-}
-
-
-
-
-
-/*
-
-void FlirCamera::setTimeout(const double &timeout)
-{
-}
-
-float FlirCamera::getCameraTemperature()
-{
-}
-
-float FlirCamera::getCameraFrameRate()
-{
-}
-
-
-void FlirCamera::setGigEParameters(bool auto_packet_size, unsigned int packet_size, unsigned int packet_delay)
-{
-}
-
-void FlirCamera::setupGigEPacketSize(PGRGuid & guid)
-{
-}
-
-void FlirCamera::setupGigEPacketSize(PGRGuid & guid, unsigned int packet_size)
-{
-
-}
-
-void FlirCamera::setupGigEPacketDelay(PGRGuid & guid, unsigned int packet_delay)
-{
-}
-
-*/
 
 int FlirCamera::connect()
 {
@@ -498,36 +396,10 @@ void FlirCamera::grabStereoImage(sensor_msgs::Image &image, const std::string &f
 
 }
 
-// TODO @tthomas
-// uint FlirCamera::getGain()
-// {
-//   return metadata_.embeddedGain >> 20;
-// }
+//void Camera::setTimeout(const double &timeout)
+//{
+//}
 
-// uint FlirCamera::getShutter()
-// {
-//   return metadata_.embeddedShutter >> 20;
-// }
-
-// uint FlirCamera::getBrightness()
-// {
-//   return metadata_.embeddedTimeStamp >> 20;
-// }
-
-// uint FlirCamera::getExposure()
-// {
-//   return metadata_.embeddedBrightness >> 20;
-// }
-
-// uint FlirCamera::getWhiteBalance()
-// {
-//   return metadata_.embeddedExposure >> 8;
-// }
-
-// uint FlirCamera::getROIPosition()
-// {
-//   return metadata_.embeddedROIPosition >> 24;
-// }
 
 void FlirCamera::setDesiredCamera(const uint32_t &id)
 {
