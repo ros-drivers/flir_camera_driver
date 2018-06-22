@@ -2,6 +2,13 @@
 
 namespace flir_camera_driver
 {
+bool Camera::init()
+{
+  // Set Throughput to maximum
+  //=====================================
+  setMaxInt(node_map_, "DeviceLinkThroughputLimit");
+  return true;
+}
 bool Camera::setFrameRate(const float frame_rate)
 {
   // This enables the "AcquisitionFrameRateEnabled"
@@ -171,5 +178,6 @@ bool Camera::setNewConfiguration(FlirConfig& config, const uint32_t& level)
 Camera::Camera(Spinnaker::GenApi::INodeMap* node_map)
 {
   node_map_ = node_map;
+  init();
 }
 }

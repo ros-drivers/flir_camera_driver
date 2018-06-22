@@ -23,6 +23,7 @@ public:
 protected:
   Spinnaker::GenApi::INodeMap *node_map_;
 
+  bool init();
 };
 }
 #endif //_CAMERA_H_
