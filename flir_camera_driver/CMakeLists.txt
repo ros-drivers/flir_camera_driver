@@ -79,10 +79,9 @@ target_link_libraries(FlirCameraNodelet FlirCameraLib Camera ${catkin_LIBRARIES}
 # add_library(FlirStereoCameraNodelet src/stereo_nodelet.cpp)
 # target_link_libraries(FlirStereoCameraNodelet FlirCameraLib ${catkin_LIBRARIES})
 
-# add_executable(flir_camera_node src/node.cpp)
-# target_link_libraries(flir_camera_node FlirCameraLib ${catkin_LIBRARIES})
-# set_target_properties(flir_camera_node
-#                       PROPERTIES OUTPUT_NAME camera_node PREFIX "")
+add_executable(flir_camera_node src/node.cpp)
+target_link_libraries(flir_camera_node FlirCameraLib ${catkin_LIBRARIES})
+set_target_properties(flir_camera_node PROPERTIES OUTPUT_NAME camera_node PREFIX "")
 
 # add_executable(flir_stereo_node src/stereo_node.cpp)
 # target_link_libraries(flir_stereo_node FlirCameraLib ${catkin_LIBRARIES})
@@ -98,8 +97,8 @@ install(TARGETS
   FlirCameraLib
   FlirCameraNodelet
   Camera
+  flir_camera_node
   # FlirStereoCameraNodelet
-  # flir_camera_node
   # flir_list_cameras
   # flir_stereo_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
