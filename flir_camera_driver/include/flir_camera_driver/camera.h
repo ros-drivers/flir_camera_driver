@@ -11,6 +11,13 @@
 #include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
 
+//*******************************************
+// This Class contains camera control functions.
+// This base Class is based on the BlackFly S.
+// Different cameras can extend/ override
+// this class for any specific differences.
+//*******************************************
+
 namespace flir_camera_driver {
 class Camera
 {
@@ -19,10 +26,25 @@ public:
   ~Camera();
   virtual bool setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level);
 
+  /** Parameters that need a sensor to be stopped completely when changed. */
+  static const uint8_t LEVEL_RECONFIGURE_CLOSE = 3;
+
+  /** Parameters that need a sensor to stop streaming when changed. */
+  static const uint8_t LEVEL_RECONFIGURE_STOP = 1;
+
+  /** Parameters that can be changed while a sensor is streaming. */
+  static const uint8_t LEVEL_RECONFIGURE_RUNNING = 0;
+
+  virtual void setGain(const float& gain);
+  uint getHeightMax();
+  uint getWidthMax();
 protected:
   Spinnaker::GenApi::INodeMap *node_map_;
 
   bool init();
+
+  int height_max_;
+  int width_max_;
 
   /*!
   * \brief Changes the video mode of the connected camera.
@@ -30,7 +52,6 @@ protected:
   * This function will change the camera to the desired videomode and allow up the maximum framerate for that mode.
   * \param videoMode string of desired video mode, will be changed if unsupported.
   */
-  virtual bool setVideoMode(const std::string& videoMode);
   virtual bool setFrameRate(const float frame_rate);
   virtual bool setImageControlFormats(flir_camera_driver::FlirConfig& config);
   /*!

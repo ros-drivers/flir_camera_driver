@@ -43,6 +43,7 @@ FlirCamera::FlirCamera()
   , system_(Spinnaker::System::GetInstance())
   , camList_(system_->GetCameras())
   , pCam_(NULL)
+  , camera_(NULL)
   , captureRunning_(false)
 {
   unsigned int num_cameras = camList_.GetSize();
@@ -64,22 +65,49 @@ bool FlirCamera::setNewConfiguration(flir_camera_driver::FlirConfig &config, con
     FlirCamera::connect();
   }
 
+  bool ret_val = false;
   // Activate mutex to prevent us from grabbing images during this time
-  boost::mutex::scoped_lock scopedLock(mutex_);
+  std::lock_guard<std::mutex> scopedLock(mutex_);
 
-  return camera_->setNewConfiguration(config, level);
+  if(level >= LEVEL_RECONFIGURE_STOP)
+  {
+    ROS_DEBUG("FlirCamera::setNewConfiguration: Reconfigure Stop.");
+    bool capture_was_running = captureRunning_;
+    start(); // For some reason some params only work after aquisition has be started once.
+    stop();
+    ret_val = camera_->setNewConfiguration(config, level);
+    if (capture_was_running)
+      start();
+  }
+  else
+  {
+    ret_val = camera_->setNewConfiguration(config, level);
+  }
 
-
+  return ret_val;
 }  // end setNewConfiguration
 
 
 void FlirCamera::setGain(const float& gain)
 {
-  // Turn auto gain off
-  pCam_->GainAuto.SetValue(Spinnaker::GainAutoEnums::GainAuto_Off);
+  if (camera_)
+    camera_->setGain(gain);
+}
 
-  // Set gain
-  setProperty(node_map_, "Gain", gain);
+uint FlirCamera::getHeightMax()
+{
+  if(camera_)
+    return camera_->getHeightMax();
+  else
+    return 0;
+}
+
+uint FlirCamera::getWidthMax()
+{
+  if (camera_)
+    return camera_->getWidthMax();
+  else
+    return 0;
 }
 
 int FlirCamera::connect()
@@ -156,10 +184,6 @@ int FlirCamera::connect()
       {
         return err;
       }
-
-      // NOTE: Brightness is termed black level in GenICam
-      float black_level = 1.7;
-      setProperty(node_map_, "BlackLevel", black_level);
     }
     catch (const Spinnaker::Exception &e)
     {
@@ -182,7 +206,7 @@ int FlirCamera::disconnect()
 {
   int result = 0;
 
-  boost::mutex::scoped_lock scopedLock(mutex_);
+  std::lock_guard<std::mutex> scopedLock(mutex_);
   captureRunning_ = false;
 
   // Check if camera is connected
@@ -250,7 +274,7 @@ int FlirCamera::grabImage(sensor_msgs::Image &image, const std::string &frame_id
 {
   int result = 0;
 
-  boost::mutex::scoped_lock scopedLock(mutex_);
+  std::lock_guard<std::mutex> scopedLock(mutex_);
 
   // Check if Camera is connected and Running
   if (pCam_ && captureRunning_)
@@ -281,7 +305,7 @@ int FlirCamera::grabImage(sensor_msgs::Image &image, const std::string &frame_id
         std::string imageEncoding = sensor_msgs::image_encodings::MONO8;
 
         Spinnaker::GenApi::CEnumerationPtr color_filter_ptr =
-                              static_cast<Spinnaker::GenApi::CEnumerationPtr>(node_map_->GetNode("PixelColorFilter"));
+            static_cast<Spinnaker::GenApi::CEnumerationPtr>(node_map_->GetNode("PixelColorFilter"));
 
         Spinnaker::GenICam::gcstring color_filter_str = color_filter_ptr->ToString();
         Spinnaker::GenICam::gcstring bayer_rg_str = "BayerRG";

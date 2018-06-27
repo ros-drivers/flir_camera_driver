@@ -69,7 +69,7 @@ public:
 
   ~FlirCameraNodelet()
   {
-    boost::mutex::scoped_lock scopedLock(connect_mutex_);
+    std::lock_guard<std::mutex> scopedLock(connect_mutex_);
 
     if(pubThread_)
     {
@@ -105,7 +105,7 @@ private:
 
     try
     {
-      NODELET_DEBUG_ONCE("Dynamic reconfigure callback with level: %d", level);
+      NODELET_DEBUG_ONCE("Dynamic reconfigure callback with level: %u", level);
       flir_.setNewConfiguration(config, level);
 
       // Store needed parameters for the metadata message
@@ -113,34 +113,17 @@ private:
       wb_blue_ = config.white_balance_blue_ratio;
       wb_red_ = config.white_balance_red_ratio;
 
-      // Store CameraInfo binning information
-      if (config.video_mode.compare("1280x960") == 0)
-      {
-        binning_x_ = 1;
-        binning_y_ = 1;
-      }
-      else if (config.video_mode.compare("640x480_pixel_aggregation") == 0 ||
-               config.video_mode.compare("640x480_pixel_decimation") == 0)
-      {
-        binning_x_ = 2;
-        binning_y_ = 2;
-      }
-      else if (config.video_mode.compare("320x240") == 0)
-      {
-        binning_x_ = 4;
-        binning_y_ = 4;
-      }
-      else
-      {
-        binning_x_ = 0;
-        binning_y_ = 0;
-      }
-
+      //No separate param in CameraInfo for binning/decimation
+      binning_x_ = config.image_format_x_binning * config.image_format_x_decimation;
+      binning_y_ = config.image_format_y_binning * config.image_format_y_decimation;
 
       // Store CameraInfo RegionOfInterest information
-      if(config.video_mode.compare("1280x960") == 0 ||
-         config.video_mode.compare("640x480_pixel_aggregation") == 0 ||
-         config.video_mode.compare("640x480_pixel_decimation") == 0)
+      // TODO: Not compliant with CameraInfo message: "A particular ROI always denotes the
+      //       same window of pixels on the camera sensor, regardless of binning settings."
+      //       These values are in the post binned frame.
+      if ((config.image_format_roi_width + config.image_format_roi_height) > 0 &&
+          (config.image_format_roi_width < flir_.getWidthMax() ||
+           config.image_format_roi_height < flir_.getHeightMax()))
       {
         roi_x_offset_ = config.image_format_x_offset;
         roi_y_offset_ = config.image_format_y_offset;
@@ -182,7 +165,7 @@ private:
     // @tthomas - removing subscriber check and logic below as it's leading to mutex locks and crashes currently
     /*
     NODELET_DEBUG_ONCE("Connect callback!");
-    boost::mutex::scoped_lock scopedLock(connect_mutex_); // Grab the mutex.  Wait until we're done initializing before letting this function through.
+    std::lock_guard<std::mutex> scopedLock(connect_mutex_); // Grab the mutex.  Wait until we're done initializing before letting this function through.
     // Check if we should disconnect (there are 0 subscribers to our data)
     if(it_pub_.getNumSubscribers() == 0 && pub_->getPublisher().getNumSubscribers() == 0)
     {
@@ -294,7 +277,7 @@ private:
     // Get the desired frame_id, set to 'camera' if not found
     pnh.param<std::string>("frame_id", frame_id_, "camera");
     // Do not call the connectCb function until after we are done initializing.
-    boost::mutex::scoped_lock scopedLock(connect_mutex_);
+    std::lock_guard<std::mutex> scopedLock(connect_mutex_);
 
     // Start up the dynamic_reconfigure service, note that this needs to stick around after this function ends
     srv_ = boost::make_shared <dynamic_reconfigure::Server<flir_camera_driver::FlirConfig> > (pnh);
@@ -407,7 +390,7 @@ private:
 #if STOP_ON_ERROR
           // Try stopping the camera
           {
-            boost::mutex::scoped_lock scopedLock(connect_mutex_);
+            std::lock_guard<std::mutex> scopedLock(connect_mutex_);
             sub_.shutdown();
           }
 
@@ -480,7 +463,7 @@ private:
 
             // Subscribe to gain and white balance changes
             {
-              boost::mutex::scoped_lock scopedLock(connect_mutex_);
+              std::lock_guard<std::mutex> scopedLock(connect_mutex_);
               sub_ = getMTNodeHandle().subscribe("image_exposure_sequence", 10, &flir_camera_driver::FlirCameraNodelet::gainWBCallback, this);
             }
 
@@ -592,8 +575,7 @@ private:
       NODELET_DEBUG_ONCE("Gain callback:  Setting gain to %f and white balances to %u, %u", msg.gain, msg.white_balance_blue, msg.white_balance_red);
       gain_ = msg.gain;
 
-      float gain = static_cast<float>(gain_);
-      flir_.setGain(gain);
+      flir_.setGain(static_cast<float>(gain_));
       wb_blue_ = msg.white_balance_blue;
       wb_red_ = msg.white_balance_red;
 
@@ -614,7 +596,7 @@ private:
   boost::shared_ptr<diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage> > pub_; ///< Diagnosed publisher, has to be a pointer because of constructor requirements
   ros::Subscriber sub_; ///< Subscriber for gain and white balance changes.
 
-  boost::mutex connect_mutex_;
+  std::mutex connect_mutex_;
 
   diagnostic_updater::Updater updater_; ///< Handles publishing diagnostics messages.
   double min_freq_;
