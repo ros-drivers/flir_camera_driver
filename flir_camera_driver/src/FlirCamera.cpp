@@ -152,7 +152,7 @@ int FlirCamera::connect()
                                     static_cast<Spinnaker::GenApi::CEnumerationPtr>(genTLNodeMap.GetNode("DeviceType"));
 
     if(IsAvailable(device_type_ptr) && IsReadable(device_type_ptr)){
-      ROS_INFO_STREAM("FlirCamera::connect Detected device type: " << device_type_ptr->ToString());
+      ROS_INFO_STREAM("FlirCamera::connect: Detected device type: " << device_type_ptr->ToString());
 
       if(device_type_ptr->GetCurrentEntry() == device_type_ptr->GetEntryByName("U3V"))
       {
@@ -161,7 +161,7 @@ int FlirCamera::connect()
         if(IsAvailable(device_speed_ptr) && IsReadable(device_speed_ptr))
         {
           if(device_speed_ptr->GetCurrentEntry() != device_speed_ptr->GetEntryByName("SuperSpeed"))
-            ROS_ERROR_STREAM("FlirCamera::connect U3V Device not running at Super-Speed. Check Cables! ");
+            ROS_ERROR_STREAM("FlirCamera::connect: U3V Device not running at Super-Speed. Check Cables! ");
         }
       }
       // TODO @tthomas - check if interface is GigE and connect to GigE cam
@@ -175,8 +175,20 @@ int FlirCamera::connect()
       // Retrieve GenICam nodemap
       node_map_ = &pCam_->GetNodeMap();
 
-      //TODO @mhosmar - detect model and set camera_ accordingly;
-      camera_.reset(new Camera(node_map_));
+      // detect model and set camera_ accordingly;
+      Spinnaker::GenApi::CStringPtr model_name = node_map_->GetNode("DeviceModelName");
+      std::string model_name_str(model_name->ToString());
+
+      ROS_INFO("FlirCamera::connect: Camera model name: %s", model_name_str.c_str());
+      if (model_name_str.find("Blackfly S") != std::string::npos)
+        camera_.reset(new Camera(node_map_));
+      else if(model_name_str.find("Chameleon3") != std::string::npos)
+        camera_.reset(new Cm3(node_map_));
+      else
+      {
+        camera_.reset(new Camera(node_map_));
+        ROS_WARN("FlirCamera::connect: Could not detect camera model name.");
+      }
 
       // Configure chunk data - Enable Metadata
       // err = FlirCamera::ConfigureChunkData(*node_map_);
