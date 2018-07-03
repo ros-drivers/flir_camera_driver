@@ -10,6 +10,8 @@ public:
   ~Cm3();
   bool setFrameRate(const float frame_rate);
   bool setNewConfiguration(FlirConfig& config, const uint32_t& level);
+private:
+  bool setImageControlFormats(flir_camera_driver::FlirConfig& config);
 };
 }
 #endif  // CM3_H

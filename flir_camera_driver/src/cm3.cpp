@@ -2,6 +2,14 @@
 
 namespace flir_camera_driver
 {
+Cm3::Cm3(Spinnaker::GenApi::INodeMap* node_map) : Camera(node_map)
+{
+}
+
+Cm3::~Cm3()
+{
+}
+
 bool Cm3::setFrameRate(const float frame_rate)
 {
   bool retVal = true;
@@ -11,7 +19,8 @@ bool Cm3::setFrameRate(const float frame_rate)
 
   // This sets the "AcquisitionFrameRateAuto" to "Off"
   //======================================
-  retVal &= setProperty(node_map_, "AcquisitionFrameRateAuto", "Off");  // different from Bfly S
+  retVal &=
+      setProperty(node_map_, "AcquisitionFrameRateAuto", static_cast<std::string>("Off"));  // different from Bfly S
 
   // This sets the "AcquisitionFrameRate" to X FPS
   // ========================================
@@ -52,14 +61,11 @@ bool Cm3::setNewConfiguration(FlirConfig& config, const uint32_t& level)
 
     retVal &= setProperty(node_map_, "LineSelector", config.line_selector);
     retVal &= setProperty(node_map_, "LineMode", config.line_mode);
-    retVal &= setProperty(node_map_, "LineSource", config.line_source);
+    //retVal &= setProperty(node_map_, "LineSource", config.line_source); // Not available in CM3
 
     // Set auto exposure
     retVal &= setProperty(node_map_, "ExposureMode", config.exposure_mode);
     retVal &= setProperty(node_map_, "ExposureAuto", config.exposure_auto);
-
-    // Set Video Mode, Image and Pixel formats
-    // retVal = FlirCamera::setImageControlFormats(config);
 
     // Set sharpness
     if (IsAvailable(node_map_->GetNode("SharpeningEnable")))
@@ -95,7 +101,7 @@ bool Cm3::setNewConfiguration(FlirConfig& config, const uint32_t& level)
     }
 
     // Set gain
-    retVal &= setProperty(node_map_, "GainSelector", config.gain_selector);
+    //retVal &= setProperty(node_map_, "GainSelector", config.gain_selector); //Not Writeable for CM3
     retVal &= setProperty(node_map_, "GainAuto", config.auto_gain);
     if (config.auto_gain.compare(std::string("Off")) == 0)
     {
@@ -108,7 +114,7 @@ bool Cm3::setNewConfiguration(FlirConfig& config, const uint32_t& level)
     // Set gamma
     if (config.gamma_enable)
     {
-      retVal &= setProperty(node_map_, "GammaEnable", config.gamma_enable);
+      retVal &= setProperty(node_map_, "GammaEnabled", config.gamma_enable);  // CM3 includes -ed
       retVal &= setProperty(node_map_, "Gamma", static_cast<float>(config.gamma));
     }
 
@@ -130,6 +136,61 @@ bool Cm3::setNewConfiguration(FlirConfig& config, const uint32_t& level)
     ROS_ERROR("Spinnaker Exception: %s", e.what());
     return false;
   }
+  return retVal;
+}
+
+// Image Size and Pixel Format
+bool Cm3::setImageControlFormats(flir_camera_driver::FlirConfig &config)
+{
+  // return true if we can set values as desired.
+  bool retVal = true;
+
+  // Set Binning and Decimation
+  //retVal &= setProperty(node_map_, "BinningHorizontal", config.image_format_x_binning);  // Not available on CM3
+  retVal &= setProperty(node_map_, "BinningVertical", config.image_format_y_binning);
+  //retVal &= setProperty(node_map_, "DecimationHorizontal", config.image_format_x_decimation);
+  //retVal &= setProperty(node_map_, "DecimationVertical", config.image_format_y_decimation);
+
+  // Grab the Max values after decimation
+  Spinnaker::GenApi::CIntegerPtr height_max_ptr = node_map_->GetNode("HeightMax");
+  if (!IsAvailable(height_max_ptr) || !IsReadable(height_max_ptr))
+  {
+    ROS_ERROR_ONCE("Unable to read HeightMax");
+    return false;
+  }
+  height_max_ = height_max_ptr->GetValue();
+  Spinnaker::GenApi::CIntegerPtr width_max_ptr = node_map_->GetNode("WidthMax");
+  if (!IsAvailable(width_max_ptr) || !IsReadable(width_max_ptr))
+  {
+    ROS_ERROR_ONCE("Unable to read WidthMax");
+    return false;
+  }
+  width_max_ = width_max_ptr->GetValue();
+
+  // Offset first encase expanding ROI
+  // Apply offset X
+  retVal &= setProperty(node_map_, "OffsetX", 0);
+  // Apply offset Y
+  retVal &= setProperty(node_map_, "OffsetY", 0);
+
+  // Set Width/Height
+  if(config.image_format_roi_width <= 0 || config.image_format_roi_width > width_max_)
+    retVal &= setProperty(node_map_, "Width", width_max_);
+  else
+    retVal &= setProperty(node_map_, "Width", config.image_format_roi_width);
+  if(config.image_format_roi_height <= 0 || config.image_format_roi_height > height_max_)
+    retVal &= setProperty(node_map_, "Height", height_max_);
+  else
+    retVal &= setProperty(node_map_, "Height", config.image_format_roi_height);
+
+  // Apply offset X
+  retVal &= setProperty(node_map_, "OffsetX", config.image_format_x_offset);
+  // Apply offset Y
+  retVal &= setProperty(node_map_, "OffsetY", config.image_format_y_offset);
+
+  // Set Pixel Format
+  retVal &= setProperty(node_map_, "PixelFormat", config.image_format_color_coding);
+
   return retVal;
 }
 }

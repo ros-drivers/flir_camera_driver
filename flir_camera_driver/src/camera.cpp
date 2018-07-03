@@ -73,10 +73,6 @@ try
     retVal &= setProperty(node_map_, "ExposureMode", config.exposure_mode);
     retVal &= setProperty(node_map_, "ExposureAuto", config.exposure_auto);
 
-
-    // Set Video Mode, Image and Pixel formats
-    // retVal = FlirCamera::setImageControlFormats(config);
-
     // Set sharpness
     if (IsAvailable(node_map_->GetNode("SharpeningEnable")))
     {

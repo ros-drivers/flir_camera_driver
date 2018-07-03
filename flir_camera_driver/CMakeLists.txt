@@ -69,12 +69,16 @@ target_link_libraries(spinnaker_test_node
 add_dependencies(FlirCameraLib ${PROJECT_NAME}_gencfg)
 
 
-add_library(Camera src/camera.cpp src/cm3.cpp)
+add_library(Camera src/camera.cpp)
 target_link_libraries(Camera ${catkin_LIBRARIES})
 add_dependencies(Camera ${PROJECT_NAME}_gencfg)
 
+add_library(Cm3 src/cm3.cpp)
+target_link_libraries(Cm3 Camera ${catkin_LIBRARIES})
+add_dependencies(Cm3 ${PROJECT_NAME}_gencfg)
+
 add_library(FlirCameraNodelet src/nodelet.cpp)
-target_link_libraries(FlirCameraNodelet FlirCameraLib Camera ${catkin_LIBRARIES})
+target_link_libraries(FlirCameraNodelet FlirCameraLib Camera Cm3 ${catkin_LIBRARIES})
 
 # add_library(FlirStereoCameraNodelet src/stereo_nodelet.cpp)
 # target_link_libraries(FlirStereoCameraNodelet FlirCameraLib ${catkin_LIBRARIES})
