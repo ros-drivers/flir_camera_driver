@@ -180,16 +180,6 @@ private:
 
   Spinnaker::ChunkData image_metadata_;
 
-
-  // Use the following enum and global constant to select whether chunk data is
-  // displayed from the image or the nodemap.
-  enum chunkDataType
-  {
-    IMAGE,
-    NODEMAP
-  };
-  const chunkDataType chosenChunkData = IMAGE;
-
   std::mutex mutex_; ///< A mutex to make sure that we don't try to grabImages while reconfiguring or vice versa.  Implemented with boost::mutex::scoped_lock.
   volatile bool captureRunning_; ///< A status boolean that checks if the camera has been started and is loading images into its buffer.
 

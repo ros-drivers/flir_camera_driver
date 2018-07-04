@@ -80,31 +80,15 @@ add_dependencies(Cm3 ${PROJECT_NAME}_gencfg)
 add_library(FlirCameraNodelet src/nodelet.cpp)
 target_link_libraries(FlirCameraNodelet FlirCameraLib Camera Cm3 ${catkin_LIBRARIES})
 
-# add_library(FlirStereoCameraNodelet src/stereo_nodelet.cpp)
-# target_link_libraries(FlirStereoCameraNodelet FlirCameraLib ${catkin_LIBRARIES})
-
 add_executable(flir_camera_node src/node.cpp)
 target_link_libraries(flir_camera_node FlirCameraLib ${catkin_LIBRARIES})
 set_target_properties(flir_camera_node PROPERTIES OUTPUT_NAME camera_node PREFIX "")
-
-# add_executable(flir_stereo_node src/stereo_node.cpp)
-# target_link_libraries(flir_stereo_node FlirCameraLib ${catkin_LIBRARIES})
-# set_target_properties(flir_stereo_node
-#                       PROPERTIES OUTPUT_NAME stereo_node PREFIX "")
-
-# add_executable(flir_list_cameras src/list_cameras.cpp)
-# target_link_libraries(flir_list_cameras FlirCameraLib ${catkin_LIBRARIES})
-# set_target_properties(flir_list_cameras
-#                       PROPERTIES OUTPUT_NAME list_cameras PREFIX "")
 
 install(TARGETS
   FlirCameraLib
   FlirCameraNodelet
   Camera
   flir_camera_node
-  # FlirStereoCameraNodelet
-  # flir_list_cameras
-  # flir_stereo_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -123,9 +107,7 @@ install(DIRECTORY config DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 if (CATKIN_ENABLE_TESTING)
   find_package(roslaunch REQUIRED)
-  roslaunch_add_file_check(launch/bumblebee.launch)
   roslaunch_add_file_check(launch/camera.launch)
-  roslaunch_add_file_check(launch/stereo.launch)
 
   find_package(roslint REQUIRED)
   roslint_cpp()

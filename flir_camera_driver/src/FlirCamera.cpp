@@ -424,14 +424,6 @@ int FlirCamera::grabImage(sensor_msgs::Image &image, const std::string &frame_id
 
 }  // end grabImage
 
-
-// TODO: @tthomas - Implement later if needed
-void FlirCamera::grabStereoImage(sensor_msgs::Image &image, const std::string &frame_id,
-  sensor_msgs::Image &second_image, const std::string &second_frame_id)
-{
-
-}
-
 //void Camera::setTimeout(const double &timeout)
 //{
 //}
@@ -442,28 +434,10 @@ void FlirCamera::setDesiredCamera(const uint32_t &id)
   serial_ = id;
 }
 
-// TODO(tthomas)
-// std::vector<uint32_t> FlirCamera::getAttachedCameras()
-// {
-//   std::vector<uint32_t> cameras;
-//   unsigned int num_cameras;
-//   Error error = busMgr_.GetNumOfCameras(&num_cameras);
-//   FlirCamera::handleError("FlirCamera::getAttachedCameras: Could not get number of cameras", error);
-//   for(unsigned int i = 0; i < num_cameras; i++)
-//   {
-//     unsigned int this_serial;
-//     error = busMgr_.GetCameraSerialNumberFromIndex(i, &this_serial);
-//     FlirCamera::handleError("FlirCamera::getAttachedCameras: Could not get get serial number from index", error);
-//     cameras.push_back(this_serial);
-//   }
-//   return cameras;
-// }
-
-
 int FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
 {
   int result = 0;
-  ROS_INFO_STREAM_ONCE("*** CONFIGURING CHUNK DATA ***");
+  ROS_INFO_STREAM("*** CONFIGURING CHUNK DATA ***");
   try
   {
     // Activate chunk mode
@@ -476,7 +450,7 @@ int FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
     Spinnaker::GenApi::CBooleanPtr ptrChunkModeActive = nodeMap.GetNode("ChunkModeActive");
     if (!Spinnaker::GenApi::IsAvailable(ptrChunkModeActive) || !Spinnaker::GenApi::IsWritable(ptrChunkModeActive))
     {
-      ROS_ERROR_STREAM_ONCE("Unable to activate chunk mode. Aborting...");
+      ROS_ERROR_STREAM("Unable to activate chunk mode. Aborting...");
       return -1;
     }
     ptrChunkModeActive->SetValue(true);
@@ -500,13 +474,13 @@ int FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
     Spinnaker::GenApi::CEnumerationPtr ptrChunkSelector = nodeMap.GetNode("ChunkSelector");
     if (!Spinnaker::GenApi::IsAvailable(ptrChunkSelector) || !Spinnaker::GenApi::IsReadable(ptrChunkSelector))
     {
-      ROS_ERROR_STREAM_ONCE("Unable to retrieve chunk selector. Aborting...");
+      ROS_ERROR_STREAM("Unable to retrieve chunk selector. Aborting...");
       return -1;
     }
     // Retrieve entries
     ptrChunkSelector->GetEntries(entries);
 
-    ROS_INFO_STREAM_ONCE("Enabling entries...");
+    ROS_INFO_STREAM("Enabling entries...");
 
     for (unsigned int i = 0; i < entries.size(); i++)
     {
@@ -519,32 +493,32 @@ int FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
       }
       ptrChunkSelector->SetIntValue(ptrChunkSelectorEntry->GetValue());
 
-      ROS_INFO_STREAM_ONCE("\t" << ptrChunkSelectorEntry->GetSymbolic() << ": ");
+      ROS_INFO_STREAM("\t" << ptrChunkSelectorEntry->GetSymbolic() << ": ");
       // Retrieve corresponding boolean
       Spinnaker::GenApi::CBooleanPtr ptrChunkEnable = nodeMap.GetNode("ChunkEnable");
       // Enable the boolean, thus enabling the corresponding chunk data
       if (!Spinnaker::GenApi::IsAvailable(ptrChunkEnable))
       {
-        ROS_INFO_ONCE("Node not available");
+        ROS_INFO("Node not available");
       }
       else if (ptrChunkEnable->GetValue())
       {
-        ROS_INFO_ONCE("Enabled");
+        ROS_INFO("Enabled");
       }
       else if (Spinnaker::GenApi::IsWritable(ptrChunkEnable))
       {
         ptrChunkEnable->SetValue(true);
-        ROS_INFO_ONCE("Enabled");
+        ROS_INFO("Enabled");
       }
       else
       {
-        ROS_INFO_ONCE("Node not writable");
+        ROS_INFO("Node not writable");
       }
     }
   }
   catch (const Spinnaker::Exception &e)
   {
-    ROS_ERROR_STREAM_ONCE("Error: " << e.what());
+    ROS_ERROR_STREAM("Error: " << e.what());
     result = -1;
   }
   return result;
