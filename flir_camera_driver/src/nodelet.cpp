@@ -83,7 +83,7 @@ public:
         NODELET_DEBUG_ONCE("Disconnecting from camera.");
         flir_.disconnect();
       }
-      catch(std::runtime_error& e)
+      catch(const std::runtime_error& e)
       {
         NODELET_ERROR_ONCE("%s", e.what());
       }
@@ -361,8 +361,6 @@ private:
   {
     ROS_INFO_ONCE("devicePoll");
 
-    int result = 0;
-
     enum State
     {
         NONE
@@ -439,7 +437,7 @@ private:
           {
             NODELET_DEBUG_ONCE("Connecting to camera.");
 
-            result = flir_.connect();
+            flir_.connect();
 
             NODELET_DEBUG_ONCE("Connected to camera.");
 
@@ -456,7 +454,7 @@ private:
               // TODO: @tthomas
               // flir_.setTimeout(timeout);
             }
-            catch(std::runtime_error& e)
+            catch(const std::runtime_error& e)
             {
               NODELET_ERROR_ONCE("%s", e.what());
             }
@@ -469,7 +467,7 @@ private:
 
             state = CONNECTED;
           }
-          catch(std::runtime_error& e)
+          catch(const std::runtime_error& e)
           {
             if (state_changed)
             {
@@ -505,7 +503,7 @@ private:
             wfov_camera_msgs::WFOVImagePtr wfov_image(new wfov_camera_msgs::WFOVImage);
             // Get the image from the camera library
             NODELET_DEBUG_ONCE("Starting a new grab from camera with serial {%d}.", flir_.getSerial());
-            result = flir_.grabImage(wfov_image->image, frame_id_);
+            flir_.grabImage(wfov_image->image, frame_id_);
 
             // Set other values
             wfov_image->header.frame_id = frame_id_;

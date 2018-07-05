@@ -57,7 +57,7 @@ FlirCamera::~FlirCamera()
   system_->ReleaseInstance();
 }
 
-bool FlirCamera::setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level)
+void FlirCamera::setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level)
 {
   // Check if camera is connected
   if(!pCam_)
@@ -65,7 +65,6 @@ bool FlirCamera::setNewConfiguration(flir_camera_driver::FlirConfig &config, con
     FlirCamera::connect();
   }
 
-  bool ret_val = false;
   // Activate mutex to prevent us from grabbing images during this time
   std::lock_guard<std::mutex> scopedLock(mutex_);
 
@@ -75,16 +74,14 @@ bool FlirCamera::setNewConfiguration(flir_camera_driver::FlirConfig &config, con
     bool capture_was_running = captureRunning_;
     start(); // For some reason some params only work after aquisition has be started once.
     stop();
-    ret_val = camera_->setNewConfiguration(config, level);
+    camera_->setNewConfiguration(config, level);
     if (capture_was_running)
       start();
   }
   else
   {
-    ret_val = camera_->setNewConfiguration(config, level);
+    camera_->setNewConfiguration(config, level);
   }
-
-  return ret_val;
 }  // end setNewConfiguration
 
 
@@ -110,11 +107,8 @@ uint FlirCamera::getWidthMax()
     return 0;
 }
 
-int FlirCamera::connect()
+void FlirCamera::connect()
 {
-  int result = 0;
-  int err = 0;
-
   if(!pCam_)
   {
     // If we have a specific camera to connect to (specified by a serial number)
@@ -128,8 +122,8 @@ int FlirCamera::connect()
       }
       catch (const Spinnaker::Exception &e)
       {
-        ROS_ERROR_STREAM_ONCE("FlirCamera::connect Could not find camera with serial number: %s Is that camera plugged in? Error: " << e.what());
-        result = -1;
+        throw std::runtime_error("[PointGreyCamera::connect] Could not find camera with serial number " +
+                                serial_string + ". Is that camera plugged in? Error: " + std::string(e.what()));
       }
     }
     else
@@ -142,8 +136,8 @@ int FlirCamera::connect()
       }
       catch (const Spinnaker::Exception &e)
       {
-        ROS_ERROR_STREAM_ONCE("FlirCamera::connect Failed to get first connected camera. Error: " << e.what());
-        result = -1;
+        throw std::runtime_error("[PointGreyCamera::connect] Failed to get first connected camera. Error: " +
+                                 std::string(e.what()));
       }
     }
 
@@ -191,17 +185,19 @@ int FlirCamera::connect()
       }
 
       // Configure chunk data - Enable Metadata
-      // err = FlirCamera::ConfigureChunkData(*node_map_);
-      if (err < 0)
-      {
-        return err;
-      }
+      // FlirCamera::ConfigureChunkData(*node_map_);
     }
     catch (const Spinnaker::Exception &e)
     {
-      ROS_ERROR_STREAM_ONCE("FlirCamera::connect Failed to connect to camera. Error: " << e.what());
-      result = -1;
+      throw std::runtime_error("[PointGreyCamera::connect] Failed to connect to camera. Error: " +
+                                std::string(e.what()));
     }
+    catch (const std::runtime_error& e)
+    {
+      throw std::runtime_error("[PointGreyCamera::connect] Failed to configure chunk data. Error: " +
+                               std::string(e.what()));
+    }
+  }
 
     // TODO: Get camera info to check if camera is running in color or mono mode
     /*
@@ -210,14 +206,10 @@ int FlirCamera::connect()
     FlirCamera::handleError("FlirCamera::connect  Failed to get camera info.", error);
     isColor_ = cInfo.isColorCamera;
     */
-  }
-  return result;
 }
 
-int FlirCamera::disconnect()
+void FlirCamera::disconnect()
 {
-  int result = 0;
-
   std::lock_guard<std::mutex> scopedLock(mutex_);
   captureRunning_ = false;
 
@@ -230,18 +222,14 @@ int FlirCamera::disconnect()
     }
     catch (const Spinnaker::Exception &e)
     {
-      ROS_ERROR_STREAM_ONCE("FlirCamera::disconnect Failed to disconnect camera with Error: " << e.what());
-      result = -1;
+       throw std::runtime_error("[PointGreyCamera::disconnect] Failed to disconnect camera with error: " +
+                                 std::string(e.what()));
     }
   }
-
-  return result;
 }
 
-int FlirCamera::start()
+void FlirCamera::start()
 {
-  int result = 0;
-
   try
   {
     // Check if camera is connected
@@ -252,16 +240,14 @@ int FlirCamera::start()
       captureRunning_ = true;
     }
   }
-  catch (Spinnaker::Exception &e)
+  catch (const Spinnaker::Exception &e)
   {
-    ROS_ERROR_STREAM_ONCE("FlirCamera::start Failed to start capture with Error: " << e.what());
-    result = -1;
+    throw std::runtime_error("[PointGreyCamera::start] Failed to start capture with error: " + std::string(e.what()));
   }
-  return result;
 }
 
 
-bool FlirCamera::stop()
+void FlirCamera::stop()
 {
   if (pCam_ && captureRunning_)
   {
@@ -270,22 +256,17 @@ bool FlirCamera::stop()
     {
       captureRunning_ = false;
       pCam_->EndAcquisition();
-      return true;
     }
     catch (const Spinnaker::Exception &e)
     {
-      ROS_ERROR_STREAM_ONCE("FlirCamera::stop Failed to stop capture with Error: " << e.what());
-      return false;
+      throw std::runtime_error("[PointGreyCamera::stop] Failed to stop capture with error: " + std::string(e.what()));
     }
   }
-  return false;
 }
 
 
-int FlirCamera::grabImage(sensor_msgs::Image &image, const std::string &frame_id)
+void FlirCamera::grabImage(sensor_msgs::Image &image, const std::string &frame_id)
 {
-  int result = 0;
-
   std::lock_guard<std::mutex> scopedLock(mutex_);
 
   // Check if Camera is connected and Running
@@ -300,7 +281,8 @@ int FlirCamera::grabImage(sensor_msgs::Image &image, const std::string &frame_id
 
       if (image_ptr->IsIncomplete())
       {
-        ROS_ERROR_ONCE("Camera %d Received but is Incomplete", serial_);
+        throw std::runtime_error("[PointGreyCamera::grabImage] Image received from camera " + std::to_string(serial_) +
+                                 " is incomplete.");
       }
       else
       {
@@ -349,7 +331,7 @@ int FlirCamera::grabImage(sensor_msgs::Image &image, const std::string &frame_id
             }
             else
             {
-              ROS_ERROR_ONCE("Bayer Format Not Recognized!");
+              throw std::runtime_error("[PointGreyCamera::grabImage] Bayer format not recognized for 16-bit format.");
             }
           }
           else
@@ -373,7 +355,7 @@ int FlirCamera::grabImage(sensor_msgs::Image &image, const std::string &frame_id
             }
             else
             {
-              ROS_ERROR_ONCE("Bayer Format Not Recognized!");
+              throw std::runtime_error("[PointGreyCamera::grabImage] Bayer format not recognized for 8-bit format.");
             }
           }
         }
@@ -406,22 +388,20 @@ int FlirCamera::grabImage(sensor_msgs::Image &image, const std::string &frame_id
     }
     catch (const Spinnaker::Exception& e)
     {
-      ROS_ERROR_STREAM_ONCE("FlirCamera::grabImage Failed to retrieve buffer with Error: " << e.what());
-      result = -1;
+      throw std::runtime_error("[PointGreyCamera::grabImage] Failed to retrieve buffer with error: " +
+                                std::string(e.what()));
     }
 
   }
   else if(pCam_)
   {
-    throw CameraNotRunningException("FlirCamera::grabImage: Camera is currently not running.  Please start the capture.");
+    throw CameraNotRunningException("[PointGreyCamera::grabImage] Camera is currently not running.  Please start "
+                                    "capturing frames first.");
   }
   else
   {
-    throw std::runtime_error("FlirCamera::grabImage not connected!");
+    throw std::runtime_error("[PointGreyCamera::grabImage] Not connected to the camera.");
   }
-
-  return result;
-
 }  // end grabImage
 
 //void Camera::setTimeout(const double &timeout)
@@ -434,9 +414,8 @@ void FlirCamera::setDesiredCamera(const uint32_t &id)
   serial_ = id;
 }
 
-int FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
+void FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
 {
-  int result = 0;
   ROS_INFO_STREAM("*** CONFIGURING CHUNK DATA ***");
   try
   {
@@ -450,8 +429,7 @@ int FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
     Spinnaker::GenApi::CBooleanPtr ptrChunkModeActive = nodeMap.GetNode("ChunkModeActive");
     if (!Spinnaker::GenApi::IsAvailable(ptrChunkModeActive) || !Spinnaker::GenApi::IsWritable(ptrChunkModeActive))
     {
-      ROS_ERROR_STREAM("Unable to activate chunk mode. Aborting...");
-      return -1;
+      throw std::runtime_error("Unable to activate chunk mode. Aborting...");
     }
     ptrChunkModeActive->SetValue(true);
     ROS_INFO_STREAM_ONCE("Chunk mode activated...");
@@ -474,8 +452,7 @@ int FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
     Spinnaker::GenApi::CEnumerationPtr ptrChunkSelector = nodeMap.GetNode("ChunkSelector");
     if (!Spinnaker::GenApi::IsAvailable(ptrChunkSelector) || !Spinnaker::GenApi::IsReadable(ptrChunkSelector))
     {
-      ROS_ERROR_STREAM("Unable to retrieve chunk selector. Aborting...");
-      return -1;
+      throw std::runtime_error("Unable to retrieve chunk selector. Aborting...");
     }
     // Retrieve entries
     ptrChunkSelector->GetEntries(entries);
@@ -516,11 +493,9 @@ int FlirCamera::ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap)
       }
     }
   }
-  catch (const Spinnaker::Exception &e)
+  catch (const Spinnaker::Exception& e)
   {
-    ROS_ERROR_STREAM("Error: " << e.what());
-    result = -1;
+    throw std::runtime_error(e.what());
   }
-  return result;
 }
 }

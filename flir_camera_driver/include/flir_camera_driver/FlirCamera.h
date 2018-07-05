@@ -72,7 +72,7 @@ public:
   *
   * \return Returns true when the configuration could be applied without modification.
   */
-  bool setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level);
+  void setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level);
 
 
   /** Parameters that need a sensor to be stopped completely when changed. */
@@ -90,37 +90,29 @@ public:
   * Will connect to the camera specified in the setDesiredCamera(std::string id) call.  If setDesiredCamera is not called first
   * this will connect to the first camera.  Connecting to the first camera is not recommended for multi-camera or production systems.
   * This function must be called before setNewConfiguration() or start()!
-  *
-  * \return 0 if no error, -1 if error encountered.
   */
-  int connect();
+  void connect();
 
   /*!
   * \brief Disconnects from the camera.
   *
   * Disconnects the camera and frees it.
-  *
-  * \return 0 if no error, -1 if error encountered.
   */
-  int disconnect();
+  void disconnect();
 
   /*!
   * \brief Starts the camera loading data into its buffer.
   *
   * This function will start the camera capturing images and loading them into the buffer.  To retrieve images, grabImage must be called.
-  *
-  * \return 0 if no error, -1 if error encountered.
   */
-  int start();
+  void start();
 
   /*!
   * \brief Stops the camera loading data into its buffer.
   *
   * This function will stop the camera capturing images and loading them into the buffer.
-  *
-  * \return Returns true if the camera was started when called.  Useful for knowing if the camera needs restarted in certain instances.
   */
-  bool stop();
+  void stop();
 
 
   /*!
@@ -129,13 +121,8 @@ public:
   * This function will load the raw data from the buffer and place it into a sensor_msgs::Image.
   * \param image sensor_msgs::Image that will be filled with the image currently in the buffer.
   * \param frame_id The name of the optical frame of the camera.
-  *
-  * \return 0 if no error, -1 if error encountered.
   */
-  int grabImage(sensor_msgs::Image &image, const std::string &frame_id);
-
-  void grabStereoImage(sensor_msgs::Image &image, const std::string &frame_id,
-                      sensor_msgs::Image &second_image, const std::string &second_frame_id);
+  void grabImage(sensor_msgs::Image &image, const std::string &frame_id);
 
   /*!
   * \brief Will set grabImage timeout for the camera.
@@ -199,7 +186,7 @@ private:
   // this by enabling each type of chunk data before enabling chunk data mode.
   // When chunk data is turned on, the data is made available in both the nodemap
   // and each image.
-  int ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap);
+  void ConfigureChunkData(Spinnaker::GenApi::INodeMap & nodeMap);
 };
 }
 #endif
