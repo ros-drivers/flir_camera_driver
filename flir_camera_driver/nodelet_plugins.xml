@@ -3,9 +3,3 @@
     <description>This is the nodelet for the Point Grey Camera Driver.</description>
   </class>
 </library>
-
-<library path="lib/libFlirStereoCameraNodelet">
-  <class name="flir_camera_driver/FlirStereoCameraNodelet" type="flir_camera_driver::FlirStereoCameraNodelet" base_class_type="nodelet::Nodelet">
-    <description>This is the nodelet for the Point Grey Stereo Camera Driver.</description>
-  </class>
-</library>
