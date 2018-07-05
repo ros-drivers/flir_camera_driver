@@ -1,16 +1,11 @@
-language: cpp
-compiler: gcc
-before_install:
-  - sudo pip install rosdep
-  - sudo rosdep init && rosdep update 
-  - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
-  - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
-  - sudo apt-get update -qq
+# This config uses industrial_ci (https://github.com/ros-industrial/industrial_ci.git).
+# For troubleshooting, see readme (https://github.com/ros-industrial/industrial_ci/blob/master/README.rst)
+sudo: required
+dist: trusty
+language: generic
+env:
+  - ROS_DISTRO="kinetic"
 install:
-  - rosdep install --from-paths .. --ignore-src --rosdistro hydro
-  - source /opt/ros/hydro/setup.bash
-  - mkdir -p ~/catkin_ws/src && pushd ~/catkin_ws
-  - catkin_init_workspace src
-  - ln -s `eval echo $(dirs +1)` src/
+  - git clone --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci
 script:
-  - catkin_make
+  - .industrial_ci/ci.sh

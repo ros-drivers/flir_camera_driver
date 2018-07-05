@@ -1,7 +1,7 @@
 flir_camera_driver
 =======================
 
-[![Build Status](https://travis-ci.org/ros-drivers/flir_camera_driver.png?branch=master)](https://travis-ci.org/ros-drivers/flir_camera_driver)
+[![Build Status](https://travis-ci.org/clearpathrobotics/flir_camera_driver.png?branch=kinetic-devel)](https://travis-ci.org/clearpathrobotics/flir_camera_driver)
 
 ROS-compatible Camera drivers originally provided by NREC, part of Carnegie Mellon University's robotics institute.
 These drives are included along with modifications of the standard ros image messages that enable HDR and physics based vision.
