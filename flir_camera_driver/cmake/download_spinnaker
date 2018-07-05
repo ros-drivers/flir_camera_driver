@@ -47,11 +47,11 @@ ARCHS = {
     'i386': (
         'https://www.ptgrey.com/support/downloads/11047/',
         'spinnaker-1.13.0.31-i386',
-        'usr/lib/libSpinnaker.so.1.13.0.31'),
+        'libSpinnaker.so.1.13.0.31'),
     'x86_64': (
         'https://www.ptgrey.com/support/downloads/11048/',
         'spinnaker-1.13.0.31-amd64',
-        'usr/lib/libSpinnaker.so.1.13.0.31')
+        'libSpinnaker.so.1.13.0.31')
     }
 
 
@@ -81,6 +81,10 @@ if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
     debs += glob.glob(os.path.join(os.getcwd(), folder_name, "*spinnaker-*.deb"))
     for deb in debs:
         subprocess.call(['dpkg', '-x', deb, os.path.join(os.getcwd(), folder_name)])
+
+    # Fix for 1.13.0.31
+    os.remove(os.path.join(os.getcwd(), folder_name, "usr/lib/libspinnaker.so.1"))
+    os.symlink(shared_library, os.path.join(os.getcwd(), folder_name, "usr/lib/libSpinnaker.so.1"))
 
     if not os.path.exists(os.path.join(os.getcwd(), "usr")):
         os.mkdir(os.path.join(os.getcwd(), "usr"))
