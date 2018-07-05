@@ -167,7 +167,7 @@ private:
 
   Spinnaker::ChunkData image_metadata_;
 
-  std::mutex mutex_; ///< A mutex to make sure that we don't try to grabImages while reconfiguring or vice versa.  Implemented with boost::mutex::scoped_lock.
+  std::mutex mutex_; ///< A mutex to make sure that we don't try to grabImages while reconfiguring or vice versa.
   volatile bool captureRunning_; ///< A status boolean that checks if the camera has been started and is loading images into its buffer.
 
   /// If true, camera is currently running in color mode, otherwise camera is running in mono mode

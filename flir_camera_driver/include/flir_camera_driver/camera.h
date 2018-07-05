@@ -24,7 +24,7 @@ class Camera
 public:
   Camera(Spinnaker::GenApi::INodeMap *node_map);
   ~Camera();
-  virtual bool setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level);
+  virtual void setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level);
 
   /** Parameters that need a sensor to be stopped completely when changed. */
   static const uint8_t LEVEL_RECONFIGURE_CLOSE = 3;
@@ -41,7 +41,7 @@ public:
 protected:
   Spinnaker::GenApi::INodeMap *node_map_;
 
-  bool init();
+  virtual void init();
 
   int height_max_;
   int width_max_;
@@ -52,8 +52,8 @@ protected:
   * This function will change the camera to the desired videomode and allow up the maximum framerate for that mode.
   * \param videoMode string of desired video mode, will be changed if unsupported.
   */
-  virtual bool setFrameRate(const float frame_rate);
-  virtual bool setImageControlFormats(flir_camera_driver::FlirConfig& config);
+  virtual void setFrameRate(const float frame_rate);
+  virtual void setImageControlFormats(flir_camera_driver::FlirConfig& config);
   /*!
   * \brief Set parameters relative to GigE cameras.
   *
