@@ -16,7 +16,7 @@ permission of Clearpath Robotics.
 #include "Spinnaker.h"
 // #include "SpinGenApi/SpinnakerGenApi.h"
 
-namespace flir_camera_driver
+namespace spinnaker_camera_driver
 {
 class SpinnakerTestNode
 {
@@ -73,12 +73,12 @@ void SpinnakerTestNode::test()
   interfaceList.Clear();
   system->ReleaseInstance();
 }
-}  // namespace flir_camera_driver
+}  // namespace spinnaker_camera_driver
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "spinnaker_test_node");
-  flir_camera_driver::SpinnakerTestNode node;
+  spinnaker_camera_driver::SpinnakerTestNode node;
   ros::spin();
   return 0;
 }

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 set_directory_properties(PROPERTIES COMPILE_OPTIONS "-std=c++11;-Wall;-Wextra")
 
 
-project(flir_camera_driver)
+project(spinnaker_camera_driver)
 
 find_package(catkin REQUIRED COMPONENTS
   camera_info_manager diagnostic_updater dynamic_reconfigure

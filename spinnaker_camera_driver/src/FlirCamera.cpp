@@ -40,7 +40,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    @attention Carnegie Mellon University
 */
 
-#include "flir_camera_driver/FlirCamera.h"
+#include "spinnaker_camera_driver/FlirCamera.h"
 
 #include <iostream>
 #include <sstream>
@@ -49,7 +49,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ros/ros.h>
 
-namespace flir_camera_driver
+namespace spinnaker_camera_driver
 {
 FlirCamera::FlirCamera()
   : serial_(0)
@@ -69,7 +69,7 @@ FlirCamera::~FlirCamera()
   system_->ReleaseInstance();
 }
 
-void FlirCamera::setNewConfiguration(const flir_camera_driver::FlirConfig& config, const uint32_t& level)
+void FlirCamera::setNewConfiguration(const spinnaker_camera_driver::FlirConfig& config, const uint32_t& level)
 {
   // Check if camera is connected
   if (!pCam_)
@@ -504,4 +504,4 @@ void FlirCamera::ConfigureChunkData(const Spinnaker::GenApi::INodeMap& nodeMap)
     throw std::runtime_error(e.what());
   }
 }
-}  // namespace flir_camera_driver
+}  // namespace spinnaker_camera_driver

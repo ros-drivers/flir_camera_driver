@@ -22,11 +22,11 @@ OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTE
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "flir_camera_driver/camera.h"
+#include "spinnaker_camera_driver/camera.h"
 
 #include <string>
 
-namespace flir_camera_driver
+namespace spinnaker_camera_driver
 {
 void Camera::init()
 {
@@ -164,7 +164,7 @@ void Camera::setNewConfiguration(const FlirConfig& config, const uint32_t& level
 }
 
 // Image Size and Pixel Format
-void Camera::setImageControlFormats(const flir_camera_driver::FlirConfig& config)
+void Camera::setImageControlFormats(const spinnaker_camera_driver::FlirConfig& config)
 {
   // Set Binning and Decimation
   setProperty(node_map_, "BinningHorizontal", config.image_format_x_binning);
@@ -290,4 +290,4 @@ Camera::Camera(Spinnaker::GenApi::INodeMap* node_map)
   node_map_ = node_map;
   init();
 }
-}  // namespace flir_camera_driver
+}  // namespace spinnaker_camera_driver

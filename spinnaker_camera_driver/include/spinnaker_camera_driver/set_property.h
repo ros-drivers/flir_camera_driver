@@ -22,8 +22,8 @@ OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTE
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef FLIR_CAMERA_DRIVER_SET_PROPERTY_H
-#define FLIR_CAMERA_DRIVER_SET_PROPERTY_H
+#ifndef SPINNAKER_CAMERA_DRIVER_SET_PROPERTY_H
+#define SPINNAKER_CAMERA_DRIVER_SET_PROPERTY_H
 
 // Spinnaker SDK
 #include "Spinnaker.h"
@@ -31,7 +31,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #include <string>
 
-namespace flir_camera_driver
+namespace spinnaker_camera_driver
 {
 inline bool setProperty(Spinnaker::GenApi::INodeMap* node_map, const std::string& property_name,
                         const std::string& entry_name)
@@ -254,5 +254,5 @@ inline bool setMaxInt(Spinnaker::GenApi::INodeMap* node_map, const std::string& 
   }
   return false;
 }
-}  // namespace flir_camera_driver
-#endif  // FLIR_CAMERA_DRIVER_SET_PROPERTY_H
+}  // namespace spinnaker_camera_driver
+#endif  // SPINNAKER_CAMERA_DRIVER_SET_PROPERTY_H

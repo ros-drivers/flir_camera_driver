@@ -51,7 +51,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pluginlib/class_list_macros.h>
 #include <nodelet/nodelet.h>
 
-#include "flir_camera_driver/FlirCamera.h"  // The actual standalone library for the Flirs
+#include "spinnaker_camera_driver/FlirCamera.h"  // The actual standalone library for the Flirs
 
 #include <image_transport/image_transport.h>          // ROS library that allows sending compressed images
 #include <camera_info_manager/camera_info_manager.h>  // ROS library that publishes CameraInfo topics
@@ -70,7 +70,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include <string>
 
-namespace flir_camera_driver
+namespace spinnaker_camera_driver
 {
 class FlirCameraNodelet : public nodelet::Nodelet
 {
@@ -113,7 +113,7 @@ private:
   * \param level driver_base reconfiguration level.  See driver_base/SensorLevels.h for more information.
   */
 
-  void paramCallback(const flir_camera_driver::FlirConfig& config, uint32_t level)
+  void paramCallback(const spinnaker_camera_driver::FlirConfig& config, uint32_t level)
   {
     config_ = config;
 
@@ -171,7 +171,7 @@ private:
     if (!pubThread_)  // We need to connect
     {
       // Start the thread to loop through and publish messages
-      pubThread_.reset(new boost::thread(boost::bind(&flir_camera_driver::FlirCameraNodelet::devicePoll, this)));
+      pubThread_.reset(new boost::thread(boost::bind(&spinnaker_camera_driver::FlirCameraNodelet::devicePoll, this)));
     }
 
     // @tthomas - removing subscriber check and logic below as it's leading to mutex locks and crashes currently
@@ -216,7 +216,7 @@ private:
     else if(!pubThread_)     // We need to connect
     {
       // Start the thread to loop through and publish messages
-      pubThread_.reset(new boost::thread(boost::bind(&flir_camera_driver::FlirCameraNodelet::devicePoll, this)));
+      pubThread_.reset(new boost::thread(boost::bind(&spinnaker_camera_driver::FlirCameraNodelet::devicePoll, this)));
     }
     else
     {
@@ -294,9 +294,9 @@ private:
     std::lock_guard<std::mutex> scopedLock(connect_mutex_);
 
     // Start up the dynamic_reconfigure service, note that this needs to stick around after this function ends
-    srv_ = boost::make_shared<dynamic_reconfigure::Server<flir_camera_driver::FlirConfig> >(pnh);
-    dynamic_reconfigure::Server<flir_camera_driver::FlirConfig>::CallbackType f =
-        boost::bind(&flir_camera_driver::FlirCameraNodelet::paramCallback, this, _1, _2);
+    srv_ = boost::make_shared<dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig> >(pnh);
+    dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig>::CallbackType f =
+        boost::bind(&spinnaker_camera_driver::FlirCameraNodelet::paramCallback, this, _1, _2);
 
     srv_->setCallback(f);
 
@@ -477,7 +477,7 @@ private:
             {
               std::lock_guard<std::mutex> scopedLock(connect_mutex_);
               sub_ = getMTNodeHandle().subscribe("image_exposure_sequence", 10,
-                                                 &flir_camera_driver::FlirCameraNodelet::gainWBCallback, this);
+                                                 &spinnaker_camera_driver::FlirCameraNodelet::gainWBCallback, this);
             }
 
             state = CONNECTED;
@@ -604,7 +604,7 @@ private:
   }
 
   /* Class Fields */
-  boost::shared_ptr<dynamic_reconfigure::Server<flir_camera_driver::FlirConfig> > srv_;  ///<  Needed to initialize and
+  boost::shared_ptr<dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig> > srv_;  ///<  Needed to initialize and
                                                                                          ///   keep the
   /// dynamic_reconfigure::Server
   /// in scope.
@@ -654,8 +654,8 @@ private:
   int packet_delay_;
 
   /// Configuration:
-  flir_camera_driver::FlirConfig config_;
+  spinnaker_camera_driver::FlirConfig config_;
 };
 
-PLUGINLIB_EXPORT_CLASS(flir_camera_driver::FlirCameraNodelet, nodelet::Nodelet)  // Needed for Nodelet declaration
-}  // namespace flir_camera_driver
+PLUGINLIB_EXPORT_CLASS(spinnaker_camera_driver::FlirCameraNodelet, nodelet::Nodelet)  // Needed for Nodelet declaration
+}  // namespace spinnaker_camera_driver

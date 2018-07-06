@@ -28,55 +28,34 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/*-*-C++-*-*/
 /**
-   @file camera_exceptions.h
+   @file node.cpp
    @author Chad Rockey
-   @date July 20, 2011
-   @brief Interface to Point Grey cameras
+   @date July 13, 2011
+   @brief ROS node to wrap the nodelet for standalone rosrun execution
 
    @attention Copyright (C) 2011
    @attention National Robotics Engineering Center
    @attention Carnegie Mellon University
 */
 
-#ifndef FLIR_CAMERA_DRIVER_CAMERA_EXCEPTIONS_H
-#define FLIR_CAMERA_DRIVER_CAMERA_EXCEPTIONS_H
+#include "ros/ros.h"
+#include <nodelet/loader.h>
 
-#include <stdexcept>
-#include <string>
+#include <string> for string
 
-class CameraTimeoutException : public std::runtime_error
+int main(int argc, char** argv)
 {
-public:
-  CameraTimeoutException() : runtime_error("Image not found within timeout.")
-  {
-  }
-  explicit CameraTimeoutException(const std::string& msg) : runtime_error(msg.c_str())
-  {
-  }
-};
+  ros::init(argc, argv, "flir_camera_node");
 
-class CameraNotRunningException : public std::runtime_error
-{
-public:
-  CameraNotRunningException() : runtime_error("Camera is currently not running.  Please start the capture.")
-  {
-  }
-  explicit CameraNotRunningException(const std::string& msg) : runtime_error(msg.c_str())
-  {
-  }
-};
+  // This is code based nodelet loading, the preferred nodelet launching is done through roslaunch
+  nodelet::Loader nodelet;
+  nodelet::M_string remap(ros::names::getRemappings());
+  nodelet::V_string nargv;
+  std::string nodelet_name = ros::this_node::getName();
+  nodelet.load(nodelet_name, "spinnaker_camera_driver/FlirCameraNodelet", remap, nargv);
 
-class CameraImageNotReadyException : public std::runtime_error
-{
-public:
-  CameraImageNotReadyException() : runtime_error("Image is currently not ready.")
-  {
-  }
-  explicit CameraImageNotReadyException(const std::string& msg) : runtime_error(msg.c_str())
-  {
-  }
-};
+  ros::spin();
 
-#endif  // FLIR_CAMERA_DRIVER_CAMERA_EXCEPTIONS_H
+  return 0;
+}

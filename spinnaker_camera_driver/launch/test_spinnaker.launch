@@ -2,7 +2,7 @@
 <!--
 Software License Agreement (BSD)
 
-\file      nodelet_plugins.xml
+\file      test_spinnaker.launch
 \authors   Michael Hosmar <mhosmar@clearpathrobotics.com>
 \copyright Copyright (c) 2018, Clearpath Robotics, Inc., All rights reserved.
 
@@ -23,8 +23,6 @@ OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTE
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<library path="lib/libFlirCameraNodelet">
-  <class name="flir_camera_driver/FlirCameraNodelet" type="flir_camera_driver::FlirCameraNodelet" base_class_type="nodelet::Nodelet">
-    <description>This is the nodelet for the Point Grey Camera Driver.</description>
-  </class>
-</library>
+<launch>
+  <node name="spinnaker_test_node" pkg="spinnaker_camera_driver" type="spinnaker_test_node" cwd="node"/>
+</launch>

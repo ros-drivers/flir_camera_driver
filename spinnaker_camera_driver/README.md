@@ -1,4 +1,4 @@
-flir_camera_driver
+spinnaker_camera_driver
 =======================
 
 [![Build Status](https://travis-ci.org/clearpathrobotics/flir_camera_driver.png?branch=kinetic-devel)](https://travis-ci.org/clearpathrobotics/flir_camera_driver)

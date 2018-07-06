@@ -28,34 +28,55 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*-*-C++-*-*/
 /**
-   @file node.cpp
+   @file camera_exceptions.h
    @author Chad Rockey
-   @date July 13, 2011
-   @brief ROS node to wrap the nodelet for standalone rosrun execution
+   @date July 20, 2011
+   @brief Interface to Point Grey cameras
 
    @attention Copyright (C) 2011
    @attention National Robotics Engineering Center
    @attention Carnegie Mellon University
 */
 
-#include "ros/ros.h"
-#include <nodelet/loader.h>
+#ifndef SPINNAKER_CAMERA_DRIVER_CAMERA_EXCEPTIONS_H
+#define SPINNAKER_CAMERA_DRIVER_CAMERA_EXCEPTIONS_H
 
-#include <string> for string
+#include <stdexcept>
+#include <string>
 
-int main(int argc, char** argv)
+class CameraTimeoutException : public std::runtime_error
 {
-  ros::init(argc, argv, "flir_camera_node");
+public:
+  CameraTimeoutException() : runtime_error("Image not found within timeout.")
+  {
+  }
+  explicit CameraTimeoutException(const std::string& msg) : runtime_error(msg.c_str())
+  {
+  }
+};
 
-  // This is code based nodelet loading, the preferred nodelet launching is done through roslaunch
-  nodelet::Loader nodelet;
-  nodelet::M_string remap(ros::names::getRemappings());
-  nodelet::V_string nargv;
-  std::string nodelet_name = ros::this_node::getName();
-  nodelet.load(nodelet_name, "flir_camera_driver/FlirCameraNodelet", remap, nargv);
+class CameraNotRunningException : public std::runtime_error
+{
+public:
+  CameraNotRunningException() : runtime_error("Camera is currently not running.  Please start the capture.")
+  {
+  }
+  explicit CameraNotRunningException(const std::string& msg) : runtime_error(msg.c_str())
+  {
+  }
+};
 
-  ros::spin();
+class CameraImageNotReadyException : public std::runtime_error
+{
+public:
+  CameraImageNotReadyException() : runtime_error("Image is currently not ready.")
+  {
+  }
+  explicit CameraImageNotReadyException(const std::string& msg) : runtime_error(msg.c_str())
+  {
+  }
+};
 
-  return 0;
-}
+#endif  // SPINNAKER_CAMERA_DRIVER_CAMERA_EXCEPTIONS_H

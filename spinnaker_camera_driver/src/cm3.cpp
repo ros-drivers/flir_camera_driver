@@ -22,11 +22,11 @@ OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTE
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "flir_camera_driver/cm3.h"
+#include "spinnaker_camera_driver/cm3.h"
 
 #include <string>
 
-namespace flir_camera_driver
+namespace spinnaker_camera_driver
 {
 Cm3::Cm3(Spinnaker::GenApi::INodeMap* node_map) : Camera(node_map)
 {
@@ -158,7 +158,7 @@ void Cm3::setNewConfiguration(const FlirConfig& config, const uint32_t& level)
 }
 
 // Image Size and Pixel Format
-void Cm3::setImageControlFormats(const flir_camera_driver::FlirConfig& config)
+void Cm3::setImageControlFormats(const spinnaker_camera_driver::FlirConfig& config)
 {
   // Set Binning and Decimation
   // setProperty(node_map_, "BinningHorizontal", config.image_format_x_binning);  // Not available on CM3
@@ -204,4 +204,4 @@ void Cm3::setImageControlFormats(const flir_camera_driver::FlirConfig& config)
   // Set Pixel Format
   setProperty(node_map_, "PixelFormat", config.image_format_color_coding);
 }
-}  // namespace flir_camera_driver
+}  // namespace spinnaker_camera_driver
