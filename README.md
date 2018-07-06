@@ -1,7 +1,9 @@
-spinnaker_camera_driver
+flir_camera_driver
 =======================
 
 [![Build Status](https://travis-ci.org/clearpathrobotics/flir_camera_driver.png?branch=kinetic-devel)](https://travis-ci.org/clearpathrobotics/flir_camera_driver)
+
+A ROS-compatable camera driver using Flir's Spinnaker SDK.
 
 ROS-compatible Camera drivers originally provided by NREC, part of Carnegie Mellon University's robotics institute.
 These drives are included along with modifications of the standard ros image messages that enable HDR and physics based vision.
@@ -11,6 +13,7 @@ This code was originally developed by the National Robotics Engineering Center (
 This software is released under a BSD license:
 
 Copyright (c) 2012, Carnegie Mellon University. All rights reserved.
+Copyright (c) 2018, Clearpath Robotics, Inc., All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
