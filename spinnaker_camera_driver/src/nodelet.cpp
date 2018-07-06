@@ -294,7 +294,7 @@ private:
     std::lock_guard<std::mutex> scopedLock(connect_mutex_);
 
     // Start up the dynamic_reconfigure service, note that this needs to stick around after this function ends
-    srv_ = boost::make_shared<dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig> >(pnh);
+    srv_ = std::make_shared<dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig> >(pnh);
     dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig>::CallbackType f =
         boost::bind(&spinnaker_camera_driver::FlirCameraNodelet::paramCallback, this, _1, _2);
 
@@ -604,16 +604,16 @@ private:
   }
 
   /* Class Fields */
-  boost::shared_ptr<dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig> > srv_;  ///< Needed to initialize
+  std::shared_ptr<dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig> > srv_;  ///< Needed to initialize
                                                                                               ///  and keep the
   /// dynamic_reconfigure::Server
   /// in scope.
-  boost::shared_ptr<image_transport::ImageTransport> it_;  ///< Needed to initialize and keep the ImageTransport in
+  std::shared_ptr<image_transport::ImageTransport> it_;  ///< Needed to initialize and keep the ImageTransport in
                                                            /// scope.
-  boost::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_;  ///< Needed to initialize and keep the
+  std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_;  ///< Needed to initialize and keep the
                                                                      /// CameraInfoManager in scope.
   image_transport::CameraPublisher it_pub_;                          ///< CameraInfoManager ROS publisher
-  boost::shared_ptr<diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage> > pub_;  ///< Diagnosed
+  std::shared_ptr<diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage> > pub_;  ///< Diagnosed
   /// publisher, has to be
   /// a pointer because of
   /// constructor
@@ -629,7 +629,7 @@ private:
   FlirCamera flir_;                ///< Instance of the FlirCamera library, used to interface with the hardware.
   sensor_msgs::CameraInfoPtr ci_;  ///< Camera Info message.
   std::string frame_id_;           ///< Frame id for the camera messages, defaults to 'camera'
-  boost::shared_ptr<boost::thread> pubThread_;  ///< The thread that reads and publishes the images.
+  std::shared_ptr<boost::thread> pubThread_;  ///< The thread that reads and publishes the images.
 
   double gain_;
   uint16_t wb_blue_;
