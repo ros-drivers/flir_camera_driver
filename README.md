@@ -12,7 +12,7 @@ This code was originally developed by the National Robotics Engineering Center (
 
 This software is released under a BSD license:
 
-Copyright (c) 2012, Carnegie Mellon University. All rights reserved.
+Copyright (c) 2012, Carnegie Mellon University. All rights reserved.  
 Copyright (c) 2018, Clearpath Robotics, Inc., All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
