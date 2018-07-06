@@ -604,8 +604,8 @@ private:
   }
 
   /* Class Fields */
-  boost::shared_ptr<dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig> > srv_;  ///<  Needed to initialize and
-                                                                                         ///   keep the
+  boost::shared_ptr<dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig> > srv_;  ///< Needed to initialize
+                                                                                              ///  and keep the
   /// dynamic_reconfigure::Server
   /// in scope.
   boost::shared_ptr<image_transport::ImageTransport> it_;  ///< Needed to initialize and keep the ImageTransport in
