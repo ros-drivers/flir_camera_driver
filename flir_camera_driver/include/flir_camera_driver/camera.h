@@ -1,5 +1,29 @@
-#ifndef _CAMERA_H_
-#define _CAMERA_H_
+/**
+Software License Agreement (BSD)
+
+\file      camera.h
+\authors   Michael Hosmar <mhosmar@clearpathrobotics.com>
+\copyright Copyright (c) 2018, Clearpath Robotics, Inc., All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+   following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
+   following disclaimer in the documentation and/or other materials provided with the distribution.
+ * Neither the name of Clearpath Robotics nor the names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WAR-
+RANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, IN-
+DIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+#ifndef FLIR_CAMERA_DRIVER_CAMERA_H
+#define FLIR_CAMERA_DRIVER_CAMERA_H
 
 #include <ros/ros.h>
 
@@ -18,13 +42,14 @@
 // this class for any specific differences.
 //*******************************************
 
-namespace flir_camera_driver {
+namespace flir_camera_driver
+{
 class Camera
 {
 public:
-  Camera(Spinnaker::GenApi::INodeMap *node_map);
+  explicit Camera(Spinnaker::GenApi::INodeMap* node_map);
   ~Camera();
-  virtual void setNewConfiguration(flir_camera_driver::FlirConfig &config, const uint32_t &level);
+  virtual void setNewConfiguration(const flir_camera_driver::FlirConfig& config, const uint32_t& level);
 
   /** Parameters that need a sensor to be stopped completely when changed. */
   static const uint8_t LEVEL_RECONFIGURE_CLOSE = 3;
@@ -38,8 +63,9 @@ public:
   virtual void setGain(const float& gain);
   uint getHeightMax();
   uint getWidthMax();
+
 protected:
-  Spinnaker::GenApi::INodeMap *node_map_;
+  Spinnaker::GenApi::INodeMap* node_map_;
 
   virtual void init();
 
@@ -53,7 +79,7 @@ protected:
   * \param videoMode string of desired video mode, will be changed if unsupported.
   */
   virtual void setFrameRate(const float frame_rate);
-  virtual void setImageControlFormats(flir_camera_driver::FlirConfig& config);
+  virtual void setImageControlFormats(const flir_camera_driver::FlirConfig& config);
   /*!
   * \brief Set parameters relative to GigE cameras.
   *
@@ -132,7 +158,6 @@ protected:
   // uint getWhiteBalance();
 
   // uint getROIPosition();
-
 };
-}
-#endif //_CAMERA_H_
+}  // namespace flir_camera_driver
+#endif  // FLIR_CAMERA_DRIVER_CAMERA_H

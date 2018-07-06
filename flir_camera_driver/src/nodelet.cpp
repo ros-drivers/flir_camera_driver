@@ -1,21 +1,32 @@
 /*
-This code was developed by the National Robotics Engineering Center (NREC), part of the Robotics Institute at Carnegie Mellon University.
+This code was developed by the National Robotics Engineering Center (NREC), part of the Robotics Institute at Carnegie
+Mellon University.
 Its development was funded by DARPA under the LS3 program and submitted for public release on June 7th, 2012.
-Release was granted on August, 21st 2012 with Distribution Statement "A" (Approved for Public Release, Distribution Unlimited).
+Release was granted on August, 21st 2012 with Distribution Statement "A" (Approved for Public Release, Distribution
+Unlimited).
 
 This software is released under a BSD license:
 
 Copyright (c) 2012, Carnegie Mellon University. All rights reserved.
+Copyright (c) 2018, Clearpath Robotics, Inc., All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+following conditions are met:
 
-Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-Neither the name of the Carnegie Mellon University nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+disclaimer.
+Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+disclaimer in the documentation and/or other materials provided with the distribution.
+Neither the name of the Carnegie Mellon University nor the names of its contributors may be used to endorse or promote
+products derived from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-
 
 /**
    @file nodelet.cpp
@@ -27,7 +38,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
    @attention National Robotics Engineering Center
    @attention Carnegie Mellon University
 */
-
 
 /**
    @file nodelet.cpp
@@ -41,37 +51,39 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <pluginlib/class_list_macros.h>
 #include <nodelet/nodelet.h>
 
-#include "flir_camera_driver/FlirCamera.h" // The actual standalone library for the Flirs
+#include "flir_camera_driver/FlirCamera.h"  // The actual standalone library for the Flirs
 
-#include <image_transport/image_transport.h> // ROS library that allows sending compressed images
-#include <camera_info_manager/camera_info_manager.h> // ROS library that publishes CameraInfo topics
-#include <sensor_msgs/CameraInfo.h> // ROS message header for CameraInfo
+#include <image_transport/image_transport.h>          // ROS library that allows sending compressed images
+#include <camera_info_manager/camera_info_manager.h>  // ROS library that publishes CameraInfo topics
+#include <sensor_msgs/CameraInfo.h>                   // ROS message header for CameraInfo
 
 #include <wfov_camera_msgs/WFOVImage.h>
-#include <image_exposure_msgs/ExposureSequence.h> // Message type for configuring gain and white balance.
+#include <image_exposure_msgs/ExposureSequence.h>  // Message type for configuring gain and white balance.
 
-#include <diagnostic_updater/diagnostic_updater.h> // Headers for publishing diagnostic messages.
+#include <diagnostic_updater/diagnostic_updater.h>  // Headers for publishing diagnostic messages.
 #include <diagnostic_updater/publisher.h>
 
-#include <boost/thread.hpp> // Needed for the nodelet to launch the reading thread.
+#include <boost/thread.hpp>  // Needed for the nodelet to launch the reading thread.
 
-#include <dynamic_reconfigure/server.h> // Needed for the dynamic_reconfigure gui service to run
+#include <dynamic_reconfigure/server.h>  // Needed for the dynamic_reconfigure gui service to run
 
 #include <fstream>
+#include <string>
 
 namespace flir_camera_driver
 {
-
-class FlirCameraNodelet: public nodelet::Nodelet
+class FlirCameraNodelet : public nodelet::Nodelet
 {
 public:
-  FlirCameraNodelet() {}
+  FlirCameraNodelet()
+  {
+  }
 
   ~FlirCameraNodelet()
   {
     std::lock_guard<std::mutex> scopedLock(connect_mutex_);
 
-    if(pubThread_)
+    if (pubThread_)
     {
       pubThread_->interrupt();
       pubThread_->join();
@@ -83,7 +95,7 @@ public:
         NODELET_DEBUG_ONCE("Disconnecting from camera.");
         flir_.disconnect();
       }
-      catch(const std::runtime_error& e)
+      catch (const std::runtime_error& e)
       {
         NODELET_ERROR_ONCE("%s", e.what());
       }
@@ -94,12 +106,14 @@ private:
   /*!
   * \brief Function that allows reconfiguration of the camera.
   *
-  * This function serves as a callback for the dynamic reconfigure service.  It simply passes the configuration object to the driver to allow the camera to reconfigure.
-  * \param config  camera_library::CameraConfig object passed by reference.  Values will be changed to those the driver is currently using.
+  * This function serves as a callback for the dynamic reconfigure service.  It simply passes the configuration object
+  * to the driver to allow the camera to reconfigure.
+  * \param config  camera_library::CameraConfig object passed by reference.  Values will be changed to those the driver
+  * is currently using.
   * \param level driver_base reconfiguration level.  See driver_base/SensorLevels.h for more information.
   */
 
-  void paramCallback(flir_camera_driver::FlirConfig &config, uint32_t level)
+  void paramCallback(const flir_camera_driver::FlirConfig& config, uint32_t level)
   {
     config_ = config;
 
@@ -113,14 +127,14 @@ private:
       wb_blue_ = config.white_balance_blue_ratio;
       wb_red_ = config.white_balance_red_ratio;
 
-      //No separate param in CameraInfo for binning/decimation
+      // No separate param in CameraInfo for binning/decimation
       binning_x_ = config.image_format_x_binning * config.image_format_x_decimation;
       binning_y_ = config.image_format_y_binning * config.image_format_y_decimation;
 
       // Store CameraInfo RegionOfInterest information
-      // TODO: Not compliant with CameraInfo message: "A particular ROI always denotes the
-      //       same window of pixels on the camera sensor, regardless of binning settings."
-      //       These values are in the post binned frame.
+      // TODO(mhosmar): Not compliant with CameraInfo message: "A particular ROI always denotes the
+      //                same window of pixels on the camera sensor, regardless of binning settings."
+      //                These values are in the post binned frame.
       if ((config.image_format_roi_width + config.image_format_roi_height) > 0 &&
           (config.image_format_roi_width < flir_.getWidthMax() ||
            config.image_format_roi_height < flir_.getHeightMax()))
@@ -129,7 +143,7 @@ private:
         roi_y_offset_ = config.image_format_y_offset;
         roi_width_ = config.image_format_roi_width;
         roi_height_ = config.image_format_roi_height;
-        do_rectify_ = true; // Set to true if an ROI is used.
+        do_rectify_ = true;  // Set to true if an ROI is used.
       }
       else
       {
@@ -138,11 +152,10 @@ private:
         roi_y_offset_ = 0;
         roi_height_ = 0;
         roi_width_ = 0;
-        do_rectify_ = false; // Set to false if the whole image is captured.
+        do_rectify_ = false;  // Set to false if the whole image is captured.
       }
-
     }
-    catch(std::runtime_error& e)
+    catch (std::runtime_error& e)
     {
       NODELET_ERROR_ONCE("Reconfigure Callback failed with error: %s", e.what());
     }
@@ -155,17 +168,17 @@ private:
   */
   void connectCb()
   {
-    if(!pubThread_)     // We need to connect
+    if (!pubThread_)  // We need to connect
     {
       // Start the thread to loop through and publish messages
       pubThread_.reset(new boost::thread(boost::bind(&flir_camera_driver::FlirCameraNodelet::devicePoll, this)));
     }
 
-
     // @tthomas - removing subscriber check and logic below as it's leading to mutex locks and crashes currently
     /*
     NODELET_DEBUG_ONCE("Connect callback!");
-    std::lock_guard<std::mutex> scopedLock(connect_mutex_); // Grab the mutex.  Wait until we're done initializing before letting this function through.
+    std::lock_guard<std::mutex> scopedLock(connect_mutex_); // Grab the mutex.  Wait until we're done initializing
+    before letting this function through.
     // Check if we should disconnect (there are 0 subscribers to our data)
     if(it_pub_.getNumSubscribers() == 0 && pub_->getPublisher().getNumSubscribers() == 0)
     {
@@ -215,13 +228,14 @@ private:
   /*!
   * \brief Serves as a psuedo constructor for nodelets.
   *
-  * This function needs to do the MINIMUM amount of work to get the nodelet running.  Nodelets should not call blocking functions here.
+  * This function needs to do the MINIMUM amount of work to get the nodelet running.  Nodelets should not call blocking
+  * functions here.
   */
   void onInit()
   {
     // Get nodeHandles
-    ros::NodeHandle &nh = getMTNodeHandle();
-    ros::NodeHandle &pnh = getMTPrivateNodeHandle();
+    ros::NodeHandle& nh = getMTNodeHandle();
+    ros::NodeHandle& pnh = getMTPrivateNodeHandle();
 
     // Get a serial number through ros
     int serial = 0;
@@ -255,7 +269,7 @@ private:
       if (serial == 0)
       {
         NODELET_WARN_ONCE("Waiting for camera serial path to become available");
-        ros::Duration(1.0).sleep(); // Sleep for 1 second, wait for serial device path to become available
+        ros::Duration(1.0).sleep();  // Sleep for 1 second, wait for serial device path to become available
       }
     }
 
@@ -268,7 +282,7 @@ private:
     pnh.param<bool>("auto_packet_size", auto_packet_size_, true);
     pnh.param<int>("packet_delay", packet_delay_, 4000);
 
-    // TODO: @tthomas Set GigE parameters:
+    // TODO(mhosmar):  Set GigE parameters:
     // flir_.setGigEParameters(auto_packet_size_, packet_size_, packet_delay_);
 
     // Get the location of our camera config yaml
@@ -280,9 +294,9 @@ private:
     std::lock_guard<std::mutex> scopedLock(connect_mutex_);
 
     // Start up the dynamic_reconfigure service, note that this needs to stick around after this function ends
-    srv_ = boost::make_shared <dynamic_reconfigure::Server<flir_camera_driver::FlirConfig> > (pnh);
+    srv_ = boost::make_shared<dynamic_reconfigure::Server<flir_camera_driver::FlirConfig> >(pnh);
     dynamic_reconfigure::Server<flir_camera_driver::FlirConfig>::CallbackType f =
-      boost::bind(&flir_camera_driver::FlirCameraNodelet::paramCallback, this, _1, _2);
+        boost::bind(&flir_camera_driver::FlirCameraNodelet::paramCallback, this, _1, _2);
 
     srv_->setCallback(f);
 
@@ -304,21 +318,21 @@ private:
     pnh.param<double>("desired_freq", desired_freq, 30.0);
     pnh.param<double>("min_freq", min_freq_, desired_freq);
     pnh.param<double>("max_freq", max_freq_, desired_freq);
-    double freq_tolerance; // Tolerance before stating error on publish frequency, fractional percent of desired frequencies.
+    double freq_tolerance;  // Tolerance before stating error on publish frequency, fractional percent of desired
+                            // frequencies.
     pnh.param<double>("freq_tolerance", freq_tolerance, 0.1);
-    int window_size; // Number of samples to consider in frequency
+    int window_size;  // Number of samples to consider in frequency
     pnh.param<int>("window_size", window_size, 100);
-    double min_acceptable; // The minimum publishing delay (in seconds) before warning.  Negative values mean future dated messages.
+    double min_acceptable;  // The minimum publishing delay (in seconds) before warning.  Negative values mean future
+                            // dated messages.
     pnh.param<double>("min_acceptable_delay", min_acceptable, 0.0);
-    double max_acceptable; // The maximum publishing delay (in seconds) before warning.
+    double max_acceptable;  // The maximum publishing delay (in seconds) before warning.
     pnh.param<double>("max_acceptable_delay", max_acceptable, 0.2);
     ros::SubscriberStatusCallback cb2 = boost::bind(&FlirCameraNodelet::connectCb, this);
-    pub_.reset(new diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage>(nh.advertise<wfov_camera_msgs::WFOVImage>("image", 5, cb2, cb2),
-               updater_,
-               diagnostic_updater::FrequencyStatusParam(&min_freq_, &max_freq_, freq_tolerance, window_size),
-               diagnostic_updater::TimeStampStatusParam(min_acceptable, max_acceptable)));
-
-
+    pub_.reset(new diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage>(
+        nh.advertise<wfov_camera_msgs::WFOVImage>("image", 5, cb2, cb2), updater_,
+        diagnostic_updater::FrequencyStatusParam(&min_freq_, &max_freq_, freq_tolerance, window_size),
+        diagnostic_updater::TimeStampStatusParam(min_acceptable, max_acceptable)));
   }
 
   /**
@@ -351,11 +365,11 @@ private:
     return 0;
   }
 
-
   /*!
   * \brief Function for the boost::thread to grabImages and publish them.
   *
-  * This function continues until the thread is interupted.  Responsible for getting sensor_msgs::Image and publishing them.
+  * This function continues until the thread is interupted.  Responsible for getting sensor_msgs::Image and publishing
+  * them.
   */
   void devicePoll()
   {
@@ -363,28 +377,28 @@ private:
 
     enum State
     {
-        NONE
-      , ERROR
-      , STOPPED
-      , DISCONNECTED
-      , CONNECTED
-      , STARTED
+      NONE,
+      ERROR,
+      STOPPED,
+      DISCONNECTED,
+      CONNECTED,
+      STARTED
     };
 
     State state = DISCONNECTED;
     State previous_state = NONE;
 
-    while(!boost::this_thread::interruption_requested())   // Block until we need to stop this thread.
+    while (!boost::this_thread::interruption_requested())  // Block until we need to stop this thread.
     {
       bool state_changed = state != previous_state;
 
       previous_state = state;
 
-      switch(state)
+      switch (state)
       {
         case ERROR:
-          // Generally there's no need to stop before disconnecting after an
-          // error. Indeed, stop will usually fail.
+// Generally there's no need to stop before disconnecting after an
+// error. Indeed, stop will usually fail.
 #if STOP_ON_ERROR
           // Try stopping the camera
           {
@@ -400,12 +414,12 @@ private:
 
             state = STOPPED;
           }
-          catch(std::runtime_error& e)
+          catch (std::runtime_error& e)
           {
             if (state_changed)
             {
               NODELET_ERROR_ONCE("Failed to stop with error: %s", e.what());
-              ros::Duration(1.0).sleep(); // sleep for one second each time
+              ros::Duration(1.0).sleep();  // sleep for one second each time
             }
           }
 
@@ -421,12 +435,12 @@ private:
 
             state = DISCONNECTED;
           }
-          catch(std::runtime_error& e)
+          catch (std::runtime_error& e)
           {
             if (state_changed)
             {
               NODELET_ERROR_ONCE("Failed to disconnect with error: %s", e.what());
-              ros::Duration(1.0).sleep(); // sleep for one second each time
+              ros::Duration(1.0).sleep();  // sleep for one second each time
             }
           }
 
@@ -451,10 +465,10 @@ private:
               // getMTPrivateNodeHandle().param("timeout", timeout, 1.0);
 
               // NODELET_DEBUG_ONCE("Setting timeout to: %f.", timeout);
-              // TODO: @tthomas
+              // TODO(tthomas):
               // flir_.setTimeout(timeout);
             }
-            catch(const std::runtime_error& e)
+            catch (const std::runtime_error& e)
             {
               NODELET_ERROR_ONCE("%s", e.what());
             }
@@ -462,17 +476,18 @@ private:
             // Subscribe to gain and white balance changes
             {
               std::lock_guard<std::mutex> scopedLock(connect_mutex_);
-              sub_ = getMTNodeHandle().subscribe("image_exposure_sequence", 10, &flir_camera_driver::FlirCameraNodelet::gainWBCallback, this);
+              sub_ = getMTNodeHandle().subscribe("image_exposure_sequence", 10,
+                                                 &flir_camera_driver::FlirCameraNodelet::gainWBCallback, this);
             }
 
             state = CONNECTED;
           }
-          catch(const std::runtime_error& e)
+          catch (const std::runtime_error& e)
           {
             if (state_changed)
             {
               NODELET_ERROR_ONCE("Failed to connect with error: %s", e.what());
-              ros::Duration(1.0).sleep(); // sleep for one second each time
+              ros::Duration(1.0).sleep();  // sleep for one second each time
             }
           }
 
@@ -484,15 +499,16 @@ private:
             NODELET_DEBUG_ONCE("Starting camera.");
             flir_.start();
             NODELET_DEBUG_ONCE("Started camera.");
-            NODELET_DEBUG_ONCE("Attention: if nothing subscribes to the camera topic, the camera_info is not published on the correspondent topic.");
+            NODELET_DEBUG_ONCE("Attention: if nothing subscribes to the camera topic, the camera_info is not published "
+                               "on the correspondent topic.");
             state = STARTED;
           }
-          catch(std::runtime_error& e)
+          catch (std::runtime_error& e)
           {
             if (state_changed)
             {
               NODELET_ERROR_ONCE("Failed to start with error: %s", e.what());
-              ros::Duration(1.0).sleep(); // sleep for one second each time
+              ros::Duration(1.0).sleep();  // sleep for one second each time
             }
           }
 
@@ -503,7 +519,7 @@ private:
             wfov_camera_msgs::WFOVImagePtr wfov_image(new wfov_camera_msgs::WFOVImage);
             // Get the image from the camera library
             NODELET_DEBUG_ONCE("Starting a new grab from camera with serial {%d}.", flir_.getSerial());
-            flir_.grabImage(wfov_image->image, frame_id_);
+            flir_.grabImage(&wfov_image->image, frame_id_);
 
             // Set other values
             wfov_image->header.frame_id = frame_id_;
@@ -537,18 +553,18 @@ private:
             pub_->publish(wfov_image);
 
             // Publish the message using standard image transport
-            if(it_pub_.getNumSubscribers() > 0)
+            if (it_pub_.getNumSubscribers() > 0)
             {
               sensor_msgs::ImagePtr image(new sensor_msgs::Image(wfov_image->image));
               it_pub_.publish(image, ci_);
             }
           }
-          catch(CameraTimeoutException& e)
+          catch (CameraTimeoutException& e)
           {
             NODELET_WARN_ONCE("%s", e.what());
           }
 
-          catch(std::runtime_error& e)
+          catch (std::runtime_error& e)
           {
             NODELET_ERROR_ONCE("%s", e.what());
 
@@ -566,57 +582,68 @@ private:
     NODELET_DEBUG_ONCE("Leaving thread.");
   }
 
-  void gainWBCallback(const image_exposure_msgs::ExposureSequence &msg)
+  void gainWBCallback(const image_exposure_msgs::ExposureSequence& msg)
   {
     try
     {
-      NODELET_DEBUG_ONCE("Gain callback:  Setting gain to %f and white balances to %u, %u", msg.gain, msg.white_balance_blue, msg.white_balance_red);
+      NODELET_DEBUG_ONCE("Gain callback:  Setting gain to %f and white balances to %u, %u", msg.gain,
+                         msg.white_balance_blue, msg.white_balance_red);
       gain_ = msg.gain;
 
       flir_.setGain(static_cast<float>(gain_));
       wb_blue_ = msg.white_balance_blue;
       wb_red_ = msg.white_balance_red;
 
-      // TODO: @tthomas
+      // TODO(tthomas):
       // flir_.setBRWhiteBalance(false, wb_blue_, wb_red_);
     }
-    catch(std::runtime_error& e)
+    catch (std::runtime_error& e)
     {
       NODELET_ERROR_ONCE("gainWBCallback failed with error: %s", e.what());
     }
   }
 
   /* Class Fields */
-  boost::shared_ptr<dynamic_reconfigure::Server<flir_camera_driver::FlirConfig> > srv_; ///< Needed to initialize and keep the dynamic_reconfigure::Server in scope.
-  boost::shared_ptr<image_transport::ImageTransport> it_; ///< Needed to initialize and keep the ImageTransport in scope.
-  boost::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_; ///< Needed to initialize and keep the CameraInfoManager in scope.
-  image_transport::CameraPublisher it_pub_; ///< CameraInfoManager ROS publisher
-  boost::shared_ptr<diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage> > pub_; ///< Diagnosed publisher, has to be a pointer because of constructor requirements
-  ros::Subscriber sub_; ///< Subscriber for gain and white balance changes.
+  boost::shared_ptr<dynamic_reconfigure::Server<flir_camera_driver::FlirConfig> > srv_;  ///<  Needed to initialize and
+                                                                                         ///   keep the
+  /// dynamic_reconfigure::Server
+  /// in scope.
+  boost::shared_ptr<image_transport::ImageTransport> it_;  ///< Needed to initialize and keep the ImageTransport in
+                                                           /// scope.
+  boost::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_;  ///< Needed to initialize and keep the
+                                                                     /// CameraInfoManager in scope.
+  image_transport::CameraPublisher it_pub_;                          ///< CameraInfoManager ROS publisher
+  boost::shared_ptr<diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage> > pub_;  ///< Diagnosed
+  /// publisher, has to be
+  /// a pointer because of
+  /// constructor
+  /// requirements
+  ros::Subscriber sub_;  ///< Subscriber for gain and white balance changes.
 
   std::mutex connect_mutex_;
 
-  diagnostic_updater::Updater updater_; ///< Handles publishing diagnostics messages.
+  diagnostic_updater::Updater updater_;  ///< Handles publishing diagnostics messages.
   double min_freq_;
   double max_freq_;
 
-  FlirCamera flir_; ///< Instance of the FlirCamera library, used to interface with the hardware.
-  sensor_msgs::CameraInfoPtr ci_; ///< Camera Info message.
-  std::string frame_id_; ///< Frame id for the camera messages, defaults to 'camera'
-  boost::shared_ptr<boost::thread> pubThread_; ///< The thread that reads and publishes the images.
+  FlirCamera flir_;                ///< Instance of the FlirCamera library, used to interface with the hardware.
+  sensor_msgs::CameraInfoPtr ci_;  ///< Camera Info message.
+  std::string frame_id_;           ///< Frame id for the camera messages, defaults to 'camera'
+  boost::shared_ptr<boost::thread> pubThread_;  ///< The thread that reads and publishes the images.
 
   double gain_;
   uint16_t wb_blue_;
   uint16_t wb_red_;
 
   // Parameters for cameraInfo
-  size_t binning_x_; ///< Camera Info pixel binning along the image x axis.
-  size_t binning_y_; ///< Camera Info pixel binning along the image y axis.
-  size_t roi_x_offset_; ///< Camera Info ROI x offset
-  size_t roi_y_offset_; ///< Camera Info ROI y offset
-  size_t roi_height_; ///< Camera Info ROI height
-  size_t roi_width_; ///< Camera Info ROI width
-  bool do_rectify_; ///< Whether or not to rectify as if part of an image.  Set to false if whole image, and true if in ROI mode.
+  size_t binning_x_;     ///< Camera Info pixel binning along the image x axis.
+  size_t binning_y_;     ///< Camera Info pixel binning along the image y axis.
+  size_t roi_x_offset_;  ///< Camera Info ROI x offset
+  size_t roi_y_offset_;  ///< Camera Info ROI y offset
+  size_t roi_height_;    ///< Camera Info ROI height
+  size_t roi_width_;     ///< Camera Info ROI width
+  bool do_rectify_;  ///< Whether or not to rectify as if part of an image.  Set to false if whole image, and true if in
+                     /// ROI mode.
 
   // For GigE cameras:
   /// If true, GigE packet size is automatically determined, otherwise packet_size_ is used:
@@ -631,4 +658,4 @@ private:
 };
 
 PLUGINLIB_EXPORT_CLASS(flir_camera_driver::FlirCameraNodelet, nodelet::Nodelet)  // Needed for Nodelet declaration
-}
+}  // namespace flir_camera_driver

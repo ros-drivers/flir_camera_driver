@@ -110,6 +110,7 @@ if (CATKIN_ENABLE_TESTING)
   roslaunch_add_file_check(launch/camera.launch)
 
   find_package(roslint REQUIRED)
+  set(ROSLINT_CPP_OPTS "--filter=-build/c++11")
   roslint_cpp()
   roslint_add_test()
 endif()
