@@ -1,4 +1,30 @@
+/**
+Software License Agreement (BSD)
+
+\file      cm3.cpp
+\authors   Michael Hosmar <mhosmar@clearpathrobotics.com>
+\copyright Copyright (c) 2018, Clearpath Robotics, Inc., All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+   following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
+   following disclaimer in the documentation and/or other materials provided with the distribution.
+ * Neither the name of Clearpath Robotics nor the names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WAR-
+RANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, IN-
+DIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 #include "flir_camera_driver/cm3.h"
+
+#include <string>
 
 namespace flir_camera_driver
 {
@@ -33,7 +59,7 @@ void Cm3::setFrameRate(const float frame_rate)
   ROS_DEBUG_STREAM("Current Frame rate: \t " << ptrAcquisitionFrameRate->GetValue());
 }
 
-void Cm3::setNewConfiguration(FlirConfig& config, const uint32_t& level)
+void Cm3::setNewConfiguration(const FlirConfig& config, const uint32_t& level)
 {
   try
   {
@@ -42,7 +68,7 @@ void Cm3::setNewConfiguration(FlirConfig& config, const uint32_t& level)
 
     setFrameRate(static_cast<float>(config.acquisition_frame_rate));
     setProperty(node_map_, "AcquisitionFrameRateEnabled",
-                          config.acquisition_frame_rate_enable);  // Set enable after frame rate encase its false
+                config.acquisition_frame_rate_enable);  // Set enable after frame rate encase its false
 
     // Set Trigger and Strobe Settings
     // NOTE: The trigger must be disabled (i.e. TriggerMode = "Off") in order to configure whether the source is
@@ -55,7 +81,7 @@ void Cm3::setNewConfiguration(FlirConfig& config, const uint32_t& level)
 
     setProperty(node_map_, "LineSelector", config.line_selector);
     setProperty(node_map_, "LineMode", config.line_mode);
-    //setProperty(node_map_, "LineSource", config.line_source); // Not available in CM3
+    // setProperty(node_map_, "LineSource", config.line_source); // Not available in CM3
 
     // Set auto exposure
     setProperty(node_map_, "ExposureMode", config.exposure_mode);
@@ -91,11 +117,11 @@ void Cm3::setNewConfiguration(FlirConfig& config, const uint32_t& level)
     else
     {
       setProperty(node_map_, "AutoExposureTimeUpperLimit",
-                            static_cast<float>(config.auto_exposure_time_upper_limit));  // Different than BFly S
+                  static_cast<float>(config.auto_exposure_time_upper_limit));  // Different than BFly S
     }
 
     // Set gain
-    //setProperty(node_map_, "GainSelector", config.gain_selector); //Not Writeable for CM3
+    // setProperty(node_map_, "GainSelector", config.gain_selector); //Not Writeable for CM3
     setProperty(node_map_, "GainAuto", config.auto_gain);
     if (config.auto_gain.compare(std::string("Off")) == 0)
     {
@@ -132,13 +158,13 @@ void Cm3::setNewConfiguration(FlirConfig& config, const uint32_t& level)
 }
 
 // Image Size and Pixel Format
-void Cm3::setImageControlFormats(flir_camera_driver::FlirConfig &config)
+void Cm3::setImageControlFormats(const flir_camera_driver::FlirConfig& config)
 {
   // Set Binning and Decimation
-  //setProperty(node_map_, "BinningHorizontal", config.image_format_x_binning);  // Not available on CM3
+  // setProperty(node_map_, "BinningHorizontal", config.image_format_x_binning);  // Not available on CM3
   setProperty(node_map_, "BinningVertical", config.image_format_y_binning);
-  //setProperty(node_map_, "DecimationHorizontal", config.image_format_x_decimation);
-  //setProperty(node_map_, "DecimationVertical", config.image_format_y_decimation);
+  // setProperty(node_map_, "DecimationHorizontal", config.image_format_x_decimation);
+  // setProperty(node_map_, "DecimationVertical", config.image_format_y_decimation);
 
   // Grab the Max values after decimation
   Spinnaker::GenApi::CIntegerPtr height_max_ptr = node_map_->GetNode("HeightMax");
@@ -161,11 +187,11 @@ void Cm3::setImageControlFormats(flir_camera_driver::FlirConfig &config)
   setProperty(node_map_, "OffsetY", 0);
 
   // Set Width/Height
-  if(config.image_format_roi_width <= 0 || config.image_format_roi_width > width_max_)
+  if (config.image_format_roi_width <= 0 || config.image_format_roi_width > width_max_)
     setProperty(node_map_, "Width", width_max_);
   else
     setProperty(node_map_, "Width", config.image_format_roi_width);
-  if(config.image_format_roi_height <= 0 || config.image_format_roi_height > height_max_)
+  if (config.image_format_roi_height <= 0 || config.image_format_roi_height > height_max_)
     setProperty(node_map_, "Height", height_max_);
   else
     setProperty(node_map_, "Height", config.image_format_roi_height);
@@ -178,4 +204,4 @@ void Cm3::setImageControlFormats(flir_camera_driver::FlirConfig &config)
   // Set Pixel Format
   setProperty(node_map_, "PixelFormat", config.image_format_color_coding);
 }
-}
+}  // namespace flir_camera_driver

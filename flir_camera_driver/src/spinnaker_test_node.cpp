@@ -5,7 +5,8 @@ Software License Agreement (proprietary)
 \authors   Teyvonia Thomas <tthomas@clearpathrobotics.com>
 \copyright Copyright (c) 2017, Clearpath Robotics, Inc., All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification, is not permitted without the express permission of Clearpath Robotics.
+Redistribution and use in source and binary forms, with or without modification, is not permitted without the express
+permission of Clearpath Robotics.
 */
 
 // ROS Includes
@@ -14,28 +15,21 @@ Redistribution and use in source and binary forms, with or without modification,
 // Spinnaker Includes
 #include "Spinnaker.h"
 // #include "SpinGenApi/SpinnakerGenApi.h"
-using namespace Spinnaker;
-using namespace Spinnaker::GenApi;
 
 namespace flir_camera_driver
 {
-
 class SpinnakerTestNode
 {
-
 public:
   SpinnakerTestNode();
 
   void test();
-
 };
-
 
 SpinnakerTestNode::SpinnakerTestNode()
 {
   test();
 }
-
 
 void SpinnakerTestNode::test()
 {
@@ -43,12 +37,12 @@ void SpinnakerTestNode::test()
 
   Spinnaker::InterfaceList interfaceList = system->GetInterfaces();
   unsigned int numInterfaces = interfaceList.GetSize();
-  std::printf("\033[93m[Spinnaker] Number of interfaces detected: %d \n",  numInterfaces);
+  std::printf("\033[93m[Spinnaker] Number of interfaces detected: %d \n", numInterfaces);
 
   Spinnaker::CameraList camList = system->GetCameras();
   unsigned int numCameras = camList.GetSize();
 
-  std::printf("\033[93m[Spinnaker] # of connected cameras: %d \n",  numCameras);
+  std::printf("\033[93m[Spinnaker] # of connected cameras: %d \n", numCameras);
 
   // Finish if there are no cameras
   if (numCameras == 0)
@@ -64,12 +58,12 @@ void SpinnakerTestNode::test()
   }
   else
   {
-    for(unsigned int i = 0; i < numCameras; i++)
+    for (unsigned int i = 0; i < numCameras; i++)
     {
-      CameraPtr pCam = camList[i];
-      INodeMap & nodeMapTLDevice = pCam->GetTLDeviceNodeMap();
-      CStringPtr ptrDeviceSerialNumber = nodeMapTLDevice.GetNode("DeviceSerialNumber");
-      if(IsAvailable(ptrDeviceSerialNumber) && IsReadable(ptrDeviceSerialNumber))
+      Spinnaker::CameraPtr pCam = camList[i];
+      Spinnaker::GenApi::INodeMap& nodeMapTLDevice = pCam->GetTLDeviceNodeMap();
+      Spinnaker::GenApi::CStringPtr ptrDeviceSerialNumber = nodeMapTLDevice.GetNode("DeviceSerialNumber");
+      if (Spinnaker::GenApi::IsAvailable(ptrDeviceSerialNumber) && Spinnaker::GenApi::IsReadable(ptrDeviceSerialNumber))
       {
         std::cout << "\033[92m[" << i << "]\t" << ptrDeviceSerialNumber->ToString() << std::endl;
       }
@@ -80,7 +74,6 @@ void SpinnakerTestNode::test()
   system->ReleaseInstance();
 }
 }  // namespace flir_camera_driver
-
 
 int main(int argc, char** argv)
 {
