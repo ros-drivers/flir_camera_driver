@@ -65,7 +65,7 @@ void Camera::setFrameRate(const float frame_rate)
   ROS_DEBUG_STREAM("Current Frame rate: \t " << ptrAcquisitionFrameRate->GetValue());
 }
 
-void Camera::setNewConfiguration(const FlirConfig& config, const uint32_t& level)
+void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& level)
 {
   try
   {
@@ -164,7 +164,7 @@ void Camera::setNewConfiguration(const FlirConfig& config, const uint32_t& level
 }
 
 // Image Size and Pixel Format
-void Camera::setImageControlFormats(const spinnaker_camera_driver::FlirConfig& config)
+void Camera::setImageControlFormats(const spinnaker_camera_driver::SpinnakerConfig& config)
 {
   // Set Binning and Decimation
   setProperty(node_map_, "BinningHorizontal", config.image_format_x_binning);
@@ -247,7 +247,7 @@ uint Camera::getWidthMax()
   return width_max_;
 }
 
-// uint FlirCamera::getGain()
+// uint SpinnakerCamera::getGain()
 // {
 //   return metadata_.embeddedGain >> 20;
 // }

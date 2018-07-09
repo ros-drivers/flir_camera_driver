@@ -40,7 +40,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
       <!-- Both cameras are not loaded into one nodelet manager to avoid the namespacing issue. -->
       <node pkg="nodelet" type="nodelet" name="camera_nodelet"
-            args="load spinnaker_camera_driver/FlirCameraNodelet /camera_nodelet_manager" >
+            args="load spinnaker_camera_driver/SpinnakerCameraNodelet /camera_nodelet_manager" >
         <param name="frame_id" value="camera_left" />
         <param name="serial" value="$(arg left_camera_serial)" />
 
@@ -62,7 +62,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
     <group ns="right" >
 
       <node pkg="nodelet" type="nodelet" name="camera_nodelet"
-            args="load spinnaker_camera_driver/FlirCameraNodelet /camera_nodelet_manager" >
+            args="load spinnaker_camera_driver/SpinnakerCameraNodelet /camera_nodelet_manager" >
         <param name="frame_id" value="camera_right" />
         <param name="serial" value="$(arg right_camera_serial)" />
 

@@ -59,7 +59,7 @@ void Cm3::setFrameRate(const float frame_rate)
   ROS_DEBUG_STREAM("Current Frame rate: \t " << ptrAcquisitionFrameRate->GetValue());
 }
 
-void Cm3::setNewConfiguration(const FlirConfig& config, const uint32_t& level)
+void Cm3::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& level)
 {
   try
   {
@@ -158,7 +158,7 @@ void Cm3::setNewConfiguration(const FlirConfig& config, const uint32_t& level)
 }
 
 // Image Size and Pixel Format
-void Cm3::setImageControlFormats(const spinnaker_camera_driver::FlirConfig& config)
+void Cm3::setImageControlFormats(const spinnaker_camera_driver::SpinnakerConfig& config)
 {
   // Set Binning and Decimation
   // setProperty(node_map_, "BinningHorizontal", config.image_format_x_binning);  // Not available on CM3

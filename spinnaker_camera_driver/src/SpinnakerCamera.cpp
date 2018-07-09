@@ -30,7 +30,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*-*-C++-*-*/
 /**
-   @file FlirCamera.cpp
+   @file SpinnakerCamera.cpp
    @author Chad Rockey
    @date July 11, 2011
    @brief Interface to Point Grey cameras
@@ -40,7 +40,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    @attention Carnegie Mellon University
 */
 
-#include "spinnaker_camera_driver/FlirCamera.h"
+#include "spinnaker_camera_driver/SpinnakerCamera.h"
 
 #include <iostream>
 #include <sstream>
@@ -51,7 +51,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace spinnaker_camera_driver
 {
-FlirCamera::FlirCamera()
+SpinnakerCamera::SpinnakerCamera()
   : serial_(0)
   , system_(Spinnaker::System::GetInstance())
   , camList_(system_->GetCameras())
@@ -60,21 +60,21 @@ FlirCamera::FlirCamera()
   , captureRunning_(false)
 {
   unsigned int num_cameras = camList_.GetSize();
-  ROS_INFO_STREAM_ONCE("[FlirCamera]: Number of cameras detected: " << num_cameras);
+  ROS_INFO_STREAM_ONCE("[SpinnakerCamera]: Number of cameras detected: " << num_cameras);
 }
 
-FlirCamera::~FlirCamera()
+SpinnakerCamera::~SpinnakerCamera()
 {
   camList_.Clear();
   system_->ReleaseInstance();
 }
 
-void FlirCamera::setNewConfiguration(const spinnaker_camera_driver::FlirConfig& config, const uint32_t& level)
+void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::SpinnakerConfig& config, const uint32_t& level)
 {
   // Check if camera is connected
   if (!pCam_)
   {
-    FlirCamera::connect();
+    SpinnakerCamera::connect();
   }
 
   // Activate mutex to prevent us from grabbing images during this time
@@ -82,7 +82,7 @@ void FlirCamera::setNewConfiguration(const spinnaker_camera_driver::FlirConfig& 
 
   if (level >= LEVEL_RECONFIGURE_STOP)
   {
-    ROS_DEBUG("FlirCamera::setNewConfiguration: Reconfigure Stop.");
+    ROS_DEBUG("SpinnakerCamera::setNewConfiguration: Reconfigure Stop.");
     bool capture_was_running = captureRunning_;
     start();  // For some reason some params only work after aquisition has be started once.
     stop();
@@ -96,13 +96,13 @@ void FlirCamera::setNewConfiguration(const spinnaker_camera_driver::FlirConfig& 
   }
 }  // end setNewConfiguration
 
-void FlirCamera::setGain(const float& gain)
+void SpinnakerCamera::setGain(const float& gain)
 {
   if (camera_)
     camera_->setGain(gain);
 }
 
-uint FlirCamera::getHeightMax()
+uint SpinnakerCamera::getHeightMax()
 {
   if (camera_)
     return camera_->getHeightMax();
@@ -110,7 +110,7 @@ uint FlirCamera::getHeightMax()
     return 0;
 }
 
-uint FlirCamera::getWidthMax()
+uint SpinnakerCamera::getWidthMax()
 {
   if (camera_)
     return camera_->getWidthMax();
@@ -118,7 +118,7 @@ uint FlirCamera::getWidthMax()
     return 0;
 }
 
-void FlirCamera::connect()
+void SpinnakerCamera::connect()
 {
   if (!pCam_)
   {
@@ -133,8 +133,8 @@ void FlirCamera::connect()
       }
       catch (const Spinnaker::Exception& e)
       {
-        throw std::runtime_error("[FlirCamera::connect] Could not find camera with serial number " + serial_string +
-                                 ". Is that camera plugged in? Error: " + std::string(e.what()));
+        throw std::runtime_error("[SpinnakerCamera::connect] Could not find camera with serial number " +
+                                 serial_string + ". Is that camera plugged in? Error: " + std::string(e.what()));
       }
     }
     else
@@ -146,13 +146,13 @@ void FlirCamera::connect()
       }
       catch (const Spinnaker::Exception& e)
       {
-        throw std::runtime_error("[FlirCamera::connect] Failed to get first connected camera. Error: " +
+        throw std::runtime_error("[SpinnakerCamera::connect] Failed to get first connected camera. Error: " +
                                  std::string(e.what()));
       }
     }
     if (!pCam_ || !pCam_->IsValid())
     {
-      throw std::runtime_error("[FlirCamera::connect] Failed to obtain camera reference.");
+      throw std::runtime_error("[SpinnakerCamera::connect] Failed to obtain camera reference.");
     }
 
     try
@@ -167,11 +167,11 @@ void FlirCamera::connect()
         if (IsAvailable(serial_ptr) && IsReadable(serial_ptr))
         {
           serial_ = atoi(serial_ptr->GetValue().c_str());
-          ROS_INFO("[FlirCamera::connect]: Using Serial: %i", serial_);
+          ROS_INFO("[SpinnakerCamera::connect]: Using Serial: %i", serial_);
         }
         else
         {
-          throw std::runtime_error("[FlirCamera::connect]: Unable to determine serial number.");
+          throw std::runtime_error("[SpinnakerCamera::connect]: Unable to determine serial number.");
         }
       }
 
@@ -180,7 +180,7 @@ void FlirCamera::connect()
 
       if (IsAvailable(device_type_ptr) && IsReadable(device_type_ptr))
       {
-        ROS_INFO_STREAM("[FlirCamera::connect]: Detected device type: " << device_type_ptr->ToString());
+        ROS_INFO_STREAM("[SpinnakerCamera::connect]: Detected device type: " << device_type_ptr->ToString());
 
         if (device_type_ptr->GetCurrentEntry() == device_type_ptr->GetEntryByName("U3V"))
         {
@@ -189,7 +189,7 @@ void FlirCamera::connect()
           if (IsAvailable(device_speed_ptr) && IsReadable(device_speed_ptr))
           {
             if (device_speed_ptr->GetCurrentEntry() != device_speed_ptr->GetEntryByName("SuperSpeed"))
-              ROS_ERROR_STREAM("[FlirCamera::connect]: U3V Device not running at Super-Speed. Check Cables! ");
+              ROS_ERROR_STREAM("[SpinnakerCamera::connect]: U3V Device not running at Super-Speed. Check Cables! ");
           }
         }
         // TODO(mhosmar): - check if interface is GigE and connect to GigE cam
@@ -197,7 +197,7 @@ void FlirCamera::connect()
     }
     catch (const Spinnaker::Exception& e)
     {
-      throw std::runtime_error("[FlirCamera::connect] Failed to determine device info with error: " +
+      throw std::runtime_error("[SpinnakerCamera::connect] Failed to determine device info with error: " +
                                std::string(e.what()));
     }
 
@@ -213,7 +213,7 @@ void FlirCamera::connect()
       Spinnaker::GenApi::CStringPtr model_name = node_map_->GetNode("DeviceModelName");
       std::string model_name_str(model_name->ToString());
 
-      ROS_INFO("[FlirCamera::connect]: Camera model name: %s", model_name_str.c_str());
+      ROS_INFO("[SpinnakerCamera::connect]: Camera model name: %s", model_name_str.c_str());
       if (model_name_str.find("Blackfly S") != std::string::npos)
         camera_.reset(new Camera(node_map_));
       else if (model_name_str.find("Chameleon3") != std::string::npos)
@@ -221,19 +221,21 @@ void FlirCamera::connect()
       else
       {
         camera_.reset(new Camera(node_map_));
-        ROS_WARN("FlirCamera::connect: Could not detect camera model name.");
+        ROS_WARN("SpinnakerCamera::connect: Could not detect camera model name.");
       }
 
       // Configure chunk data - Enable Metadata
-      // FlirCamera::ConfigureChunkData(*node_map_);
+      // SpinnakerCamera::ConfigureChunkData(*node_map_);
     }
     catch (const Spinnaker::Exception& e)
     {
-      throw std::runtime_error("[FlirCamera::connect] Failed to connect to camera. Error: " + std::string(e.what()));
+      throw std::runtime_error("[SpinnakerCamera::connect] Failed to connect to camera. Error: " +
+                               std::string(e.what()));
     }
     catch (const std::runtime_error& e)
     {
-      throw std::runtime_error("[FlirCamera::connect] Failed to configure chunk data. Error: " + std::string(e.what()));
+      throw std::runtime_error("[SpinnakerCamera::connect] Failed to configure chunk data. Error: " +
+                               std::string(e.what()));
     }
   }
 
@@ -241,12 +243,12 @@ void FlirCamera::connect()
   /*
   CameraInfo cInfo;
   error = cam_.GetCameraInfo(&cInfo);
-  FlirCamera::handleError("FlirCamera::connect  Failed to get camera info.", error);
+  SpinnakerCamera::handleError("SpinnakerCamera::connect  Failed to get camera info.", error);
   isColor_ = cInfo.isColorCamera;
   */
 }
 
-void FlirCamera::disconnect()
+void SpinnakerCamera::disconnect()
 {
   std::lock_guard<std::mutex> scopedLock(mutex_);
   captureRunning_ = false;
@@ -264,12 +266,12 @@ void FlirCamera::disconnect()
   }
   catch (const Spinnaker::Exception& e)
   {
-    throw std::runtime_error("[FlirCamera::disconnect] Failed to disconnect camera with error: " +
+    throw std::runtime_error("[SpinnakerCamera::disconnect] Failed to disconnect camera with error: " +
                              std::string(e.what()));
   }
 }
 
-void FlirCamera::start()
+void SpinnakerCamera::start()
 {
   try
   {
@@ -283,11 +285,11 @@ void FlirCamera::start()
   }
   catch (const Spinnaker::Exception& e)
   {
-    throw std::runtime_error("[FlirCamera::start] Failed to start capture with error: " + std::string(e.what()));
+    throw std::runtime_error("[SpinnakerCamera::start] Failed to start capture with error: " + std::string(e.what()));
   }
 }
 
-void FlirCamera::stop()
+void SpinnakerCamera::stop()
 {
   if (pCam_ && captureRunning_)
   {
@@ -299,12 +301,12 @@ void FlirCamera::stop()
     }
     catch (const Spinnaker::Exception& e)
     {
-      throw std::runtime_error("[FlirCamera::stop] Failed to stop capture with error: " + std::string(e.what()));
+      throw std::runtime_error("[SpinnakerCamera::stop] Failed to stop capture with error: " + std::string(e.what()));
     }
   }
 }
 
-void FlirCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_id)
+void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_id)
 {
   std::lock_guard<std::mutex> scopedLock(mutex_);
 
@@ -320,7 +322,7 @@ void FlirCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_i
 
       if (image_ptr->IsIncomplete())
       {
-        throw std::runtime_error("[FlirCamera::grabImage] Image received from camera " + std::to_string(serial_) +
+        throw std::runtime_error("[SpinnakerCamera::grabImage] Image received from camera " + std::to_string(serial_) +
                                  " is incomplete.");
       }
       else
@@ -369,7 +371,7 @@ void FlirCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_i
             }
             else
             {
-              throw std::runtime_error("[FlirCamera::grabImage] Bayer format not recognized for 16-bit format.");
+              throw std::runtime_error("[SpinnakerCamera::grabImage] Bayer format not recognized for 16-bit format.");
             }
           }
           else
@@ -393,7 +395,7 @@ void FlirCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_i
             }
             else
             {
-              throw std::runtime_error("[FlirCamera::grabImage] Bayer format not recognized for 8-bit format.");
+              throw std::runtime_error("[SpinnakerCamera::grabImage] Bayer format not recognized for 8-bit format.");
             }
           }
         }
@@ -424,31 +426,31 @@ void FlirCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_i
     }
     catch (const Spinnaker::Exception& e)
     {
-      throw std::runtime_error("[FlirCamera::grabImage] Failed to retrieve buffer with error: " +
+      throw std::runtime_error("[SpinnakerCamera::grabImage] Failed to retrieve buffer with error: " +
                                std::string(e.what()));
     }
   }
   else if (pCam_)
   {
-    throw CameraNotRunningException("[FlirCamera::grabImage] Camera is currently not running.  Please start "
+    throw CameraNotRunningException("[SpinnakerCamera::grabImage] Camera is currently not running.  Please start "
                                     "capturing frames first.");
   }
   else
   {
-    throw std::runtime_error("[FlirCamera::grabImage] Not connected to the camera.");
+    throw std::runtime_error("[SpinnakerCamera::grabImage] Not connected to the camera.");
   }
 }  // end grabImage
 
-void FlirCamera::setTimeout(const double& timeout)
+void SpinnakerCamera::setTimeout(const double& timeout)
 {
   timeout_ = static_cast<uint64_t>(std::round(timeout * 1000));
 }
-void FlirCamera::setDesiredCamera(const uint32_t& id)
+void SpinnakerCamera::setDesiredCamera(const uint32_t& id)
 {
   serial_ = id;
 }
 
-void FlirCamera::ConfigureChunkData(const Spinnaker::GenApi::INodeMap& nodeMap)
+void SpinnakerCamera::ConfigureChunkData(const Spinnaker::GenApi::INodeMap& nodeMap)
 {
   ROS_INFO_STREAM("*** CONFIGURING CHUNK DATA ***");
   try

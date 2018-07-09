@@ -51,7 +51,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pluginlib/class_list_macros.h>
 #include <nodelet/nodelet.h>
 
-#include "spinnaker_camera_driver/FlirCamera.h"  // The actual standalone library for the Flirs
+#include "spinnaker_camera_driver/SpinnakerCamera.h"  // The actual standalone library for the Spinnakers
 
 #include <image_transport/image_transport.h>          // ROS library that allows sending compressed images
 #include <camera_info_manager/camera_info_manager.h>  // ROS library that publishes CameraInfo topics
@@ -72,14 +72,14 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace spinnaker_camera_driver
 {
-class FlirCameraNodelet : public nodelet::Nodelet
+class SpinnakerCameraNodelet : public nodelet::Nodelet
 {
 public:
-  FlirCameraNodelet()
+  SpinnakerCameraNodelet()
   {
   }
 
-  ~FlirCameraNodelet()
+  ~SpinnakerCameraNodelet()
   {
     std::lock_guard<std::mutex> scopedLock(connect_mutex_);
 
@@ -91,9 +91,9 @@ public:
       try
       {
         NODELET_DEBUG_ONCE("Stopping camera capture.");
-        flir_.stop();
+        spinnaker_.stop();
         NODELET_DEBUG_ONCE("Disconnecting from camera.");
-        flir_.disconnect();
+        spinnaker_.disconnect();
       }
       catch (const std::runtime_error& e)
       {
@@ -113,14 +113,14 @@ private:
   * \param level driver_base reconfiguration level.  See driver_base/SensorLevels.h for more information.
   */
 
-  void paramCallback(const spinnaker_camera_driver::FlirConfig& config, uint32_t level)
+  void paramCallback(const spinnaker_camera_driver::SpinnakerConfig& config, uint32_t level)
   {
     config_ = config;
 
     try
     {
       NODELET_DEBUG_ONCE("Dynamic reconfigure callback with level: %u", level);
-      flir_.setNewConfiguration(config, level);
+      spinnaker_.setNewConfiguration(config, level);
 
       // Store needed parameters for the metadata message
       gain_ = config.gain;
@@ -136,8 +136,8 @@ private:
       //                same window of pixels on the camera sensor, regardless of binning settings."
       //                These values are in the post binned frame.
       if ((config.image_format_roi_width + config.image_format_roi_height) > 0 &&
-          (config.image_format_roi_width < flir_.getWidthMax() ||
-           config.image_format_roi_height < flir_.getHeightMax()))
+          (config.image_format_roi_width < spinnaker_.getWidthMax() ||
+           config.image_format_roi_height < spinnaker_.getHeightMax()))
       {
         roi_x_offset_ = config.image_format_x_offset;
         roi_y_offset_ = config.image_format_y_offset;
@@ -171,7 +171,8 @@ private:
     if (!pubThread_)  // We need to connect
     {
       // Start the thread to loop through and publish messages
-      pubThread_.reset(new boost::thread(boost::bind(&spinnaker_camera_driver::FlirCameraNodelet::devicePoll, this)));
+      pubThread_.reset(
+          new boost::thread(boost::bind(&spinnaker_camera_driver::SpinnakerCameraNodelet::devicePoll, this)));
     }
 
     // @tthomas - removing subscriber check and logic below as it's leading to mutex locks and crashes currently
@@ -195,7 +196,7 @@ private:
         try
         {
           NODELET_DEBUG_ONCE("Stopping camera capture.");
-          flir_.stop();
+          spinnaker_.stop();
         }
         catch(std::runtime_error& e)
         {
@@ -205,7 +206,7 @@ private:
         try
         {
           NODELET_DEBUG_ONCE("Disconnecting from camera.");
-          flir_.disconnect();
+          spinnaker_.disconnect();
         }
         catch(std::runtime_error& e)
         {
@@ -216,7 +217,8 @@ private:
     else if(!pubThread_)     // We need to connect
     {
       // Start the thread to loop through and publish messages
-      pubThread_.reset(new boost::thread(boost::bind(&spinnaker_camera_driver::FlirCameraNodelet::devicePoll, this)));
+      pubThread_.reset(new boost::thread(boost::bind(&spinnaker_camera_driver::SpinnakerCameraNodelet::devicePoll,
+    this)));
     }
     else
     {
@@ -275,7 +277,7 @@ private:
 
     NODELET_DEBUG_ONCE("Using camera serial %d", serial);
 
-    flir_.setDesiredCamera((uint32_t)serial);
+    spinnaker_.setDesiredCamera((uint32_t)serial);
 
     // Get GigE camera parameters:
     pnh.param<int>("packet_size", packet_size_, 1400);
@@ -283,7 +285,7 @@ private:
     pnh.param<int>("packet_delay", packet_delay_, 4000);
 
     // TODO(mhosmar):  Set GigE parameters:
-    // flir_.setGigEParameters(auto_packet_size_, packet_size_, packet_delay_);
+    // spinnaker_.setGigEParameters(auto_packet_size_, packet_size_, packet_delay_);
 
     // Get the location of our camera config yaml
     std::string camera_info_url;
@@ -294,9 +296,9 @@ private:
     std::lock_guard<std::mutex> scopedLock(connect_mutex_);
 
     // Start up the dynamic_reconfigure service, note that this needs to stick around after this function ends
-    srv_ = std::make_shared<dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig> >(pnh);
-    dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig>::CallbackType f =
-        boost::bind(&spinnaker_camera_driver::FlirCameraNodelet::paramCallback, this, _1, _2);
+    srv_ = std::make_shared<dynamic_reconfigure::Server<spinnaker_camera_driver::SpinnakerConfig> >(pnh);
+    dynamic_reconfigure::Server<spinnaker_camera_driver::SpinnakerConfig>::CallbackType f =
+        boost::bind(&spinnaker_camera_driver::SpinnakerCameraNodelet::paramCallback, this, _1, _2);
 
     srv_->setCallback(f);
 
@@ -307,11 +309,11 @@ private:
 
     // Publish topics using ImageTransport through camera_info_manager (gives cool things like compression)
     it_.reset(new image_transport::ImageTransport(nh));
-    image_transport::SubscriberStatusCallback cb = boost::bind(&FlirCameraNodelet::connectCb, this);
+    image_transport::SubscriberStatusCallback cb = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
     it_pub_ = it_->advertiseCamera("image_raw", 5, cb, cb);
 
     // Set up diagnostics
-    updater_.setHardwareID("flir_camera " + cinfo_name.str());
+    updater_.setHardwareID("spinnaker_camera " + cinfo_name.str());
 
     // Set up a diagnosed publisher
     double desired_freq;
@@ -328,7 +330,7 @@ private:
     pnh.param<double>("min_acceptable_delay", min_acceptable, 0.0);
     double max_acceptable;  // The maximum publishing delay (in seconds) before warning.
     pnh.param<double>("max_acceptable_delay", max_acceptable, 0.2);
-    ros::SubscriberStatusCallback cb2 = boost::bind(&FlirCameraNodelet::connectCb, this);
+    ros::SubscriberStatusCallback cb2 = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
     pub_.reset(new diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage>(
         nh.advertise<wfov_camera_msgs::WFOVImage>("image", 5, cb2, cb2), updater_,
         diagnostic_updater::FrequencyStatusParam(&min_freq_, &max_freq_, freq_tolerance, window_size),
@@ -409,7 +411,7 @@ private:
           try
           {
             NODELET_DEBUG_ONCE("Stopping camera.");
-            flir_.stop();
+            spinnaker_.stop();
             NODELET_DEBUG_ONCE("Stopped camera.");
 
             state = STOPPED;
@@ -431,7 +433,7 @@ private:
           try
           {
             NODELET_DEBUG("Disconnecting from camera.");
-            flir_.disconnect();
+            spinnaker_.disconnect();
             NODELET_DEBUG("Disconnected from camera.");
 
             state = DISCONNECTED;
@@ -453,12 +455,12 @@ private:
           {
             NODELET_DEBUG("Connecting to camera.");
 
-            flir_.connect();
+            spinnaker_.connect();
 
             NODELET_DEBUG("Connected to camera.");
 
             // Set last configuration, forcing the reconfigure level to stop
-            flir_.setNewConfiguration(config_, FlirCamera::LEVEL_RECONFIGURE_STOP);
+            spinnaker_.setNewConfiguration(config_, SpinnakerCamera::LEVEL_RECONFIGURE_STOP);
 
             // Set the timeout for grabbing images.
             try
@@ -467,7 +469,7 @@ private:
               getMTPrivateNodeHandle().param("timeout", timeout, 1.0);
 
               NODELET_DEBUG_ONCE("Setting timeout to: %f.", timeout);
-              flir_.setTimeout(timeout);
+              spinnaker_.setTimeout(timeout);
             }
             catch (const std::runtime_error& e)
             {
@@ -477,8 +479,9 @@ private:
             // Subscribe to gain and white balance changes
             {
               std::lock_guard<std::mutex> scopedLock(connect_mutex_);
-              sub_ = getMTNodeHandle().subscribe("image_exposure_sequence", 10,
-                                                 &spinnaker_camera_driver::FlirCameraNodelet::gainWBCallback, this);
+              sub_ =
+                  getMTNodeHandle().subscribe("image_exposure_sequence", 10,
+                                              &spinnaker_camera_driver::SpinnakerCameraNodelet::gainWBCallback, this);
             }
 
             state = CONNECTED;
@@ -499,7 +502,7 @@ private:
           try
           {
             NODELET_DEBUG("Starting camera.");
-            flir_.start();
+            spinnaker_.start();
             NODELET_DEBUG("Started camera.");
             NODELET_DEBUG("Attention: if nothing subscribes to the camera topic, the camera_info is not published "
                           "on the correspondent topic.");
@@ -521,8 +524,8 @@ private:
           {
             wfov_camera_msgs::WFOVImagePtr wfov_image(new wfov_camera_msgs::WFOVImage);
             // Get the image from the camera library
-            NODELET_DEBUG_ONCE("Starting a new grab from camera with serial {%d}.", flir_.getSerial());
-            flir_.grabImage(&wfov_image->image, frame_id_);
+            NODELET_DEBUG_ONCE("Starting a new grab from camera with serial {%d}.", spinnaker_.getSerial());
+            spinnaker_.grabImage(&wfov_image->image, frame_id_);
 
             // Set other values
             wfov_image->header.frame_id = frame_id_;
@@ -531,7 +534,7 @@ private:
             wfov_image->white_balance_blue = wb_blue_;
             wfov_image->white_balance_red = wb_red_;
 
-            // wfov_image->temperature = flir_.getCameraTemperature();
+            // wfov_image->temperature = spinnaker_.getCameraTemperature();
 
             ros::Time time = ros::Time::now();
             wfov_image->header.stamp = time;
@@ -592,12 +595,12 @@ private:
                          msg.white_balance_blue, msg.white_balance_red);
       gain_ = msg.gain;
 
-      flir_.setGain(static_cast<float>(gain_));
+      spinnaker_.setGain(static_cast<float>(gain_));
       wb_blue_ = msg.white_balance_blue;
       wb_red_ = msg.white_balance_red;
 
       // TODO(tthomas):
-      // flir_.setBRWhiteBalance(false, wb_blue_, wb_red_);
+      // spinnaker_.setBRWhiteBalance(false, wb_blue_, wb_red_);
     }
     catch (std::runtime_error& e)
     {
@@ -606,8 +609,9 @@ private:
   }
 
   /* Class Fields */
-  std::shared_ptr<dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig> > srv_;  ///< Needed to initialize
-                                                                                            ///  and keep the
+  std::shared_ptr<dynamic_reconfigure::Server<spinnaker_camera_driver::SpinnakerConfig> > srv_;  ///< Needed to
+                                                                                                 ///  initialize
+                                                                                                 ///  and keep the
   /// dynamic_reconfigure::Server
   /// in scope.
   std::shared_ptr<image_transport::ImageTransport> it_;  ///< Needed to initialize and keep the ImageTransport in
@@ -628,7 +632,7 @@ private:
   double min_freq_;
   double max_freq_;
 
-  FlirCamera flir_;                ///< Instance of the FlirCamera library, used to interface with the hardware.
+  SpinnakerCamera spinnaker_;      ///< Instance of the SpinnakerCamera library, used to interface with the hardware.
   sensor_msgs::CameraInfoPtr ci_;  ///< Camera Info message.
   std::string frame_id_;           ///< Frame id for the camera messages, defaults to 'camera'
   std::shared_ptr<boost::thread> pubThread_;  ///< The thread that reads and publishes the images.
@@ -656,8 +660,9 @@ private:
   int packet_delay_;
 
   /// Configuration:
-  spinnaker_camera_driver::FlirConfig config_;
+  spinnaker_camera_driver::SpinnakerConfig config_;
 };
 
-PLUGINLIB_EXPORT_CLASS(spinnaker_camera_driver::FlirCameraNodelet, nodelet::Nodelet)  // Needed for Nodelet declaration
+PLUGINLIB_EXPORT_CLASS(spinnaker_camera_driver::SpinnakerCameraNodelet,
+                       nodelet::Nodelet)  // Needed for Nodelet declaration
 }  // namespace spinnaker_camera_driver

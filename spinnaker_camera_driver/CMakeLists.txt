@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(OpenCV REQUIRED)
 
 generate_dynamic_reconfigure_options(
-  cfg/Flir.cfg
+  cfg/Spinnaker.cfg
 )
 
 catkin_package(CATKIN_DEPENDS
@@ -45,10 +45,10 @@ include_directories(SYSTEM
                     ${OpenCV_INCLUDE_DIRS})
 include_directories(include)
 
-add_library(FlirCameraLib src/FlirCamera.cpp)
+add_library(SpinnakerCameraLib src/SpinnakerCamera.cpp)
 
 # Include the Spinnaker Libs
-target_link_libraries(FlirCameraLib
+target_link_libraries(SpinnakerCameraLib
                       Camera
                       ${Spinnaker_LIBRARIES}
                       ${catkin_LIBRARIES}
@@ -61,12 +61,12 @@ add_executable(spinnaker_test_node
 )
 
 target_link_libraries(spinnaker_test_node
-  FlirCameraLib
+  SpinnakerCameraLib
   ${catkin_LIBRARIES}
 )
 
 
-add_dependencies(FlirCameraLib ${PROJECT_NAME}_gencfg)
+add_dependencies(SpinnakerCameraLib ${PROJECT_NAME}_gencfg)
 
 
 add_library(Camera src/camera.cpp)
@@ -77,18 +77,18 @@ add_library(Cm3 src/cm3.cpp)
 target_link_libraries(Cm3 Camera ${catkin_LIBRARIES})
 add_dependencies(Cm3 ${PROJECT_NAME}_gencfg)
 
-add_library(FlirCameraNodelet src/nodelet.cpp)
-target_link_libraries(FlirCameraNodelet FlirCameraLib Camera Cm3 ${catkin_LIBRARIES})
+add_library(SpinnakerCameraNodelet src/nodelet.cpp)
+target_link_libraries(SpinnakerCameraNodelet SpinnakerCameraLib Camera Cm3 ${catkin_LIBRARIES})
 
-add_executable(flir_camera_node src/node.cpp)
-target_link_libraries(flir_camera_node FlirCameraLib ${catkin_LIBRARIES})
-set_target_properties(flir_camera_node PROPERTIES OUTPUT_NAME camera_node PREFIX "")
+add_executable(spinnaker_camera_node src/node.cpp)
+target_link_libraries(spinnaker_camera_node SpinnakerCameraLib ${catkin_LIBRARIES})
+set_target_properties(spinnaker_camera_node PROPERTIES OUTPUT_NAME camera_node PREFIX "")
 
 install(TARGETS
-  FlirCameraLib
-  FlirCameraNodelet
+  SpinnakerCameraLib
+  SpinnakerCameraNodelet
   Camera
-  flir_camera_node
+  spinnaker_camera_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

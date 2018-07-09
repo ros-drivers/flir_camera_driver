@@ -23,8 +23,8 @@ OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTE
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<library path="lib/libFlirCameraNodelet">
-  <class name="spinnaker_camera_driver/FlirCameraNodelet" type="spinnaker_camera_driver::FlirCameraNodelet" base_class_type="nodelet::Nodelet">
+<library path="lib/libSpinnakerCameraNodelet">
+  <class name="spinnaker_camera_driver/SpinnakerCameraNodelet" type="spinnaker_camera_driver::SpinnakerCameraNodelet" base_class_type="nodelet::Nodelet">
     <description>This is the nodelet for the Point Grey Camera Driver.</description>
   </class>
 </library>
