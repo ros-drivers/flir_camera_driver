@@ -88,7 +88,7 @@ protected:
   * \param auto_packet_size Flag stating if packet size should be automatically determined or not.
   * \param packet_size The packet size value to use if auto_packet_size is false.
   */
-  // TODO(tthomas): Implement later
+  // TODO(mhosmar): Implement later
   // void setGigEParameters(bool auto_packet_size, unsigned int packet_size, unsigned int packet_delay);
 
   /*!
@@ -99,7 +99,7 @@ protected:
   *
   * \param guid the camera to autoconfigure
   */
-  // TODO(tthomas): Implement later
+  // TODO(mhosmar): Implement later
   // void setupGigEPacketSize(FlyCapture2::PGRGuid & guid);
 
   /*!
@@ -111,7 +111,7 @@ protected:
   * \param guid the camera to autoconfigure
   * \param packet_size The packet size value to use.
   */
-  // TODO(tthomas): Implement later
+  // TODO(mhosmar): Implement later
   // void setupGigEPacketSize(FlyCapture2::PGRGuid & guid, unsigned int packet_size);
 
   /*!
@@ -123,7 +123,7 @@ protected:
   * \param guid the camera to autoconfigure
   * \param packet_delay The packet delay value to use.
   */
-  // TODO(tthomas): Implement later
+  // TODO(mhosmar): Implement later
   // void setupGigEPacketDelay(FlyCapture2::PGRGuid & guid, unsigned int packet_delay);
 
   /*!
@@ -133,7 +133,7 @@ protected:
   *
   * \return The reported frame rate.
   */
-  // TODO(tthomas): Implement later
+  // TODO(mhosmar): Implement later
   // float getCameraFrameRate();
 
   /*!
@@ -143,10 +143,10 @@ protected:
   *
   * \return The reported temperature in Celsius.
   */
-  // TODO(tthomas): Implement later
+  // TODO(mhosmar): Implement later
   // float getCameraTemperature();
 
-  // TODO(tthomas): Implement the following methods later
+  // TODO(mhosmar): Implement the following methods later
   // void setBRWhiteBalance(bool auto_white_balance, uint16_t &blue, uint16_t &red);
 
   // uint getGain();

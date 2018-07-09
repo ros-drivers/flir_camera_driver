@@ -145,7 +145,7 @@ public:
   * \param timeout The desired timeout value (in seconds)
   *
   */
-  // TODO(tthomas): Implement later
+  // TODO(mhosmar): Implement later
   void setTimeout(const double& timeout);
 
   /*!
@@ -174,7 +174,7 @@ private:
   Spinnaker::CameraList camList_;
   Spinnaker::CameraPtr pCam_;
 
-  // TODO(tthomas) use std::shared_ptr
+  // TODO(mhosmar) use std::shared_ptr
   Spinnaker::GenApi::INodeMap* node_map_;
   std::shared_ptr<Camera> camera_;
 

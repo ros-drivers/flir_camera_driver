@@ -599,7 +599,7 @@ private:
       wb_blue_ = msg.white_balance_blue;
       wb_red_ = msg.white_balance_red;
 
-      // TODO(tthomas):
+      // TODO(mhosmar):
       // spinnaker_.setBRWhiteBalance(false, wb_blue_, wb_red_);
     }
     catch (std::runtime_error& e)
