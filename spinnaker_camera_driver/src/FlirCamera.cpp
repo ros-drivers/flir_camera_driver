@@ -133,44 +133,72 @@ void FlirCamera::connect()
       }
       catch (const Spinnaker::Exception& e)
       {
-        throw std::runtime_error("[PointGreyCamera::connect] Could not find camera with serial number " +
-                                 serial_string + ". Is that camera plugged in? Error: " + std::string(e.what()));
+        throw std::runtime_error("[FlirCamera::connect] Could not find camera with serial number " + serial_string +
+                                 ". Is that camera plugged in? Error: " + std::string(e.what()));
       }
     }
     else
     {
       // Connect to any camera (the first)
-
       try
       {
         pCam_ = camList_.GetByIndex(0);
       }
       catch (const Spinnaker::Exception& e)
       {
-        throw std::runtime_error("[PointGreyCamera::connect] Failed to get first connected camera. Error: " +
+        throw std::runtime_error("[FlirCamera::connect] Failed to get first connected camera. Error: " +
                                  std::string(e.what()));
       }
     }
-
-    Spinnaker::GenApi::INodeMap& genTLNodeMap = pCam_->GetTLDeviceNodeMap();
-    Spinnaker::GenApi::CEnumerationPtr device_type_ptr =
-        static_cast<Spinnaker::GenApi::CEnumerationPtr>(genTLNodeMap.GetNode("DeviceType"));
-
-    if (IsAvailable(device_type_ptr) && IsReadable(device_type_ptr))
+    if (!pCam_ || !pCam_->IsValid())
     {
-      ROS_INFO_STREAM("FlirCamera::connect: Detected device type: " << device_type_ptr->ToString());
+      throw std::runtime_error("[FlirCamera::connect] Failed to obtain camera reference.");
+    }
 
-      if (device_type_ptr->GetCurrentEntry() == device_type_ptr->GetEntryByName("U3V"))
+    try
+    {
+      // Check Device type and save serial for reconnecting
+      Spinnaker::GenApi::INodeMap& genTLNodeMap = pCam_->GetTLDeviceNodeMap();
+
+      if (serial_ == 0)
       {
-        Spinnaker::GenApi::CEnumerationPtr device_speed_ptr =
-            static_cast<Spinnaker::GenApi::CEnumerationPtr>(genTLNodeMap.GetNode("DeviceCurrentSpeed"));
-        if (IsAvailable(device_speed_ptr) && IsReadable(device_speed_ptr))
+        Spinnaker::GenApi::CStringPtr serial_ptr =
+            static_cast<Spinnaker::GenApi::CStringPtr>(genTLNodeMap.GetNode("DeviceID"));
+        if (IsAvailable(serial_ptr) && IsReadable(serial_ptr))
         {
-          if (device_speed_ptr->GetCurrentEntry() != device_speed_ptr->GetEntryByName("SuperSpeed"))
-            ROS_ERROR_STREAM("FlirCamera::connect: U3V Device not running at Super-Speed. Check Cables! ");
+          serial_ = atoi(serial_ptr->GetValue().c_str());
+          ROS_INFO("[FlirCamera::connect]: Using Serial: %i", serial_);
+        }
+        else
+        {
+          throw std::runtime_error("[FlirCamera::connect]: Unable to determine serial number.");
         }
       }
-      // TODO(mhosmar): - check if interface is GigE and connect to GigE cam
+
+      Spinnaker::GenApi::CEnumerationPtr device_type_ptr =
+          static_cast<Spinnaker::GenApi::CEnumerationPtr>(genTLNodeMap.GetNode("DeviceType"));
+
+      if (IsAvailable(device_type_ptr) && IsReadable(device_type_ptr))
+      {
+        ROS_INFO_STREAM("[FlirCamera::connect]: Detected device type: " << device_type_ptr->ToString());
+
+        if (device_type_ptr->GetCurrentEntry() == device_type_ptr->GetEntryByName("U3V"))
+        {
+          Spinnaker::GenApi::CEnumerationPtr device_speed_ptr =
+              static_cast<Spinnaker::GenApi::CEnumerationPtr>(genTLNodeMap.GetNode("DeviceCurrentSpeed"));
+          if (IsAvailable(device_speed_ptr) && IsReadable(device_speed_ptr))
+          {
+            if (device_speed_ptr->GetCurrentEntry() != device_speed_ptr->GetEntryByName("SuperSpeed"))
+              ROS_ERROR_STREAM("[FlirCamera::connect]: U3V Device not running at Super-Speed. Check Cables! ");
+          }
+        }
+        // TODO(mhosmar): - check if interface is GigE and connect to GigE cam
+      }
+    }
+    catch (const Spinnaker::Exception& e)
+    {
+      throw std::runtime_error("[FlirCamera::connect] Failed to determine device info with error: " +
+                               std::string(e.what()));
     }
 
     try
@@ -185,7 +213,7 @@ void FlirCamera::connect()
       Spinnaker::GenApi::CStringPtr model_name = node_map_->GetNode("DeviceModelName");
       std::string model_name_str(model_name->ToString());
 
-      ROS_INFO("FlirCamera::connect: Camera model name: %s", model_name_str.c_str());
+      ROS_INFO("[FlirCamera::connect]: Camera model name: %s", model_name_str.c_str());
       if (model_name_str.find("Blackfly S") != std::string::npos)
         camera_.reset(new Camera(node_map_));
       else if (model_name_str.find("Chameleon3") != std::string::npos)
@@ -201,13 +229,11 @@ void FlirCamera::connect()
     }
     catch (const Spinnaker::Exception& e)
     {
-      throw std::runtime_error("[PointGreyCamera::connect] Failed to connect to camera. Error: " +
-                               std::string(e.what()));
+      throw std::runtime_error("[FlirCamera::connect] Failed to connect to camera. Error: " + std::string(e.what()));
     }
     catch (const std::runtime_error& e)
     {
-      throw std::runtime_error("[PointGreyCamera::connect] Failed to configure chunk data. Error: " +
-                               std::string(e.what()));
+      throw std::runtime_error("[FlirCamera::connect] Failed to configure chunk data. Error: " + std::string(e.what()));
     }
   }
 
@@ -224,19 +250,22 @@ void FlirCamera::disconnect()
 {
   std::lock_guard<std::mutex> scopedLock(mutex_);
   captureRunning_ = false;
-
-  // Check if camera is connected
-  if (pCam_)
+  try
   {
-    try
+    // Check if camera is connected
+    if (pCam_)
     {
       pCam_->DeInit();
+      pCam_ = NULL;
+      camList_.RemoveBySerial(std::to_string(serial_));
     }
-    catch (const Spinnaker::Exception& e)
-    {
-      throw std::runtime_error("[PointGreyCamera::disconnect] Failed to disconnect camera with error: " +
-                               std::string(e.what()));
-    }
+    Spinnaker::CameraList temp_list = system_->GetCameras();
+    camList_.Append(temp_list);
+  }
+  catch (const Spinnaker::Exception& e)
+  {
+    throw std::runtime_error("[FlirCamera::disconnect] Failed to disconnect camera with error: " +
+                             std::string(e.what()));
   }
 }
 
@@ -254,7 +283,7 @@ void FlirCamera::start()
   }
   catch (const Spinnaker::Exception& e)
   {
-    throw std::runtime_error("[PointGreyCamera::start] Failed to start capture with error: " + std::string(e.what()));
+    throw std::runtime_error("[FlirCamera::start] Failed to start capture with error: " + std::string(e.what()));
   }
 }
 
@@ -270,7 +299,7 @@ void FlirCamera::stop()
     }
     catch (const Spinnaker::Exception& e)
     {
-      throw std::runtime_error("[PointGreyCamera::stop] Failed to stop capture with error: " + std::string(e.what()));
+      throw std::runtime_error("[FlirCamera::stop] Failed to stop capture with error: " + std::string(e.what()));
     }
   }
 }
@@ -285,13 +314,13 @@ void FlirCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_i
     // Handle "Image Retrieval" Exception
     try
     {
-      Spinnaker::ImagePtr image_ptr = pCam_->GetNextImage();
+      Spinnaker::ImagePtr image_ptr = pCam_->GetNextImage(timeout_);
       //  std::string format(image_ptr->GetPixelFormatName());
       //  std::printf("\033[100m format: %s \n", format.c_str());
 
       if (image_ptr->IsIncomplete())
       {
-        throw std::runtime_error("[PointGreyCamera::grabImage] Image received from camera " + std::to_string(serial_) +
+        throw std::runtime_error("[FlirCamera::grabImage] Image received from camera " + std::to_string(serial_) +
                                  " is incomplete.");
       }
       else
@@ -340,7 +369,7 @@ void FlirCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_i
             }
             else
             {
-              throw std::runtime_error("[PointGreyCamera::grabImage] Bayer format not recognized for 16-bit format.");
+              throw std::runtime_error("[FlirCamera::grabImage] Bayer format not recognized for 16-bit format.");
             }
           }
           else
@@ -364,7 +393,7 @@ void FlirCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_i
             }
             else
             {
-              throw std::runtime_error("[PointGreyCamera::grabImage] Bayer format not recognized for 8-bit format.");
+              throw std::runtime_error("[FlirCamera::grabImage] Bayer format not recognized for 8-bit format.");
             }
           }
         }
@@ -395,25 +424,25 @@ void FlirCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_i
     }
     catch (const Spinnaker::Exception& e)
     {
-      throw std::runtime_error("[PointGreyCamera::grabImage] Failed to retrieve buffer with error: " +
+      throw std::runtime_error("[FlirCamera::grabImage] Failed to retrieve buffer with error: " +
                                std::string(e.what()));
     }
   }
   else if (pCam_)
   {
-    throw CameraNotRunningException("[PointGreyCamera::grabImage] Camera is currently not running.  Please start "
+    throw CameraNotRunningException("[FlirCamera::grabImage] Camera is currently not running.  Please start "
                                     "capturing frames first.");
   }
   else
   {
-    throw std::runtime_error("[PointGreyCamera::grabImage] Not connected to the camera.");
+    throw std::runtime_error("[FlirCamera::grabImage] Not connected to the camera.");
   }
 }  // end grabImage
 
-// void Camera::setTimeout(const double &timeout)
-//{
-//}
-
+void FlirCamera::setTimeout(const double& timeout)
+{
+  timeout_ = static_cast<uint64_t>(std::round(timeout * 1000));
+}
 void FlirCamera::setDesiredCamera(const uint32_t& id)
 {
   serial_ = id;

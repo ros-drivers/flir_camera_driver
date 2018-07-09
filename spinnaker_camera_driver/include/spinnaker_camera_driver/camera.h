@@ -48,7 +48,9 @@ class Camera
 {
 public:
   explicit Camera(Spinnaker::GenApi::INodeMap* node_map);
-  ~Camera();
+  ~Camera()
+  {
+  }
   virtual void setNewConfiguration(const spinnaker_camera_driver::FlirConfig& config, const uint32_t& level);
 
   /** Parameters that need a sensor to be stopped completely when changed. */

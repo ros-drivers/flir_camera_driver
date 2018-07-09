@@ -97,7 +97,7 @@ public:
       }
       catch (const std::runtime_error& e)
       {
-        NODELET_ERROR_ONCE("%s", e.what());
+        NODELET_ERROR("%s", e.what());
       }
     }
   }
@@ -157,7 +157,7 @@ private:
     }
     catch (std::runtime_error& e)
     {
-      NODELET_ERROR_ONCE("Reconfigure Callback failed with error: %s", e.what());
+      NODELET_ERROR("Reconfigure Callback failed with error: %s", e.what());
     }
   }
 
@@ -199,7 +199,7 @@ private:
         }
         catch(std::runtime_error& e)
         {
-          NODELET_ERROR_ONCE("%s", e.what());
+          NODELET_ERROR("%s", e.what());
         }
 
         try
@@ -209,7 +209,7 @@ private:
         }
         catch(std::runtime_error& e)
         {
-          NODELET_ERROR_ONCE("%s", e.what());
+          NODELET_ERROR("%s", e.what());
         }
       }
     }
@@ -418,9 +418,10 @@ private:
           {
             if (state_changed)
             {
-              NODELET_ERROR_ONCE("Failed to stop with error: %s", e.what());
+              NODELET_ERROR("Failed to stop with error: %s", e.what());
               ros::Duration(1.0).sleep();  // sleep for one second each time
             }
+            state = ERROR;
           }
 
           break;
@@ -429,9 +430,9 @@ private:
           // Try disconnecting from the camera
           try
           {
-            NODELET_DEBUG_ONCE("Disconnecting from camera.");
+            NODELET_DEBUG("Disconnecting from camera.");
             flir_.disconnect();
-            NODELET_DEBUG_ONCE("Disconnected from camera.");
+            NODELET_DEBUG("Disconnected from camera.");
 
             state = DISCONNECTED;
           }
@@ -439,9 +440,10 @@ private:
           {
             if (state_changed)
             {
-              NODELET_ERROR_ONCE("Failed to disconnect with error: %s", e.what());
+              NODELET_ERROR("Failed to disconnect with error: %s", e.what());
               ros::Duration(1.0).sleep();  // sleep for one second each time
             }
+            state = ERROR;
           }
 
           break;
@@ -449,11 +451,11 @@ private:
           // Try connecting to the camera
           try
           {
-            NODELET_DEBUG_ONCE("Connecting to camera.");
+            NODELET_DEBUG("Connecting to camera.");
 
             flir_.connect();
 
-            NODELET_DEBUG_ONCE("Connected to camera.");
+            NODELET_DEBUG("Connected to camera.");
 
             // Set last configuration, forcing the reconfigure level to stop
             flir_.setNewConfiguration(config_, FlirCamera::LEVEL_RECONFIGURE_STOP);
@@ -461,16 +463,15 @@ private:
             // Set the timeout for grabbing images.
             try
             {
-              // double timeout;
-              // getMTPrivateNodeHandle().param("timeout", timeout, 1.0);
+              double timeout;
+              getMTPrivateNodeHandle().param("timeout", timeout, 1.0);
 
-              // NODELET_DEBUG_ONCE("Setting timeout to: %f.", timeout);
-              // TODO(tthomas):
-              // flir_.setTimeout(timeout);
+              NODELET_DEBUG_ONCE("Setting timeout to: %f.", timeout);
+              flir_.setTimeout(timeout);
             }
             catch (const std::runtime_error& e)
             {
-              NODELET_ERROR_ONCE("%s", e.what());
+              NODELET_ERROR("%s", e.what());
             }
 
             // Subscribe to gain and white balance changes
@@ -486,9 +487,10 @@ private:
           {
             if (state_changed)
             {
-              NODELET_ERROR_ONCE("Failed to connect with error: %s", e.what());
+              NODELET_ERROR("Failed to connect with error: %s", e.what());
               ros::Duration(1.0).sleep();  // sleep for one second each time
             }
+            state = ERROR;
           }
 
           break;
@@ -496,20 +498,21 @@ private:
           // Try starting the camera
           try
           {
-            NODELET_DEBUG_ONCE("Starting camera.");
+            NODELET_DEBUG("Starting camera.");
             flir_.start();
-            NODELET_DEBUG_ONCE("Started camera.");
-            NODELET_DEBUG_ONCE("Attention: if nothing subscribes to the camera topic, the camera_info is not published "
-                               "on the correspondent topic.");
+            NODELET_DEBUG("Started camera.");
+            NODELET_DEBUG("Attention: if nothing subscribes to the camera topic, the camera_info is not published "
+                          "on the correspondent topic.");
             state = STARTED;
           }
           catch (std::runtime_error& e)
           {
             if (state_changed)
             {
-              NODELET_ERROR_ONCE("Failed to start with error: %s", e.what());
+              NODELET_ERROR("Failed to start with error: %s", e.what());
               ros::Duration(1.0).sleep();  // sleep for one second each time
             }
+            state = ERROR;
           }
 
           break;
@@ -561,19 +564,18 @@ private:
           }
           catch (CameraTimeoutException& e)
           {
-            NODELET_WARN_ONCE("%s", e.what());
+            NODELET_WARN("%s", e.what());
           }
 
           catch (std::runtime_error& e)
           {
-            NODELET_ERROR_ONCE("%s", e.what());
-
+            NODELET_ERROR("%s", e.what());
             state = ERROR;
           }
 
           break;
         default:
-          NODELET_ERROR_ONCE("Unknown camera state %d!", state);
+          NODELET_ERROR("Unknown camera state %d!", state);
       }
 
       // Update diagnostics
@@ -599,20 +601,20 @@ private:
     }
     catch (std::runtime_error& e)
     {
-      NODELET_ERROR_ONCE("gainWBCallback failed with error: %s", e.what());
+      NODELET_ERROR("gainWBCallback failed with error: %s", e.what());
     }
   }
 
   /* Class Fields */
   std::shared_ptr<dynamic_reconfigure::Server<spinnaker_camera_driver::FlirConfig> > srv_;  ///< Needed to initialize
-                                                                                              ///  and keep the
+                                                                                            ///  and keep the
   /// dynamic_reconfigure::Server
   /// in scope.
   std::shared_ptr<image_transport::ImageTransport> it_;  ///< Needed to initialize and keep the ImageTransport in
-                                                           /// scope.
+                                                         /// scope.
   std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_;  ///< Needed to initialize and keep the
-                                                                     /// CameraInfoManager in scope.
-  image_transport::CameraPublisher it_pub_;                          ///< CameraInfoManager ROS publisher
+                                                                   /// CameraInfoManager in scope.
+  image_transport::CameraPublisher it_pub_;                        ///< CameraInfoManager ROS publisher
   std::shared_ptr<diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage> > pub_;  ///< Diagnosed
   /// publisher, has to be
   /// a pointer because of

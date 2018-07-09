@@ -146,7 +146,7 @@ public:
   *
   */
   // TODO(tthomas): Implement later
-  // void setTimeout(const double &timeout);
+  void setTimeout(const double& timeout);
 
   /*!
   * \brief Used to set the serial number for the camera you wish to connect to.
@@ -194,6 +194,8 @@ private:
   unsigned int packet_size_;
   /// GigE packet delay:
   unsigned int packet_delay_;
+
+  uint64_t timeout_;
 
   // This function configures the camera to add chunk data to each image. It does
   // this by enabling each type of chunk data before enabling chunk data mode.
