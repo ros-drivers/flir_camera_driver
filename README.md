@@ -3,7 +3,7 @@ flir_camera_driver
 
 [![Build Status](https://travis-ci.org/clearpathrobotics/flir_camera_driver.png?branch=kinetic-devel)](https://travis-ci.org/clearpathrobotics/flir_camera_driver)
 
-A ROS-compatable camera driver using Flir's Spinnaker SDK.
+A ROS-compatable camera driver using Flir's Spinnaker SDK. The Spinnaker SDK supports USB3 and GIGE cameras are planned. Due to differences in parameter naming the configuration is separated from the main library. `camera.cpp` contains the base class `Camera` which can be extended to accomidate different cameras. The base class is based on BlackFly S and `cm3.cpp` extends it adding support for Chameleon3. To add a camera create a new derived class of `Camera` and add the model name to `SpinnakerCamera::connect`.
 
 ROS-compatible Camera drivers originally provided by NREC, part of Carnegie Mellon University's robotics institute.
 These drives are included along with modifications of the standard ros image messages that enable HDR and physics based vision.
