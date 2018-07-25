@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.1 (2018-07-25)
+------------------
 * Add opencv3 as build dependency.
 * Contributors: Michael Hosmar
 
