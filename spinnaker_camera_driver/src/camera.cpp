@@ -237,12 +237,12 @@ void Camera::setupGigEPacketDelay(PGRGuid & guid, unsigned int packet_delay)
 
 */
 
-uint Camera::getHeightMax()
+int Camera::getHeightMax()
 {
   return height_max_;
 }
 
-uint Camera::getWidthMax()
+int Camera::getWidthMax()
 {
   return width_max_;
 }

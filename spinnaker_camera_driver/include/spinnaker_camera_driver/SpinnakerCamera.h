@@ -159,8 +159,8 @@ public:
   void setDesiredCamera(const uint32_t& id);
 
   void setGain(const float& gain);
-  uint getHeightMax();
-  uint getWidthMax();
+  int getHeightMax();
+  int getWidthMax();
 
   uint32_t getSerial()
   {

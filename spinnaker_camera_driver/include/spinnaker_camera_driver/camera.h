@@ -63,8 +63,8 @@ public:
   static const uint8_t LEVEL_RECONFIGURE_RUNNING = 0;
 
   virtual void setGain(const float& gain);
-  uint getHeightMax();
-  uint getWidthMax();
+  int getHeightMax();
+  int getWidthMax();
 
 protected:
   Spinnaker::GenApi::INodeMap* node_map_;

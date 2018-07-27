@@ -55,8 +55,9 @@ SpinnakerCamera::SpinnakerCamera()
   : serial_(0)
   , system_(Spinnaker::System::GetInstance())
   , camList_(system_->GetCameras())
-  , pCam_(NULL)
-  , camera_(NULL)
+  , pCam_(static_cast<int>(NULL))  // Hack to suppress compiler warning. Spinnaker has only one contructor which takes
+                                   // an int
+  , camera_(static_cast<int>(NULL))
   , captureRunning_(false)
 {
   unsigned int num_cameras = camList_.GetSize();
@@ -102,7 +103,7 @@ void SpinnakerCamera::setGain(const float& gain)
     camera_->setGain(gain);
 }
 
-uint SpinnakerCamera::getHeightMax()
+int SpinnakerCamera::getHeightMax()
 {
   if (camera_)
     return camera_->getHeightMax();
@@ -110,7 +111,7 @@ uint SpinnakerCamera::getHeightMax()
     return 0;
 }
 
-uint SpinnakerCamera::getWidthMax()
+int SpinnakerCamera::getWidthMax()
 {
   if (camera_)
     return camera_->getWidthMax();
@@ -258,7 +259,7 @@ void SpinnakerCamera::disconnect()
     if (pCam_)
     {
       pCam_->DeInit();
-      pCam_ = NULL;
+      pCam_ = static_cast<int>(NULL);
       camList_.RemoveBySerial(std::to_string(serial_));
     }
     Spinnaker::CameraList temp_list = system_->GetCameras();
