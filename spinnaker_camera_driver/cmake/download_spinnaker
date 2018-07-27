@@ -51,6 +51,14 @@ ARCHS = {
     'x86_64': (
         'https://www.ptgrey.com/support/downloads/11048/',
         'spinnaker-1.13.0.31-amd64',
+        'libSpinnaker.so.1.13.0.31'),
+    'armv7': (
+        'https://www.ptgrey.com/support/downloads/11046/',
+        'spinnaker-1.13.0.31-armhf',
+        'libSpinnaker.so.1.13.0.31'),
+    'armv8': (
+        'https://www.ptgrey.com/support/downloads/11045/',
+        'spinnaker-1.13.0.31-arm64',
         'libSpinnaker.so.1.13.0.31')
     }
 
