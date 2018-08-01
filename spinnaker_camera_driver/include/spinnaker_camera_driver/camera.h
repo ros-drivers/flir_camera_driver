@@ -66,6 +66,9 @@ public:
   int getHeightMax();
   int getWidthMax();
 
+  Spinnaker::GenApi::CNodePtr
+  readProperty(const Spinnaker::GenICam::gcstring property_name);
+
 protected:
   Spinnaker::GenApi::INodeMap* node_map_;
 

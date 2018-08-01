@@ -162,6 +162,8 @@ public:
   int getHeightMax();
   int getWidthMax();
 
+ Spinnaker::GenApi::CNodePtr
+  readProperty(const Spinnaker::GenICam::gcstring property_name);
   uint32_t getSerial()
   {
     return serial_;

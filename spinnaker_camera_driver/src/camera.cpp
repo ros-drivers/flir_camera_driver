@@ -284,6 +284,15 @@ int Camera::getWidthMax()
 // float Camera::getCameraFrameRate()
 //{
 //}
+Spinnaker::GenApi::CNodePtr
+Camera::readProperty(const Spinnaker::GenICam::gcstring property_name) {
+  Spinnaker::GenApi::CNodePtr ptr = node_map_->GetNode(property_name);
+  if (!Spinnaker::GenApi::IsAvailable(ptr) ||
+      !Spinnaker::GenApi::IsReadable(ptr)) {
+    throw std::runtime_error("Unable to get parmeter " + property_name);
+  }
+  return ptr;
+}
 
 Camera::Camera(Spinnaker::GenApi::INodeMap* node_map)
 {

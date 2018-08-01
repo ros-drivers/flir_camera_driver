@@ -1,0 +1,6 @@
+pub_rate: 1.0
+analyzers:
+    cameras:
+        type: GenericAnalyzer
+        path: Cameras
+        startswith: 'Spinnaker'
