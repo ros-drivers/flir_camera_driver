@@ -149,12 +149,12 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
     {
       setProperty(node_map_, "BalanceWhiteAuto", config.auto_white_balance);
       if (config.auto_white_balance.compare(std::string("Off")) == 0)
-      {
-        setProperty(node_map_, "BalanceRatioSelector", "Blue");
-        setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_blue_ratio));
-        setProperty(node_map_, "BalanceRatioSelector", "Red");
-        setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_red_ratio));
-      }
+        {
+          setProperty(node_map_, "BalanceRatioSelector", "Blue");
+          setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_blue_ratio));
+          setProperty(node_map_, "BalanceRatioSelector", "Red");
+          setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_red_ratio));
+        }
     }
   }
   catch (const Spinnaker::Exception& e)
@@ -284,11 +284,11 @@ int Camera::getWidthMax()
 // float Camera::getCameraFrameRate()
 //{
 //}
-Spinnaker::GenApi::CNodePtr
-Camera::readProperty(const Spinnaker::GenICam::gcstring property_name) {
+Spinnaker::GenApi::CNodePtr Camera::readProperty(const Spinnaker::GenICam::gcstring property_name)
+{
   Spinnaker::GenApi::CNodePtr ptr = node_map_->GetNode(property_name);
-  if (!Spinnaker::GenApi::IsAvailable(ptr) ||
-      !Spinnaker::GenApi::IsReadable(ptr)) {
+  if (!Spinnaker::GenApi::IsAvailable(ptr) || !Spinnaker::GenApi::IsReadable(ptr))
+  {
     throw std::runtime_error("Unable to get parmeter " + property_name);
   }
   return ptr;

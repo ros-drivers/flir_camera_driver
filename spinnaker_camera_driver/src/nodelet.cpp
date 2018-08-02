@@ -51,7 +51,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pluginlib/class_list_macros.h>
 #include <nodelet/nodelet.h>
 
-#include "spinnaker_camera_driver/SpinnakerCamera.h" // The actual standalone library for the Spinnakers
+#include "spinnaker_camera_driver/SpinnakerCamera.h"  // The actual standalone library for the Spinnakers
 #include "spinnaker_camera_driver/diagnostics.h"
 
 #include <image_transport/image_transport.h>          // ROS library that allows sending compressed images
@@ -84,7 +84,8 @@ public:
   {
     std::lock_guard<std::mutex> scopedLock(connect_mutex_);
 
-    if (diagThread_) {
+    if (diagThread_)
+    {
       diagThread_->interrupt();
       diagThread_->join();
     }
@@ -167,12 +168,13 @@ private:
     }
   }
 
-  void diagCb() {
-    if (!diagThread_) // We need to connect
+  void diagCb()
+  {
+    if (!diagThread_)  // We need to connect
     {
       // Start the thread to loop through and publish messages
-      diagThread_.reset(new boost::thread(boost::bind(
-          &spinnaker_camera_driver::SpinnakerCameraNodelet::diagPoll, this)));
+      diagThread_.reset(
+          new boost::thread(boost::bind(&spinnaker_camera_driver::SpinnakerCameraNodelet::diagPoll, this)));
     }
   }
 
@@ -363,16 +365,10 @@ private:
 
     diag_man = std::unique_ptr<DiagnosticsManager>(new DiagnosticsManager(
         frame_id_, std::to_string(spinnaker_.getSerial()), diagnostics_pub_));
-    diag_man->addDiagnostic("DeviceTemperature", true,
-                            std::make_pair<float, float>(0.0, 90.0), -10.0,
-                            95.0);
-    diag_man->addDiagnostic("AcquisitionResultingFrameRate", true,
-                            std::make_pair<float, float>(10.0, 60.0), 5.0,
-                            90.0);
-    diag_man->addDiagnostic("PowerSupplyVoltage", true,
-                            std::make_pair<float, float>(4.5, 5.2), 4.4, 5.3);
-    diag_man->addDiagnostic("PowerSupplyCurrent", true,
-                            std::make_pair<float, float>(0.4, 0.6), 0.3, 1.0);
+    diag_man->addDiagnostic("DeviceTemperature", true, std::make_pair(0.0f, 90.0f), -10.0f, 95.0f);
+    diag_man->addDiagnostic("AcquisitionResultingFrameRate", true, std::make_pair(10.0f, 60.0f), 5.0f, 90.0f);
+    diag_man->addDiagnostic("PowerSupplyVoltage", true, std::make_pair(4.5f, 5.2f), 4.4f, 5.3f);
+    diag_man->addDiagnostic("PowerSupplyCurrent", true, std::make_pair(0.4f, 0.6f), 0.3f, 1.0f);
     diag_man->addDiagnostic<int>("DeviceUptime");
     diag_man->addDiagnostic<int>("U3VMessageChannelID");
   }
@@ -407,12 +403,13 @@ private:
     return 0;
   }
 
-  void diagPoll() {
-    while (!boost::this_thread::interruption_requested()) // Block until we need
-                                                          // to stop this
-                                                          // thread.
+  void diagPoll()
+  {
+    while (!boost::this_thread::interruption_requested())  // Block until we need
+                                                           // to stop this
+                                                           // thread.
     {
-      diag_man->processDiagnostics(spinnaker_);
+      diag_man->processDiagnostics(&spinnaker_);
     }
   }
 
@@ -686,8 +683,7 @@ private:
   sensor_msgs::CameraInfoPtr ci_;  ///< Camera Info message.
   std::string frame_id_;           ///< Frame id for the camera messages, defaults to 'camera'
   std::shared_ptr<boost::thread> pubThread_;  ///< The thread that reads and publishes the images.
-  std::shared_ptr<boost::thread>
-      diagThread_; ///< The thread that reads and publishes the diagnostics.
+  std::shared_ptr<boost::thread> diagThread_;  ///< The thread that reads and publishes the diagnostics.
 
   std::unique_ptr<DiagnosticsManager> diag_man;
 

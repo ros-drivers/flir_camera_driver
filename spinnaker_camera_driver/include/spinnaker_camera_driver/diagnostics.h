@@ -38,8 +38,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    @attention Copyright (C) 2018
 */
 
-#ifndef INCLUDE_DIAGNOSTICS_MANAGER_
-#define INCLUDE_DIAGNOSTICS_MANAGER_
+#ifndef SPINNAKER_CAMERA_DRIVER_DIAGNOSTICS_H
+#define SPINNAKER_CAMERA_DRIVER_DIAGNOSTICS_H
 
 #include "spinnaker_camera_driver/SpinnakerCamera.h"
 #include "spinnaker_camera_driver/diagnostics.h"
@@ -47,12 +47,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <diagnostic_msgs/DiagnosticStatus.h>
 #include <ros/ros.h>
 
-namespace spinnaker_camera_driver {
-class DiagnosticsManager {
+#include <utility>
+#include <string>
+#include <vector>
 
+namespace spinnaker_camera_driver
+{
+class DiagnosticsManager
+{
 public:
-  DiagnosticsManager(const std::string name, const std::string serial,
-                     std::shared_ptr<ros::Publisher> const &pub);
+  DiagnosticsManager(const std::string name, const std::string serial, std::shared_ptr<ros::Publisher> const& pub);
   ~DiagnosticsManager();
 
   /*!
@@ -64,7 +68,7 @@ public:
    * \param spinnaker the SpinnakerCamera object used for getting the parameters
    * from the spinnaker API
    */
-  void processDiagnostics(SpinnakerCamera &spinnaker);
+  void processDiagnostics(SpinnakerCamera* spinnaker);
 
   /*!
    * \brief Add a diagnostic with name only (no warning checks)
@@ -74,7 +78,8 @@ public:
    * User must specify the type they are getting
    * \param name is the name of the parameter as writting in the User Manual
    */
-  template <typename T> void addDiagnostic(Spinnaker::GenICam::gcstring name);
+  template <typename T>
+  void addDiagnostic(const Spinnaker::GenICam::gcstring name);
 
   /*!
    * \brief Add a diagnostic with warning checks
@@ -84,25 +89,23 @@ public:
    * of these ranges will be considered an error.
    * \param name is the name of the parameter as writting in the User Manual
    */
-  void addDiagnostic(
-      Spinnaker::GenICam::gcstring name, bool check_ranges = false,
-      std::pair<int, int> operational = std::make_pair<int, int>(0, 0),
-      int lower_bound = 0, int upper_bound = 0);
-  void addDiagnostic(
-      Spinnaker::GenICam::gcstring name, bool check_ranges = false,
-      std::pair<float, float> operational = std::make_pair<float, float>(0, 0),
-      float lower_bound = 0, float upper_bound = 0);
+  void addDiagnostic(const Spinnaker::GenICam::gcstring name, bool check_ranges = false,
+                     std::pair<int, int> operational = std::make_pair(0, 0), int lower_bound = 0, int upper_bound = 0);
+  void addDiagnostic(const Spinnaker::GenICam::gcstring name, bool check_ranges = false,
+                     std::pair<float, float> operational = std::make_pair(0.0, 0.0), float lower_bound = 0,
+                     float upper_bound = 0);
 
 private:
   /*
    * diagnostic_params is aData Structure to represent a parameter and its
    * bounds
    */
-  template <typename T> struct diagnostic_params {
-    Spinnaker::GenICam::gcstring
-        parameter_name; // This should be the same as written in the User Manual
+  template <typename T>
+  struct diagnostic_params
+  {
+    Spinnaker::GenICam::gcstring parameter_name;  // This should be the same as written in the User Manual
     bool check_ranges;
-    std::pair<T, T> operational_range; // Normal operatinal range
+    std::pair<T, T> operational_range;  // Normal operatinal range
     T warn_range_lower;
     T warn_range_upper;
   };
@@ -113,14 +116,12 @@ private:
    * Allows the user to add an integer or float parameter without having to give
    * additional information.
    * User must specify the type they are getting
-   * \param diag_array is the array of parameters to be pushed to the publisher
    * \param param is the diagnostic parameter name and boundaries
    * \param value is the current value of the parameter requested from the
    * device
    */
   template <typename T>
-  void pushDiagStatus(diagnostic_msgs::DiagnosticArray &diag_array,
-                      const diagnostic_params<T> &param, const T value);
+  diagnostic_msgs::DiagnosticStatus getDiagStatus(const diagnostic_params<T>& param, const T value);
 
   // constuctor parameters
   std::string camera_name_;
@@ -131,11 +132,14 @@ private:
   std::vector<diagnostic_params<int>> integer_params_;
   std::vector<diagnostic_params<float>> float_params_;
   // Information about the device model, firmware, etc
-  // TODO: Allow these to be configured
-  const std::vector<std::string> manufacturer_params_{
-      "DeviceVendorName", "DeviceModelName", "SensorDescription",
-      "DeviceFirmwareVersion"};
+  // TODO(mlowe): Allow these to be configured
+  // clang-format off
+  const std::vector<std::string> manufacturer_params_
+  {
+    "DeviceVendorName", "DeviceModelName", "SensorDescription", "DeviceFirmwareVersion"
+  };
+  // clang-format on
 };
-}
+}  // namespace spinnaker_camera_driver
 
-#endif /* INCLUDE_DIAGNOSTICS_MANAGER_ */
+#endif  // SPINNAKER_CAMERA_DRIVER_DIAGNOSTICS_H
