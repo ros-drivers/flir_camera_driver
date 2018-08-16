@@ -86,20 +86,20 @@ diagnostic_msgs::DiagnosticStatus DiagnosticsManager::getDiagStatus(const diagno
 
   // Determine status level
   if (!param.check_ranges || (value > param.operational_range.first && value <= param.operational_range.second))
-    {
-      diag_status.level = 0;
-      diag_status.message = "OK";
-    }
+  {
+    diag_status.level = 0;
+    diag_status.message = "OK";
+  }
   else if (value >= param.warn_range_lower && value <= param.warn_range_upper)
-    {
-      diag_status.level = 1;
-      diag_status.message = "WARNING";
-    }
+  {
+    diag_status.level = 1;
+    diag_status.message = "WARNING";
+  }
   else
-    {
-      diag_status.level = 2;
-      diag_status.message = "ERROR";
-    }
+  {
+    diag_status.level = 2;
+    diag_status.message = "ERROR";
+  }
 
   return diag_status;
 }
@@ -114,42 +114,41 @@ void DiagnosticsManager::processDiagnostics(SpinnakerCamera* spinnaker)
   diag_manufacture_info.hardware_id = serial_number_;
 
   for (const std::string param : manufacturer_params_)
-    {
-      Spinnaker::GenApi::CStringPtr string_ptr = static_cast<Spinnaker::GenApi::CStringPtr>(
-          spinnaker->readProperty(Spinnaker::GenICam::gcstring(param.c_str())));
+  {
+    Spinnaker::GenApi::CStringPtr string_ptr = static_cast<Spinnaker::GenApi::CStringPtr>(
+        spinnaker->readProperty(Spinnaker::GenICam::gcstring(param.c_str())));
 
-      diagnostic_msgs::KeyValue kv;
-      kv.key = param;
-      kv.value = string_ptr->GetValue(true);
-      diag_manufacture_info.values.push_back(kv);
-    }
+    diagnostic_msgs::KeyValue kv;
+    kv.key = param;
+    kv.value = string_ptr->GetValue(true);
+    diag_manufacture_info.values.push_back(kv);
+  }
 
   diag_array.status.push_back(diag_manufacture_info);
 
-      // Float based parameters
-      for (const diagnostic_params<float>& param : float_params_)
-      {
-        Spinnaker::GenApi::CFloatPtr float_ptr =
-            static_cast<Spinnaker::GenApi::CFloatPtr>(spinnaker->readProperty(param.parameter_name));
+  // Float based parameters
+  for (const diagnostic_params<float>& param : float_params_)
+  {
+    Spinnaker::GenApi::CFloatPtr float_ptr =
+        static_cast<Spinnaker::GenApi::CFloatPtr>(spinnaker->readProperty(param.parameter_name));
 
-        float float_value = float_ptr->GetValue(true);
+    float float_value = float_ptr->GetValue(true);
 
-        diagnostic_msgs::DiagnosticStatus diag_status = getDiagStatus(param, float_value);
-        diag_array.status.push_back(diag_status);
-      }
+    diagnostic_msgs::DiagnosticStatus diag_status = getDiagStatus(param, float_value);
+    diag_array.status.push_back(diag_status);
+  }
 
-      // Int based parameters
-      for (const diagnostic_params<int>& param : integer_params_)
-      {
-        Spinnaker::GenApi::CIntegerPtr integer_ptr =
-            static_cast<Spinnaker::GenApi::CIntegerPtr>(spinnaker->readProperty(param.parameter_name));
+  // Int based parameters
+  for (const diagnostic_params<int>& param : integer_params_)
+  {
+    Spinnaker::GenApi::CIntegerPtr integer_ptr =
+        static_cast<Spinnaker::GenApi::CIntegerPtr>(spinnaker->readProperty(param.parameter_name));
 
-        int int_value = integer_ptr->GetValue(true);
-        diagnostic_msgs::DiagnosticStatus diag_status = getDiagStatus(param, int_value);
-        diag_array.status.push_back(diag_status);
-      }
+    int int_value = integer_ptr->GetValue(true);
+    diagnostic_msgs::DiagnosticStatus diag_status = getDiagStatus(param, int_value);
+    diag_array.status.push_back(diag_status);
+  }
 
   diagnostics_pub_->publish(diag_array);
 }
 }  // namespace spinnaker_camera_driver
-
