@@ -52,6 +52,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <nodelet/nodelet.h>
 
 #include "spinnaker_camera_driver/SpinnakerCamera.h"  // The actual standalone library for the Spinnakers
+#include "spinnaker_camera_driver/diagnostics.h"
 
 #include <image_transport/image_transport.h>          // ROS library that allows sending compressed images
 #include <camera_info_manager/camera_info_manager.h>  // ROS library that publishes CameraInfo topics
@@ -82,6 +83,12 @@ public:
   ~SpinnakerCameraNodelet()
   {
     std::lock_guard<std::mutex> scopedLock(connect_mutex_);
+
+    if (diagThread_)
+    {
+      diagThread_->interrupt();
+      diagThread_->join();
+    }
 
     if (pubThread_)
     {
@@ -158,6 +165,16 @@ private:
     catch (std::runtime_error& e)
     {
       NODELET_ERROR("Reconfigure Callback failed with error: %s", e.what());
+    }
+  }
+
+  void diagCb()
+  {
+    if (!diagThread_)  // We need to connect
+    {
+      // Start the thread to loop through and publish messages
+      diagThread_.reset(
+          new boost::thread(boost::bind(&spinnaker_camera_driver::SpinnakerCameraNodelet::diagPoll, this)));
     }
   }
 
@@ -331,10 +348,29 @@ private:
     double max_acceptable;  // The maximum publishing delay (in seconds) before warning.
     pnh.param<double>("max_acceptable_delay", max_acceptable, 0.2);
     ros::SubscriberStatusCallback cb2 = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
-    pub_.reset(new diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage>(
-        nh.advertise<wfov_camera_msgs::WFOVImage>("image", 5, cb2, cb2), updater_,
-        diagnostic_updater::FrequencyStatusParam(&min_freq_, &max_freq_, freq_tolerance, window_size),
-        diagnostic_updater::TimeStampStatusParam(min_acceptable, max_acceptable)));
+    pub_.reset(
+        new diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage>(
+            nh.advertise<wfov_camera_msgs::WFOVImage>("image", 5, cb2, cb2),
+            updater_, diagnostic_updater::FrequencyStatusParam(
+                          &min_freq_, &max_freq_, freq_tolerance, window_size),
+            diagnostic_updater::TimeStampStatusParam(min_acceptable,
+                                                     max_acceptable)));
+
+    // Set up diagnostics aggregator publisher and diagnostics manager
+    ros::SubscriberStatusCallback diag_cb =
+        boost::bind(&SpinnakerCameraNodelet::diagCb, this);
+    diagnostics_pub_.reset(
+        new ros::Publisher(nh.advertise<diagnostic_msgs::DiagnosticArray>(
+            "/diagnostics", 1, diag_cb, diag_cb)));
+
+    diag_man = std::unique_ptr<DiagnosticsManager>(new DiagnosticsManager(
+        frame_id_, std::to_string(spinnaker_.getSerial()), diagnostics_pub_));
+    diag_man->addDiagnostic("DeviceTemperature", true, std::make_pair(0.0f, 90.0f), -10.0f, 95.0f);
+    diag_man->addDiagnostic("AcquisitionResultingFrameRate", true, std::make_pair(10.0f, 60.0f), 5.0f, 90.0f);
+    diag_man->addDiagnostic("PowerSupplyVoltage", true, std::make_pair(4.5f, 5.2f), 4.4f, 5.3f);
+    diag_man->addDiagnostic("PowerSupplyCurrent", true, std::make_pair(0.4f, 0.6f), 0.3f, 1.0f);
+    diag_man->addDiagnostic<int>("DeviceUptime");
+    diag_man->addDiagnostic<int>("U3VMessageChannelID");
   }
 
   /**
@@ -365,6 +401,16 @@ private:
 
     NODELET_WARN_ONCE("Unable to open serial path: %s", camera_serial_path.c_str());
     return 0;
+  }
+
+  void diagPoll()
+  {
+    while (!boost::this_thread::interruption_requested())  // Block until we need
+                                                           // to stop this
+                                                           // thread.
+    {
+      diag_man->processDiagnostics(&spinnaker_);
+    }
   }
 
   /*!
@@ -620,6 +666,7 @@ private:
                                                                    /// CameraInfoManager in scope.
   image_transport::CameraPublisher it_pub_;                        ///< CameraInfoManager ROS publisher
   std::shared_ptr<diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage> > pub_;  ///< Diagnosed
+  std::shared_ptr<ros::Publisher> diagnostics_pub_;
   /// publisher, has to be
   /// a pointer because of
   /// constructor
@@ -636,6 +683,9 @@ private:
   sensor_msgs::CameraInfoPtr ci_;  ///< Camera Info message.
   std::string frame_id_;           ///< Frame id for the camera messages, defaults to 'camera'
   std::shared_ptr<boost::thread> pubThread_;  ///< The thread that reads and publishes the images.
+  std::shared_ptr<boost::thread> diagThread_;  ///< The thread that reads and publishes the diagnostics.
+
+  std::unique_ptr<DiagnosticsManager> diag_man;
 
   double gain_;
   uint16_t wb_blue_;
