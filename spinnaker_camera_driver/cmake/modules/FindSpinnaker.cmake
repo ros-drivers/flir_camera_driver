@@ -7,7 +7,6 @@ find_path(Spinnaker_INCLUDE_DIRS NAMES
   HINTS
   /usr/include/spinnaker/
   /usr/local/include/spinnaker/)
-message(STATUS "Did we find it? ${SPINNAKER_INCLUDE_DIRS}")
 
 find_library(Spinnaker_LIBRARIES NAMES Spinnaker
     HINTS
