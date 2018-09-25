@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.3 (2018-09-25)
+------------------
 * Fix install targets when Spinnaker is installed locally. Tabs in FindSpinnaker.
 * Add missing target (Cm3) and switch to find_package script. (`#11 <https://github.com/ros-drivers/flir_camera_driver/issues/11>`_)
   * Add missing target (Cm3) and switch to find_package script.
