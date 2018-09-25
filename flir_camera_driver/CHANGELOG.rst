@@ -2,6 +2,9 @@
 Changelog for package flir_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.1.2 (2018-07-27)
 ------------------
 
