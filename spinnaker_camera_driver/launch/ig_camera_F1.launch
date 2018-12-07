@@ -26,7 +26,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 <launch>
    <!-- Determine this using rosrun spinnaker_camera_driver list_cameras.
        If not specified, defaults to first camera found. -->
-  <arg name="camera_name" default="camera" />
+  <arg name="camera_name" default="F1" />
   <arg name="camera_serial" default="18285451" />
   <arg name="calibrated" default="0" />
 
@@ -36,8 +36,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
     <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
           args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
 
-      <param name="frame_id" value="camera" />
-      <param name="serial" value="$(arg camera_serial)" />
+      <param name="frame_id" value="F1" />
+      <!--<param name="serial" value="$(arg camera_serial)" />-->
 
       <!-- When unspecified, the driver will use the default framerate as given by the
            camera itself. Use this parameter to override that value for cameras capable of
