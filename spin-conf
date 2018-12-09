@@ -1,0 +1,84 @@
+#!/bin/bash
+
+set -o errexit
+
+MY_PROMPT='$ '
+MY_YESNO_PROMPT='(y/n)$ '
+
+grpname="flirimaging"
+
+if [ "$(id -u)" = "0" ]
+then
+    echo
+    echo "This script will assist users in configuring their udev rules to allow";
+    echo "access to USB devices. The script will create a udev rule which will";
+    echo "add Flir USB devices to a group called $grpname. The user may also";
+    echo "choose to restart the udev daemon. All of this can be done manually as well.";
+    echo
+    echo
+else
+    echo
+    echo "This script needs to be run as root.";
+    echo "eg.";
+    echo "sudo spin-conf";
+    echo
+    exit 0
+fi
+
+while :
+do
+    echo "Enter the name of the user to add to this user group.";
+
+    echo -n "$MY_PROMPT"
+    read usrname
+    echo "Is this user name ok?: $usrname";
+    echo -n "$MY_YESNO_PROMPT"
+    read confirm
+
+    if [ $confirm = "y" ] || [ $confirm = "Y" ] || [ $confirm = "yes" ] || [ $confirm = "Yes" ]
+    then
+        break
+    fi
+    done
+
+echo
+echo "Add user $usrname to group $grpname.";
+echo "Is this ok?:";
+echo -n "$MY_YESNO_PROMPT"
+read confirm
+
+if [ $confirm = "y" ] || [ $confirm = "Y" ] || [ $confirm = "yes" ] || [ $confirm = "Yes" ]
+then
+    groupadd -f $grpname
+    usermod -a -G $grpname $usrname
+else
+    echo
+    echo "$usrname was not added to group $grpname.  Please configure your devices manually";
+    echo "or re-run this script.";
+    exit 0
+fi
+
+UdevFile="/etc/udev/rules.d/40-flir-spinnaker.rules";
+echo
+echo "Writing the udev rules file.";
+echo "SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"1e10\", GROUP=\"$grpname\"" 1>>$UdevFile
+
+echo
+echo "Do you want to restart the udev daemon?";
+echo -n "$MY_YESNO_PROMPT"
+read confirm
+
+if [ $confirm = "y" ] || [ $confirm = "Y" ] || [ $confirm = "yes" ] || [ $confirm = "Yes" ]
+then
+    /etc/init.d/udev restart
+else
+    echo
+    echo "Udev was not restarted.  Please reboot the computer for the rules to take effect.";
+    exit 0
+fi
+
+echo
+echo "Configuration complete. A reboot may be required on some systems for changes to take effect";
+echo
+
+exit 0
