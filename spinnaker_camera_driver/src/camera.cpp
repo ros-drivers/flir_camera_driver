@@ -67,6 +67,7 @@ void Camera::setFrameRate(const float frame_rate)
 
 void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& level)
 {
+  //return;
   try
   {
     if (level >= LEVEL_RECONFIGURE_STOP)
@@ -144,7 +145,7 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
       setProperty(node_map_, "Gamma", static_cast<float>(config.gamma));
     }
 
-    // Set white balance
+     // Set white balance
     if (IsAvailable(node_map_->GetNode("BalanceWhiteAuto")))
     {
       setProperty(node_map_, "BalanceWhiteAuto", config.auto_white_balance);
@@ -153,9 +154,9 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
         setProperty(node_map_, "BalanceRatioSelector", "Blue");
         setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_blue_ratio));
         setProperty(node_map_, "BalanceRatioSelector", "Red");
-        setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_red_ratio));
+        setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_red_ratio)); 
       }
-    }
+    } 
   }
   catch (const Spinnaker::Exception& e)
   {
