@@ -71,6 +71,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include <string>
 
+#include <image_numbered_msgs/ImageNumbered.h>
+
 namespace spinnaker_camera_driver
 {
 class SpinnakerCameraNodelet : public nodelet::Nodelet
@@ -328,6 +330,7 @@ private:
     it_.reset(new image_transport::ImageTransport(nh));
     image_transport::SubscriberStatusCallback cb = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
     it_pub_ = it_->advertiseCamera("image_raw", 5, cb, cb);
+    img_numbered_pub_ = nh.advertise<image_numbered_msgs::ImageNumbered>("image_numbered", 5);
 
     // Set up diagnostics
     updater_.setHardwareID("spinnaker_camera " + cinfo_name.str());
@@ -610,6 +613,13 @@ private:
               sensor_msgs::ImagePtr image(new sensor_msgs::Image(wfov_image->image));
               it_pub_.publish(image, ci_);
             }
+            if(img_numbered_pub_.getNumSubscribers() > 0)
+            {
+              image_numbered_msgs::ImageNumberedPtr image(new image_numbered_msgs::ImageNumbered());
+              image->image = wfov_image->image;
+              image->number = spinnaker_.getMetadata().embeddedFrameCounter;
+              img_numbered_pub_.publish(image);
+            }
           }
           catch (CameraTimeoutException& e)
           {
@@ -665,6 +675,7 @@ private:
   std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_;  ///< Needed to initialize and keep the
                                                                    /// CameraInfoManager in scope.
   image_transport::CameraPublisher it_pub_;                        ///< CameraInfoManager ROS publisher
+  ros::Publisher img_numbered_pub_; ///< Image publisher that also publishes the associated embedded frame number.
   std::shared_ptr<diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage> > pub_;  ///< Diagnosed
   std::shared_ptr<ros::Publisher> diagnostics_pub_;
   /// publisher, has to be
