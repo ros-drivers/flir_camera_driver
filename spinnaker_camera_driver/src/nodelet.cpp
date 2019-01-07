@@ -617,7 +617,7 @@ private:
             {
               image_numbered_msgs::ImageNumberedPtr image(new image_numbered_msgs::ImageNumbered());
               image->image = wfov_image->image;
-              image->number = spinnaker_.getMetadata().embeddedFrameCounter;
+              image->number = spinnaker_.getFrameCounter();
               img_numbered_pub_.publish(image);
             }
           }

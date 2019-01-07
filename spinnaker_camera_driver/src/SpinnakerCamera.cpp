@@ -238,7 +238,7 @@ void SpinnakerCamera::connect()
       }
 
       // Configure chunk data - Enable Metadata
-      // SpinnakerCamera::ConfigureChunkData(*node_map_);
+      SpinnakerCamera::ConfigureChunkData(*node_map_); 
     }
     catch (const Spinnaker::Exception& e)
     {
@@ -318,6 +318,13 @@ void SpinnakerCamera::stop()
     }
   }
 }
+
+uint64_t SpinnakerCamera::getFrameCounter(void){
+  uint64_t ret=image_metadata_.GetFrameID();
+  return ret;
+}
+
+
 
 void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_id)
 {
@@ -435,6 +442,8 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
         // ROS_INFO_ONCE("\033[93m wxh: (%d, %d), stride: %d \n", width, height, stride);
         fillImage(*image, imageEncoding, height, width, stride, image_ptr->GetData());
         image->header.frame_id = frame_id;
+
+        image_metadata_ = image_ptr->GetChunkData();
       }  // end else
     }
     catch (const Spinnaker::Exception& e)

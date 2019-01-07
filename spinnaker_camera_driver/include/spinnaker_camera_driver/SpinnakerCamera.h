@@ -62,9 +62,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
 
-// FlyCapture SDK from Point Grey
-#include "flycapture/FlyCapture2.h"
-
 namespace spinnaker_camera_driver
 {
 class SpinnakerCamera
@@ -170,7 +167,7 @@ public:
   {
     return serial_;
   }
-  inline FlyCapture2::ImageMetadata getMetadata() const { return metadata_; }
+  uint64_t getFrameCounter(void);
 
 private:
   uint32_t serial_;  ///< A variable to hold the serial number of the desired camera.
@@ -178,7 +175,6 @@ private:
   Spinnaker::SystemPtr system_;
   Spinnaker::CameraList camList_;
   Spinnaker::CameraPtr pCam_;
-  FlyCapture2::ImageMetadata metadata_; ///< Metadata from the last image, stores useful information such as timestamp, gain, shutter, brightness, exposure.
   // TODO(mhosmar) use std::shared_ptr
   Spinnaker::GenApi::INodeMap* node_map_;
   std::shared_ptr<Camera> camera_;
@@ -201,7 +197,6 @@ private:
   unsigned int packet_delay_;
 
   uint64_t timeout_;
-
   // This function configures the camera to add chunk data to each image. It does
   // this by enabling each type of chunk data before enabling chunk data mode.
   // When chunk data is turned on, the data is made available in both the nodemap
