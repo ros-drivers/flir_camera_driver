@@ -14,7 +14,8 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(OpenCV REQUIRED)
 
 generate_dynamic_reconfigure_options(
-  cfg/Spinnaker.cfg
+  #cfg/Spinnaker.cfg
+  cfg/SpinnakerBFS.cfg
 )
 
 catkin_package(CATKIN_DEPENDS
