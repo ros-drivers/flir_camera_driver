@@ -336,6 +336,9 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
     // Handle "Image Retrieval" Exception
     try
     {
+      
+      //Since it takes time to initialize (i.e., enabling trigger) arduino sync. Otherwise it will produce timeout error of this driver. Therefore give more time for grabbing an image by increasing timeout.
+      timeout_=60000; //60secs
       Spinnaker::ImagePtr image_ptr = pCam_->GetNextImage(timeout_);
       //  std::string format(image_ptr->GetPixelFormatName());
       //  std::printf("\033[100m format: %s \n", format.c_str());
