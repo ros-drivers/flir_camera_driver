@@ -330,7 +330,9 @@ private:
     it_.reset(new image_transport::ImageTransport(nh));
     image_transport::SubscriberStatusCallback cb = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
     it_pub_ = it_->advertiseCamera("image_raw", 5, cb, cb);
-    img_numbered_pub_ = nh.advertise<image_numbered_msgs::ImageNumbered>("image_numbered", 5);
+
+    ros::SubscriberStatusCallback cb3 = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
+    img_numbered_pub_ = nh.advertise<image_numbered_msgs::ImageNumbered>("image_numbered", 5, cb3,cb3);
 
     // Set up diagnostics
     updater_.setHardwareID("spinnaker_camera " + cinfo_name.str());
@@ -516,7 +518,6 @@ private:
             {
               double timeout;
               getMTPrivateNodeHandle().param("timeout", timeout, 1.0);
-
               NODELET_DEBUG_ONCE("Setting timeout to: %f.", timeout);
               spinnaker_.setTimeout(timeout);
             }
