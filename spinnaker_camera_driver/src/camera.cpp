@@ -89,6 +89,8 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
     setProperty(node_map_, "LineMode", config.line_mode);
     setProperty(node_map_, "LineSource", config.line_source);
 
+    setProperty(node_map_, "LineInverter", config.line_inverter);
+
     // Set auto exposure
     setProperty(node_map_, "ExposureMode", config.exposure_mode);
     setProperty(node_map_, "ExposureAuto", config.exposure_auto);

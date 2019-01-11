@@ -619,6 +619,7 @@ private:
               image_numbered_msgs::ImageNumberedPtr image(new image_numbered_msgs::ImageNumbered());
               image->image = wfov_image->image;
               image->number = spinnaker_.getFrameCounter();
+              image->image.header.stamp += ros::Duration(-0.0100352874925);
               img_numbered_pub_.publish(image);
             }
           }
@@ -720,7 +721,6 @@ private:
   int packet_size_;
   /// GigE packet delay:
   int packet_delay_;
-
   /// Configuration:
   spinnaker_camera_driver::SpinnakerConfig config_;
 };
