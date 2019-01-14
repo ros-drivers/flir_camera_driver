@@ -376,6 +376,14 @@ private:
     diag_man->addDiagnostic("PowerSupplyCurrent", true, std::make_pair(0.4f, 0.6f), 0.3f, 1.0f);
     diag_man->addDiagnostic<int>("DeviceUptime");
     diag_man->addDiagnostic<int>("U3VMessageChannelID");
+    
+    double imu_time_offset_s;
+    if (!pnh.getParam("imu_time_offset_s", imu_time_offset_s)) {
+      ROS_ERROR("Define an imu_time_offset_s parameter.");
+    } else {
+      ROS_INFO("imu_time_offset_s is %.4f", imu_time_offset_s);
+      imu_time_offset_ = ros::Duration(imu_time_offset_s);
+    }
   }
 
   /**
@@ -619,7 +627,7 @@ private:
               image_numbered_msgs::ImageNumberedPtr image(new image_numbered_msgs::ImageNumbered());
               image->image = wfov_image->image;
               image->number = spinnaker_.getFrameCounter();
-              image->image.header.stamp += ros::Duration(-0.0100352874925);
+              image->image.header.stamp += imu_time_offset_;
               img_numbered_pub_.publish(image);
             }
           }
@@ -722,6 +730,8 @@ private:
   /// GigE packet delay:
   int packet_delay_;
   /// Configuration:
+
+  ros::Duration imu_time_offset_;
   spinnaker_camera_driver::SpinnakerConfig config_;
 };
 
