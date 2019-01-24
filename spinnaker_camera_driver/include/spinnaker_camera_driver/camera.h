@@ -5,22 +5,35 @@ Software License Agreement (BSD)
 \authors   Michael Hosmar <mhosmar@clearpathrobotics.com>
 \copyright Copyright (c) 2018, Clearpath Robotics, Inc., All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that
 the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ * Redistributions of source code must retain the above copyright notice, this
+list of conditions and the
    following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
-   following disclaimer in the documentation and/or other materials provided with the distribution.
- * Neither the name of Clearpath Robotics nor the names of its contributors may be used to endorse or promote
-   products derived from this software without specific prior written permission.
+ * Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the
+   following disclaimer in the documentation and/or other materials provided
+with the distribution.
+ * Neither the name of Clearpath Robotics nor the names of its contributors may
+be used to endorse or promote
+   products derived from this software without specific prior written
+permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WAR-
-RANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, IN-
-DIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
-OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WAR-
+RANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+BE LIABLE FOR ANY DIRECT, IN-
+DIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT
+OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
 */
 #ifndef SPINNAKER_CAMERA_DRIVER_CAMERA_H
 #define SPINNAKER_CAMERA_DRIVER_CAMERA_H
@@ -32,8 +45,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "spinnaker_camera_driver/set_property.h"
 
 // Spinnaker SDK
-#include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
+#include "Spinnaker.h"
 
 //*******************************************
 // This Class contains camera control functions.
@@ -42,16 +55,14 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 // this class for any specific differences.
 //*******************************************
 
-namespace spinnaker_camera_driver
-{
-class Camera
-{
-public:
+namespace spinnaker_camera_driver {
+class Camera {
+ public:
   explicit Camera(Spinnaker::GenApi::INodeMap* node_map);
-  ~Camera()
-  {
-  }
-  virtual void setNewConfiguration(const spinnaker_camera_driver::SpinnakerConfig& config, const uint32_t& level);
+  ~Camera() {}
+  virtual void setNewConfiguration(
+      const spinnaker_camera_driver::SpinnakerConfig& config,
+      const uint32_t& level);
 
   /** Parameters that need a sensor to be stopped completely when changed. */
   static const uint8_t LEVEL_RECONFIGURE_CLOSE = 3;
@@ -66,10 +77,10 @@ public:
   int getHeightMax();
   int getWidthMax();
 
-  Spinnaker::GenApi::CNodePtr
-  readProperty(const Spinnaker::GenICam::gcstring property_name);
+  Spinnaker::GenApi::CNodePtr readProperty(
+      const Spinnaker::GenICam::gcstring property_name);
 
-protected:
+ protected:
   Spinnaker::GenApi::INodeMap* node_map_;
 
   virtual void init();
@@ -80,24 +91,32 @@ protected:
   /*!
   * \brief Changes the video mode of the connected camera.
   *
-  * This function will change the camera to the desired videomode and allow up the maximum framerate for that mode.
-  * \param videoMode string of desired video mode, will be changed if unsupported.
+  * This function will change the camera to the desired videomode and allow up
+  * the maximum framerate for that mode.
+  * \param videoMode string of desired video mode, will be changed if
+  * unsupported.
   */
   virtual void setFrameRate(const float frame_rate);
-  virtual void setImageControlFormats(const spinnaker_camera_driver::SpinnakerConfig& config);
+  virtual void setImageControlFormats(
+      const spinnaker_camera_driver::SpinnakerConfig& config);
   /*!
   * \brief Set parameters relative to GigE cameras.
   *
-  * \param auto_packet_size Flag stating if packet size should be automatically determined or not.
-  * \param packet_size The packet size value to use if auto_packet_size is false.
+  * \param auto_packet_size Flag stating if packet size should be automatically
+  * determined or not.
+  * \param packet_size The packet size value to use if auto_packet_size is
+  * false.
   */
   // TODO(mhosmar): Implement later
-  // void setGigEParameters(bool auto_packet_size, unsigned int packet_size, unsigned int packet_delay);
+  // void setGigEParameters(bool auto_packet_size, unsigned int packet_size,
+  // unsigned int packet_delay);
 
   /*!
-  * \brief Will autoconfigure the packet size of the GigECamera with the given GUID.
+  * \brief Will autoconfigure the packet size of the GigECamera with the given
+  * GUID.
   *
-  * Note that this is expected only to work for GigE cameras, and only if the camera
+  * Note that this is expected only to work for GigE cameras, and only if the
+  * camera
   * is not connected.
   *
   * \param guid the camera to autoconfigure
@@ -106,28 +125,34 @@ protected:
   // void setupGigEPacketSize(FlyCapture2::PGRGuid & guid);
 
   /*!
-  * \brief Will configure the packet size of the GigECamera with the given GUID to a given value.
+  * \brief Will configure the packet size of the GigECamera with the given GUID
+  * to a given value.
   *
-  * Note that this is expected only to work for GigE cameras, and only if the camera
+  * Note that this is expected only to work for GigE cameras, and only if the
+  * camera
   * is not connected.
   *
   * \param guid the camera to autoconfigure
   * \param packet_size The packet size value to use.
   */
   // TODO(mhosmar): Implement later
-  // void setupGigEPacketSize(FlyCapture2::PGRGuid & guid, unsigned int packet_size);
+  // void setupGigEPacketSize(FlyCapture2::PGRGuid & guid, unsigned int
+  // packet_size);
 
   /*!
-  * \brief Will configure the packet delay of the GigECamera with the given GUID to a given value.
+  * \brief Will configure the packet delay of the GigECamera with the given GUID
+  * to a given value.
   *
-  * Note that this is expected only to work for GigE cameras, and only if the camera
+  * Note that this is expected only to work for GigE cameras, and only if the
+  * camera
   * is not connected.
   *
   * \param guid the camera to autoconfigure
   * \param packet_delay The packet delay value to use.
   */
   // TODO(mhosmar): Implement later
-  // void setupGigEPacketDelay(FlyCapture2::PGRGuid & guid, unsigned int packet_delay);
+  // void setupGigEPacketDelay(FlyCapture2::PGRGuid & guid, unsigned int
+  // packet_delay);
 
   /*!
   * \brief Gets the current frame rate.
@@ -150,7 +175,8 @@ protected:
   // float getCameraTemperature();
 
   // TODO(mhosmar): Implement the following methods later
-  // void setBRWhiteBalance(bool auto_white_balance, uint16_t &blue, uint16_t &red);
+  // void setBRWhiteBalance(bool auto_white_balance, uint16_t &blue, uint16_t
+  // &red);
 
   // uint getGain();
 
