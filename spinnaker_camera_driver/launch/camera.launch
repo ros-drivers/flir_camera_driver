@@ -38,7 +38,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
       <param name="frame_id" value="camera" />
       <param name="serial" value="$(arg camera_serial)" />
-
+      <param name="image_format_color_coding" value="BGR8" />
+      <param name="auto_white_balance" value="Continuous" />
       <!-- Trigger related config -->
       <param name="acquisition_mode" value="Continuous" />
       <param name="trigger_source" value="Line0" /> <!-- Pin 2 --> 

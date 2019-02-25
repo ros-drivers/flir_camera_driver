@@ -410,6 +410,16 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image,
 
         // ROS_INFO_ONCE("\033[93m wxh: (%d, %d), stride: %d \n", width, height,
         // stride);
+
+        // Hack need to fix all the encoding bugs
+        Spinnaker::GenApi::CEnumerationPtr expected_encoding =
+        static_cast<Spinnaker::GenApi::CEnumerationPtr>(node_map_->GetNode("PixelFormat"));
+
+        Spinnaker::GenICam::gcstring expected_encoding_str = expected_encoding->ToString();
+        if(expected_encoding_str.compare("BGR8") == 0){
+          imageEncoding = sensor_msgs::image_encodings::BGR8;
+        }
+        
         fillImage(*image, imageEncoding, height, width, stride,
                   image_ptr->GetData());
         image->header.frame_id = frame_id;
