@@ -66,8 +66,8 @@ SpinnakerCamera::SpinnakerCamera()
 
 SpinnakerCamera::~SpinnakerCamera()
 {
-  camList_.Clear();
-  system_->ReleaseInstance();
+  // camList_.Clear();
+  // system_->ReleaseInstance();
 }
 
 void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::SpinnakerConfig& config, const uint32_t& level)
