@@ -69,6 +69,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <dynamic_reconfigure/server.h>  // Needed for the dynamic_reconfigure gui service to run
 
 #include <fstream>
+#include <sstream>
 #include <string>
 
 namespace spinnaker_camera_driver
@@ -269,7 +270,9 @@ private:
     {
       std::string serial_str;
       pnh.param<std::string>("serial", serial_str, "0");
-      std::istringstream(serial_str) >> serial;
+      std::stringstream ss;
+      ss << std::hex << serial_str;
+      ss >> serial;
     }
     else
     {
@@ -292,7 +295,7 @@ private:
       }
     }
 
-    NODELET_DEBUG_ONCE("Using camera serial %d", serial);
+    NODELET_INFO_ONCE("Using camera serial %x", (uint32_t)serial);
 
     spinnaker_.setDesiredCamera((uint32_t)serial);
 
