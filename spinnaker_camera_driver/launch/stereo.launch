@@ -25,16 +25,19 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 -->
 <launch>
   <!-- Common parameters -->
-  <arg name="camera_name" default="stereo" />
-  <arg name="frame_rate" default="15" />
+  <arg name="camera_name"               default="stereo" />
 
-  <arg name="left_camera_serial" default="15085987" />
-  <arg name="left_camera_calibrated" default="0" />
+  <!-- When unspecified, the driver will use the default framerate as given by the
+      camera itself. Use the parameter 'control_frame_rate' to enable manual frame 
+      rate control, and 'frame_rate' to set the frame rate value. -->
   <arg name="control_frame_rate"        default="true" />
   <arg name="frame_rate"                default="15" />
 
-  <arg name="right_camera_serial" default="15085990" />
-  <arg name="right_camera_calibrated" default="0" />
+  <arg name="left_camera_serial"        default="15085987" />
+  <arg name="left_camera_calibrated"    default="0" />
+
+  <arg name="right_camera_serial"       default="15085990" />
+  <arg name="right_camera_calibrated"   default="0" />
 
   <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" />
   <group ns="$(arg camera_name)" >
@@ -43,10 +46,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
       <!-- Both cameras are not loaded into one nodelet manager to avoid the namespacing issue. -->
       <node pkg="nodelet" type="nodelet" name="camera_nodelet"
             args="load spinnaker_camera_driver/SpinnakerCameraNodelet /camera_nodelet_manager" >
-        <param name="frame_id" value="camera_left" />
-        <param name="serial" value="$(arg left_camera_serial)" />
+        <param name="frame_id"                        value="camera_left" />
+        <param name="serial"                          value="$(arg left_camera_serial)" />
 
-        <!-- When unspecified, the driver will use the default framerate as given by the
+        <!-- Frame rate -->
         <param name="acquisition_frame_rate_enable"   value="$(arg control_frame_rate)" />
         <param name="acquisition_frame_rate"          value="$(arg frame_rate)" />
 
@@ -64,10 +67,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
       <node pkg="nodelet" type="nodelet" name="camera_nodelet"
             args="load spinnaker_camera_driver/SpinnakerCameraNodelet /camera_nodelet_manager" >
-        <param name="frame_id" value="camera_right" />
-        <param name="serial" value="$(arg right_camera_serial)" />
+        <param name="frame_id"                        value="camera_right" />
+        <param name="serial"                          value="$(arg right_camera_serial)" />
 
-        <!-- When unspecified, the driver will use the default framerate as given by the
+        <!-- Frame rate -->
         <param name="acquisition_frame_rate_enable"   value="$(arg control_frame_rate)" />
         <param name="acquisition_frame_rate"          value="$(arg frame_rate)" />
 
