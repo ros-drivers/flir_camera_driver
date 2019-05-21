@@ -39,11 +39,15 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   <arg name="right_camera_serial"       default="15085990" />
   <arg name="right_camera_calibrated"   default="0" />
 
+  <arg name="run_stereo_image_proc"     default="false" />
+
+  <!-- Nodelet manager -->
+  <!-- Both cameras are not loaded into one nodelet manager to avoid the namespacing issue. -->
   <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" />
+
   <group ns="$(arg camera_name)" >
     <group ns="left" >
-
-      <!-- Both cameras are not loaded into one nodelet manager to avoid the namespacing issue. -->
+      <!-- Camera nodelet -->
       <node pkg="nodelet" type="nodelet" name="camera_nodelet"
             args="load spinnaker_camera_driver/SpinnakerCameraNodelet /camera_nodelet_manager" >
         <param name="frame_id"                        value="camera_left" />
@@ -58,13 +62,14 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
                value="file://$(env HOME)/.ros/camera_info/$(arg left_camera_serial).yaml" />
       </node>
 
+      <!-- Debayering nodelet -->
       <node pkg="nodelet" type="nodelet" name="image_proc_debayer"
           args="load image_proc/debayer /camera_nodelet_manager">
       </node>
     </group>
 
     <group ns="right" >
-
+      <!-- Camera nodelet -->
       <node pkg="nodelet" type="nodelet" name="camera_nodelet"
             args="load spinnaker_camera_driver/SpinnakerCameraNodelet /camera_nodelet_manager" >
         <param name="frame_id"                        value="camera_right" />
@@ -79,15 +84,18 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
                value="file://$(env HOME)/.ros/camera_info/$(arg right_camera_serial).yaml" />
       </node>
 
+      <!-- Debayering nodelet -->
       <node pkg="nodelet" type="nodelet" name="image_proc_debayer"
           args="load image_proc/debayer /camera_nodelet_manager">
       </node>
-
     </group>
 
-<!--     <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc">
-      <param name="approximate_sync" value="true"/>
-    </node> -->
+    <!-- Stereo image processing nodelet -->
+    <group if="$(arg run_stereo_image_proc)" >
+      <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc">
+        <param name="approximate_sync" value="true"/>
+      </node>
+    </group>
 
   </group>
 </launch>
