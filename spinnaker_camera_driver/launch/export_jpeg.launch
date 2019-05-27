@@ -1,0 +1,9 @@
+<launch>
+  <arg name="path" default="/media/seba/'Samsung 2TB'/Datasets/190426/witzwil1/2019-04-26-10-34-00.bag" />
+  <arg name="topic" default="/ssf/photonfocus_camera_vis_node/image_raw" />
+
+    <node pkg="rosbag" type="play" name="rosbag" required="true" args="$(arg path)" />
+    <node name="extract" pkg="image_view" type="extract_images" respawn="false" required="true" output="screen" cwd="ROS_HOME">
+      <remap from="image" to="$(arg topic)" />
+    </node>
+</launch>
