@@ -319,6 +319,10 @@ private:
 
     srv_->setCallback(f);
 
+    // queue size of ros publisher
+    int queue_size;
+    pnh.param<int>("queue_size", queue_size, 1);
+
     // Start the camera info manager and attempt to load any configurations
     std::stringstream cinfo_name;
     cinfo_name << serial;
@@ -327,7 +331,7 @@ private:
     // Publish topics using ImageTransport through camera_info_manager (gives cool things like compression)
     it_.reset(new image_transport::ImageTransport(nh));
     image_transport::SubscriberStatusCallback cb = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
-    it_pub_ = it_->advertiseCamera("image_raw", 5, cb, cb);
+    it_pub_ = it_->advertiseCamera("image_raw", queue_size, cb, cb);
 
     // Set up diagnostics
     updater_.setHardwareID("spinnaker_camera " + cinfo_name.str());
@@ -350,7 +354,7 @@ private:
     ros::SubscriberStatusCallback cb2 = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
     pub_.reset(
         new diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage>(
-            nh.advertise<wfov_camera_msgs::WFOVImage>("image", 5, cb2, cb2),
+            nh.advertise<wfov_camera_msgs::WFOVImage>("image", queue_size, cb2, cb2),
             updater_, diagnostic_updater::FrequencyStatusParam(
                           &min_freq_, &max_freq_, freq_tolerance, window_size),
             diagnostic_updater::TimeStampStatusParam(min_acceptable,
