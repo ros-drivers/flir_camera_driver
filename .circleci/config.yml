@@ -1,0 +1,89 @@
+version: 2.1
+
+jobs:
+  kinetic: &kinetic
+    docker:
+      - image: gitaiinc/gitai-ci
+    steps:
+      - restore_cache:
+          keys:
+            - ccache-{{ .Branch }}-{{ .Revision }}
+            - ccache-{{ .Branch }}-
+            - ccache-
+      - run:
+          # Install git and ssh before checkout. Because larger
+          name: install git and ssh
+          command: |
+            apt update
+            apt install -y git ssh ccache
+            # Creat .ssh/config in order to disable host key prompt
+            mkdir -p ~/.ssh
+            echo "Host *" >> ~/.ssh/config
+            echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+      - run:
+          name: Larger ccache storage
+          command: |
+            ccache -M 5G
+      - checkout
+      - add_ssh_keys
+      - run:
+          name: update submodules (if needed)
+          command: |
+            git submodule update --init
+      - run:
+          name: Set Up Container
+          command: |
+            apt-get update -qq && apt-get install -y python-catkin-tools python-pip
+      - run:
+          name: Clone other repositories
+          command: |
+            if [ -n "${ROSINSTALL_FILE}" -a -e ${ROSINSTALL_FILE} ]; then
+              cd ..
+              wstool init --shallow
+              wstool merge project/$ROSINSTALL_FILE
+              wstool update -j10
+            fi
+      - run:
+          name: Install spinnaker camera driver
+          command: |
+            ./.circleci/install-spinnaker-camera-driver.sh
+      - run:
+          name: rosdep install
+          command: |
+            source `find /opt/ros -name setup.bash | sort | head -1`
+            rosdep update
+            rosdep install --from-paths .. --ignore-src -rny || true
+      - run:
+          name: catkin init
+          command: |
+            cd ../..
+            catkin init
+            catkin config --extend /opt/ros/$ROS_DISTRO
+      - run:
+          name: Build
+          command: |
+            cd ../..
+            catkin build --no-status -j4 --summarize
+      - run:
+          name: Run Tests
+          command: |
+            source `find /opt/ros -name setup.bash | sort | head -1`
+            cd ../..
+            catkin run_tests -j4 --no-deps --no-status --summarize $(cd src && catkin_topological_order . --only-names)
+            catkin_test_results --all --verbose
+
+      - save_cache:
+          key: ccache-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ~/.ccache
+
+    working_directory: ~/src/project
+    environment:
+      ROSINSTALL_FILE: .travis.rosinstall
+      CC: ccache gcc
+      CXX: ccache g++
+
+workflows:
+  tests:
+    jobs:
+      - kinetic
