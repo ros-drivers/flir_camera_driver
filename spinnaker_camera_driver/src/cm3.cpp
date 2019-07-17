@@ -148,7 +148,7 @@ void Cm3::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& lev
         setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_blue_ratio));
         setProperty(node_map_, "BalanceRatioSelector", "Red");
         setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_red_ratio));
-      } 
+      }
     }
   }
   catch (const Spinnaker::Exception& e)
