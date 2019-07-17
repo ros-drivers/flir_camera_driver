@@ -43,8 +43,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SPINNAKER_CAMERA_DRIVER_SPINNAKERCAMERA_H
 #define SPINNAKER_CAMERA_DRIVER_SPINNAKERCAMERA_H
 
-#include <sensor_msgs/Image.h>            // ROS message header for Image
-#include <sensor_msgs/image_encodings.h>  // ROS header for the different supported image encoding types
+#include <sensor_msgs/Image.h>           // ROS message header for Image
+#include <sensor_msgs/image_encodings.h> // ROS header for the different supported image encoding types
 #include <sensor_msgs/fill_image.h>
 #include <spinnaker_camera_driver/camera_exceptions.h>
 
@@ -84,7 +84,7 @@ public:
   *
   * \return Returns true when the configuration could be applied without modification.
   */
-  void setNewConfiguration(const spinnaker_camera_driver::SpinnakerConfig& config, const uint32_t& level);
+  void setNewConfiguration(const spinnaker_camera_driver::SpinnakerConfig &config, const uint32_t &level);
 
   /** Parameters that need a sensor to be stopped completely when changed. */
   static const uint8_t LEVEL_RECONFIGURE_CLOSE = 3;
@@ -135,8 +135,10 @@ public:
   * \param image sensor_msgs::Image that will be filled with the image currently in the buffer.
   * \param frame_id The name of the optical frame of the camera.
   */
-  void grabImage(sensor_msgs::Image* image, const std::string& frame_id);
+  void grabImage(sensor_msgs::Image *image, const std::string &frame_id);
 
+  // Gets the exposure of the last image, in microseconds.
+  double getLastExposure();
   /*!
   * \brief Will set grabImage timeout for the camera.
   *
@@ -146,7 +148,7 @@ public:
   *
   */
   // TODO(mhosmar): Implement later
-  void setTimeout(const double& timeout);
+  void setTimeout(const double &timeout);
 
   /*!
   * \brief Used to set the serial number for the camera you wish to connect to.
@@ -156,9 +158,9 @@ public:
   * This function should be called before connect().
   * \param id serial number for the camera.  Should be something like 10491081.
   */
-  void setDesiredCamera(const uint32_t& id);
+  void setDesiredCamera(const uint32_t &id);
 
-  void setGain(const float& gain);
+  void setGain(const float &gain);
   int getHeightMax();
   int getWidthMax();
   Spinnaker::GenApi::CNodePtr readProperty(const Spinnaker::GenICam::gcstring property_name);
@@ -169,21 +171,21 @@ public:
   }
 
 private:
-  uint32_t serial_;  ///< A variable to hold the serial number of the desired camera.
+  uint32_t serial_; ///< A variable to hold the serial number of the desired camera.
 
   Spinnaker::SystemPtr system_;
   Spinnaker::CameraList camList_;
   Spinnaker::CameraPtr pCam_;
 
   // TODO(mhosmar) use std::shared_ptr
-  Spinnaker::GenApi::INodeMap* node_map_;
+  Spinnaker::GenApi::INodeMap *node_map_;
   std::shared_ptr<Camera> camera_;
 
   Spinnaker::ChunkData image_metadata_;
 
-  std::mutex mutex_;  ///< A mutex to make sure that we don't try to grabImages while reconfiguring or vice versa.
-  volatile bool captureRunning_;  ///< A status boolean that checks if the camera has been started and is loading images
-                                  ///  into its buffer.
+  std::mutex mutex_;             ///< A mutex to make sure that we don't try to grabImages while reconfiguring or vice versa.
+  volatile bool captureRunning_; ///< A status boolean that checks if the camera has been started and is loading images
+                                 ///  into its buffer.
 
   /// If true, camera is currently running in color mode, otherwise camera is running in mono mode
   bool isColor_;
@@ -202,7 +204,7 @@ private:
   // this by enabling each type of chunk data before enabling chunk data mode.
   // When chunk data is turned on, the data is made available in both the nodemap
   // and each image.
-  void ConfigureChunkData(const Spinnaker::GenApi::INodeMap& nodeMap);
+  void ConfigureChunkData(const Spinnaker::GenApi::INodeMap &nodeMap);
 };
-}  // namespace spinnaker_camera_driver
-#endif  // SPINNAKER_CAMERA_DRIVER_SPINNAKERCAMERA_H
+} // namespace spinnaker_camera_driver
+#endif // SPINNAKER_CAMERA_DRIVER_SPINNAKERCAMERA_H

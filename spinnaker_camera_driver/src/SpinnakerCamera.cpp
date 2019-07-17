@@ -52,13 +52,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace spinnaker_camera_driver
 {
 SpinnakerCamera::SpinnakerCamera()
-  : serial_(0)
-  , system_(Spinnaker::System::GetInstance())
-  , camList_(system_->GetCameras())
-  , pCam_(static_cast<int>(NULL))  // Hack to suppress compiler warning. Spinnaker has only one contructor which takes
-                                   // an int
-  , camera_(static_cast<int>(NULL))
-  , captureRunning_(false)
+    : serial_(0), system_(Spinnaker::System::GetInstance()), camList_(system_->GetCameras()), pCam_(static_cast<int>(NULL)) // Hack to suppress compiler warning. Spinnaker has only one contructor which takes
+                                                                                                                            // an int
+      ,
+      camera_(static_cast<int>(NULL)), captureRunning_(false)
 {
   unsigned int num_cameras = camList_.GetSize();
   ROS_INFO_STREAM_ONCE("[SpinnakerCamera]: Number of cameras detected: " << num_cameras);
@@ -70,7 +67,7 @@ SpinnakerCamera::~SpinnakerCamera()
   system_->ReleaseInstance();
 }
 
-void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::SpinnakerConfig& config, const uint32_t& level)
+void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::SpinnakerConfig &config, const uint32_t &level)
 {
   // Check if camera is connected
   if (!pCam_)
@@ -85,7 +82,7 @@ void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::Spinnak
   {
     ROS_DEBUG("SpinnakerCamera::setNewConfiguration: Reconfigure Stop.");
     bool capture_was_running = captureRunning_;
-    start();  // For some reason some params only work after aquisition has be started once.
+    start(); // For some reason some params only work after aquisition has be started once.
     stop();
     camera_->setNewConfiguration(config, level);
     if (capture_was_running)
@@ -95,9 +92,9 @@ void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::Spinnak
   {
     camera_->setNewConfiguration(config, level);
   }
-}  // end setNewConfiguration
+} // end setNewConfiguration
 
-void SpinnakerCamera::setGain(const float& gain)
+void SpinnakerCamera::setGain(const float &gain)
 {
   if (camera_)
     camera_->setGain(gain);
@@ -144,7 +141,7 @@ void SpinnakerCamera::connect()
       {
         pCam_ = camList_.GetBySerial(serial_string);
       }
-      catch (const Spinnaker::Exception& e)
+      catch (const Spinnaker::Exception &e)
       {
         throw std::runtime_error("[SpinnakerCamera::connect] Could not find camera with serial number " +
                                  serial_string + ". Is that camera plugged in? Error: " + std::string(e.what()));
@@ -157,7 +154,7 @@ void SpinnakerCamera::connect()
       {
         pCam_ = camList_.GetByIndex(0);
       }
-      catch (const Spinnaker::Exception& e)
+      catch (const Spinnaker::Exception &e)
       {
         throw std::runtime_error("[SpinnakerCamera::connect] Failed to get first connected camera. Error: " +
                                  std::string(e.what()));
@@ -171,7 +168,7 @@ void SpinnakerCamera::connect()
     try
     {
       // Check Device type and save serial for reconnecting
-      Spinnaker::GenApi::INodeMap& genTLNodeMap = pCam_->GetTLDeviceNodeMap();
+      Spinnaker::GenApi::INodeMap &genTLNodeMap = pCam_->GetTLDeviceNodeMap();
 
       if (serial_ == 0)
       {
@@ -208,7 +205,7 @@ void SpinnakerCamera::connect()
         // TODO(mhosmar): - check if interface is GigE and connect to GigE cam
       }
     }
-    catch (const Spinnaker::Exception& e)
+    catch (const Spinnaker::Exception &e)
     {
       throw std::runtime_error("[SpinnakerCamera::connect] Failed to determine device info with error: " +
                                std::string(e.what()));
@@ -240,12 +237,12 @@ void SpinnakerCamera::connect()
       // Configure chunk data - Enable Metadata
       // SpinnakerCamera::ConfigureChunkData(*node_map_);
     }
-    catch (const Spinnaker::Exception& e)
+    catch (const Spinnaker::Exception &e)
     {
       throw std::runtime_error("[SpinnakerCamera::connect] Failed to connect to camera. Error: " +
                                std::string(e.what()));
     }
-    catch (const std::runtime_error& e)
+    catch (const std::runtime_error &e)
     {
       throw std::runtime_error("[SpinnakerCamera::connect] Failed to configure chunk data. Error: " +
                                std::string(e.what()));
@@ -277,7 +274,7 @@ void SpinnakerCamera::disconnect()
     Spinnaker::CameraList temp_list = system_->GetCameras();
     camList_.Append(temp_list);
   }
-  catch (const Spinnaker::Exception& e)
+  catch (const Spinnaker::Exception &e)
   {
     throw std::runtime_error("[SpinnakerCamera::disconnect] Failed to disconnect camera with error: " +
                              std::string(e.what()));
@@ -296,7 +293,7 @@ void SpinnakerCamera::start()
       captureRunning_ = true;
     }
   }
-  catch (const Spinnaker::Exception& e)
+  catch (const Spinnaker::Exception &e)
   {
     throw std::runtime_error("[SpinnakerCamera::start] Failed to start capture with error: " + std::string(e.what()));
   }
@@ -312,14 +309,14 @@ void SpinnakerCamera::stop()
       captureRunning_ = false;
       pCam_->EndAcquisition();
     }
-    catch (const Spinnaker::Exception& e)
+    catch (const Spinnaker::Exception &e)
     {
       throw std::runtime_error("[SpinnakerCamera::stop] Failed to stop capture with error: " + std::string(e.what()));
     }
   }
 }
 
-void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_id)
+void SpinnakerCamera::grabImage(sensor_msgs::Image *image, const std::string &frame_id)
 {
   std::lock_guard<std::mutex> scopedLock(mutex_);
 
@@ -340,6 +337,7 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
       }
       else
       {
+        image_metadata_ = image_ptr->GetChunkData();
         // Set Image Time Stamp
         image->header.stamp.sec = image_ptr->GetTimeStamp() * 1e-9;
         image->header.stamp.nsec = image_ptr->GetTimeStamp();
@@ -412,7 +410,7 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
             }
           }
         }
-        else  // Mono camera or in pixel binned mode.
+        else // Mono camera or in pixel binned mode.
         {
           if (bitsPerPixel == 16)
           {
@@ -435,9 +433,9 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
         // ROS_INFO_ONCE("\033[93m wxh: (%d, %d), stride: %d \n", width, height, stride);
         fillImage(*image, imageEncoding, height, width, stride, image_ptr->GetData());
         image->header.frame_id = frame_id;
-      }  // end else
+      } // end else
     }
-    catch (const Spinnaker::Exception& e)
+    catch (const Spinnaker::Exception &e)
     {
       throw std::runtime_error("[SpinnakerCamera::grabImage] Failed to retrieve buffer with error: " +
                                std::string(e.what()));
@@ -452,18 +450,23 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
   {
     throw std::runtime_error("[SpinnakerCamera::grabImage] Not connected to the camera.");
   }
-}  // end grabImage
+} // end grabImage
 
-void SpinnakerCamera::setTimeout(const double& timeout)
+double SpinnakerCamera::getLastExposure()
+{
+  return image_metadata_.GetExposureTime();
+}
+
+void SpinnakerCamera::setTimeout(const double &timeout)
 {
   timeout_ = static_cast<uint64_t>(std::round(timeout * 1000));
 }
-void SpinnakerCamera::setDesiredCamera(const uint32_t& id)
+void SpinnakerCamera::setDesiredCamera(const uint32_t &id)
 {
   serial_ = id;
 }
 
-void SpinnakerCamera::ConfigureChunkData(const Spinnaker::GenApi::INodeMap& nodeMap)
+void SpinnakerCamera::ConfigureChunkData(const Spinnaker::GenApi::INodeMap &nodeMap)
 {
   ROS_INFO_STREAM("*** CONFIGURING CHUNK DATA ***");
   try
@@ -543,9 +546,9 @@ void SpinnakerCamera::ConfigureChunkData(const Spinnaker::GenApi::INodeMap& node
       }
     }
   }
-  catch (const Spinnaker::Exception& e)
+  catch (const Spinnaker::Exception &e)
   {
     throw std::runtime_error(e.what());
   }
 }
-}  // namespace spinnaker_camera_driver
+} // namespace spinnaker_camera_driver
