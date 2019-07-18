@@ -65,9 +65,8 @@ void Camera::setFrameRate(const float frame_rate)
   ROS_DEBUG_STREAM("Current Frame rate: \t " << ptrAcquisitionFrameRate->GetValue());
 }
 
-void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& level)
+void Camera::setNewConfiguration(const SpinnakerConfig &config, const uint32_t &level)
 {
-  //return;
   try
   {
     if (level >= LEVEL_RECONFIGURE_STOP)
@@ -145,7 +144,7 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
       setProperty(node_map_, "Gamma", static_cast<float>(config.gamma));
     }
 
-     // Set white balance
+    // Set white balance
     if (IsAvailable(node_map_->GetNode("BalanceWhiteAuto")))
     {
       setProperty(node_map_, "BalanceWhiteAuto", config.auto_white_balance);
@@ -154,18 +153,18 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
         setProperty(node_map_, "BalanceRatioSelector", "Blue");
         setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_blue_ratio));
         setProperty(node_map_, "BalanceRatioSelector", "Red");
-        setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_red_ratio)); 
+        setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_red_ratio));
       }
-    } 
+    }
   }
-  catch (const Spinnaker::Exception& e)
+  catch (const Spinnaker::Exception &e)
   {
     throw std::runtime_error("[Camera::setNewConfiguration] Failed to set configuration: " + std::string(e.what()));
   }
 }
 
 // Image Size and Pixel Format
-void Camera::setImageControlFormats(const spinnaker_camera_driver::SpinnakerConfig& config)
+void Camera::setImageControlFormats(const spinnaker_camera_driver::SpinnakerConfig &config)
 {
   // Set Binning and Decimation
   setProperty(node_map_, "BinningHorizontal", config.image_format_x_binning);
@@ -212,7 +211,7 @@ void Camera::setImageControlFormats(const spinnaker_camera_driver::SpinnakerConf
   setProperty(node_map_, "PixelFormat", config.image_format_color_coding);
 }
 
-void Camera::setGain(const float& gain)
+void Camera::setGain(const float &gain)
 {
   setProperty(node_map_, "GainAuto", "Off");
   setProperty(node_map_, "Gain", static_cast<float>(gain));
@@ -295,9 +294,9 @@ Spinnaker::GenApi::CNodePtr Camera::readProperty(const Spinnaker::GenICam::gcstr
   return ptr;
 }
 
-Camera::Camera(Spinnaker::GenApi::INodeMap* node_map)
+Camera::Camera(Spinnaker::GenApi::INodeMap *node_map)
 {
   node_map_ = node_map;
   init();
 }
-}  // namespace spinnaker_camera_driver
+} // namespace spinnaker_camera_driver
