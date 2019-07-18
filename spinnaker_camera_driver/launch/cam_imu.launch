@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
-  <arg name="camera_name" default="camera" />
+  <arg name="camera_name" default="F1" />
   <arg name="camera_serial" default="0" />
   <arg name="calibrated" default="0" />
 
@@ -20,6 +20,7 @@
       <param name="serial" value="$(arg camera_serial)" />
       <param name="enable_synchronisation" value="true"/>
       <param name="imu_time_offset_s" value="0.0"/>
+      <param name="percentage_keep" value="0.5"/>
       <rosparam command="load" file="/home/jake/workspaces/camera_ws/cfg/cam_config.yaml" />
       <param name="camera_info_url" if="$(arg calibrated)"
              value="file://$(env HOME)/.ros/camera_info/$(arg camera_serial).yaml" />

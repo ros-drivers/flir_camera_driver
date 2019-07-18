@@ -255,9 +255,6 @@ private:
     pnh.param<bool>("auto_packet_size", auto_packet_size_, true);
     pnh.param<int>("packet_delay", packet_delay_, 4000);
 
-    //Hardware synchronisation parameter
-    pnh.param<bool>("enable_synchronisation", enable_synchronisation_, true);
-
     // TODO(mhosmar):  Set GigE parameters:
     // spinnaker_.setGigEParameters(auto_packet_size_, packet_size_, packet_delay_);
 
@@ -328,14 +325,17 @@ private:
     diag_man->addDiagnostic<int>("DeviceUptime");
     diag_man->addDiagnostic<int>("U3VMessageChannelID");
 
-    double imu_time_offset_s;
+    /*    Hardware synchronisation setup and instantiation    */
+    pnh.param<bool>("enable_synchronisation", enable_synchronisation_, true);
+    double imu_time_offset_s, percentage_keep;
     pnh.param("imu_time_offset_s", imu_time_offset_s, 0.0);
-    imu_time_offset_ = ros::Duration(imu_time_offset_s);
+    pnh.param("percentage_keep", percentage_keep, 1.0);
+    publish_every_x_ = 20/ (percentage_keep * 20);
+    cam_sequence_ = 0, raw_published_ = 0, missed_images_ = 0;
     capturing_ = false;
-    cam_sequence_ = 0;
-    missed_images_ = 0;
     if (enable_synchronisation_)
     {
+      imu_time_offset_ = ros::Duration(imu_time_offset_s);
       frame_buffer_.reserve(MAX_BUFFER_SIZE);
       timestamp_buffer_.reserve(MAX_BUFFER_SIZE);
       config_.enable_trigger = "On";
@@ -404,6 +404,7 @@ private:
       CONNECTED,
       STARTED
     };
+    /* toggle the arduino to start publishing header messages */
     if (!capturing_)
     {
       capturing_ = true;
@@ -560,7 +561,7 @@ private:
 
           // wfov_image->temperature = spinnaker_.getCameraTemperature();
           ros::Time time = ros::Time::now();
-          //wfov_image->image.header.seq = cam_sequence_;
+          wfov_image->image.header.seq = cam_sequence_;
           wfov_image->header.stamp = time;
           wfov_image->image.header.stamp = time;
           // Set the CameraInfo message
@@ -588,7 +589,7 @@ private:
             // Synchronise and publish
             synchroniseAndPublishImages();
           }
-          else
+          else //publish image normally
           {
             pub_->publish(wfov_image);
             if (it_pub_.getNumSubscribers() > 0)
@@ -711,11 +712,14 @@ private:
     frame->header.stamp = timestamp;
     frame->image.header.stamp = timestamp;
     // Publish image and camera info
-    pub_->publish(frame);
-    if (it_pub_.getNumSubscribers() > 0)
+    pub_->publish(frame); // publish wfov image
+    if (it_pub_.getNumSubscribers() > 0) // publish raw image
     {
-      sensor_msgs::ImagePtr image(new sensor_msgs::Image(frame->image));
-      it_pub_.publish(image, ci_);
+      if(raw_published_ % publish_every_x_ == 0){
+        sensor_msgs::ImagePtr image(new sensor_msgs::Image(frame->image));
+        it_pub_.publish(image, ci_);
+      }
+      raw_published_++;
     }
   }
 
@@ -794,12 +798,14 @@ private:
   size_t roi_width_;    ///< Camera Info ROI width
   bool do_rectify_;     ///< Whether or not to rectify as if part of an image.  Set to false if whole image, and true if in
                         /// ROI mode.
-  bool capturing_;
-  bool enable_synchronisation_;
-  int cam_sequence_;
-  int missed_images_;
-  double exposure_us_;
-  ros::Duration imu_time_offset_;
+  bool capturing_;                /// Bool value to determine if camera has started capturing
+  bool enable_synchronisation_;   /// Parameter whether to enable sync or run normally
+  int cam_sequence_;              /// camera sequence number for synchronisation
+  int missed_images_;             ///  missed images for increasing offset
+  double exposure_us_;            ///  exposure time for shifting timestamp
+  ros::Duration imu_time_offset_; /// imu to camera offset for better syncrhonisation
+  int publish_every_x_;           /// value for publihsing images at certain rates
+  uint32_t raw_published_;        /// count number of raw_images published
 
   // For GigE cameras:
   /// If true, GigE packet size is automatically determined, otherwise packet_size_ is used:
