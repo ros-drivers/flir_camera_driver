@@ -341,7 +341,8 @@ private:
       config_.enable_trigger = "On";
       config_.trigger_activation_mode = "AnyEdge";
       config_.trigger_source = "Line0";
-      vi_sync_sub_ = getMTNodeHandle().subscribe("/cam_time", 10, &spinnaker_camera_driver::SpinnakerCameraNodelet::VISyncCallback, this);
+      std::string topic = "cam_time";
+      vi_sync_sub_ = getMTNodeHandle().subscribe(topic, 10, &spinnaker_camera_driver::SpinnakerCameraNodelet::VISyncCallback, this);
     }
   }
 
