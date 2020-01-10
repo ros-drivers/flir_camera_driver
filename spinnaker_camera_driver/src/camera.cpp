@@ -166,11 +166,13 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
 // Image Size and Pixel Format
 void Camera::setImageControlFormats(const spinnaker_camera_driver::SpinnakerConfig& config)
 {
-  // Set Binning and Decimation
+  // Set Binning, Decimation, and Reverse
   setProperty(node_map_, "BinningHorizontal", config.image_format_x_binning);
   setProperty(node_map_, "BinningVertical", config.image_format_y_binning);
   setProperty(node_map_, "DecimationHorizontal", config.image_format_x_decimation);
   setProperty(node_map_, "DecimationVertical", config.image_format_y_decimation);
+  setProperty(node_map_, "ReverseX", config.image_format_x_reverse);
+  setProperty(node_map_, "ReverseY", config.image_format_y_reverse);
 
   // Grab the Max values after decimation
   Spinnaker::GenApi::CIntegerPtr height_max_ptr = node_map_->GetNode("HeightMax");
