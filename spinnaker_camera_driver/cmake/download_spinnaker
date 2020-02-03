@@ -38,8 +38,6 @@ import urllib2
 import os
 import glob
 
-logging.info('DOWNLOAD ARGS: {0}'.format(sys.argv[1:]))
-
 logging.basicConfig(level=logging.INFO)
 
 URL_TEMPLATE = URL_TEMPLATES = {
@@ -53,7 +51,7 @@ ARCHS = {
         'current': '16.04',
         'type': 'deb',
         'folder_name': 'spinnaker-1.27.0.48-i386',
-        'shared_library': '/usr/lib/libSpinnaker_C.so.1.27.0.48',
+        'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
         'debs': [
             'libspinnaker-1.27.0.48_i386.deb',
             'libspinnaker-1.27.0.48_i386-dev.deb',
@@ -77,7 +75,7 @@ ARCHS = {
         'future': '18.04',
         'type': 'deb',
         'folder_name': 'spinnaker-1.27.0.48-amd64',
-        'shared_library': '/usr/lib/libSpinnaker_C.so.1.27.0.48',
+        'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
         'debs': [
             'libspinnaker-1.27.0.48_amd64.deb',
             'libspinnaker-1.27.0.48_amd64-dev.deb',
@@ -99,7 +97,7 @@ ARCHS = {
         'linux_arch': 'armhf',
         'current': '16.04',
         'type': 'deb',
-        'shared_library': 'usr/lib/libSpinnaker_C.so.1.27.0.48',
+        'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
         'folder_name': 'spinnaker-1.27.0.48_armhf',
         'debs': [
             'libspinnaker-1.27.0.48_armhf.deb',
@@ -123,7 +121,7 @@ ARCHS = {
         'current': '16.04',
         'future': '18.04',
         'type': 'deb',
-        'shared_library': 'usr/lib/libSpinnaker_C.so.1.27.0.48',
+        'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
         'folder_name': 'spinnaker-1.27.0.48_arm64',
         'debs': [
             'libspinnaker-1.27.0.48_arm64.deb',
@@ -165,6 +163,7 @@ shared_library = ARCHS[arch]['shared_library']
 
 logging.info("CPU architecture is %s", arch)
 logging.info("OS code name is %s", os_code_name)
+logging.info("Destination folder is %s", destination_folder)
 
 if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
     if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
@@ -184,32 +183,16 @@ if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
     logging.info("Unpacking debs.")
     debs = glob.glob(os.path.join(os.getcwd(), folder_name, "libspinvideoencoder-*.deb"))
     debs += glob.glob(os.path.join(os.getcwd(), folder_name, "*spinnaker-*.deb"))
+    unpack_dir = os.path.join(os.getcwd(), 'flir_camera_driver', 'spinnaker_camera_driver')
     for deb in debs:
-        subprocess.call(['dpkg', '-x', deb, os.path.join(os.getcwd(), folder_name)])
+        logging.info('Extracting {0}'.format(deb))
+        subprocess.call(['dpkg', '--extract', deb, unpack_dir])
 
-    # Fix for 1.13.0.31
-    os.remove(os.path.join(os.getcwd(), folder_name, "usr/lib/libspinnaker.so.1"))
-    os.symlink(shared_library, os.path.join(os.getcwd(), folder_name, "usr/lib/libSpinnaker.so.1"))
+    ## Fix for 1.13.0.31
+    #os.remove(os.path.join(unpack_dir, "usr/lib/libspinnaker.so.1"))
+    #os.symlink(shared_library, os.path.join(unpack_dir, "usr/lib/libSpinnaker.so.1"))
 
-    if not os.path.exists(os.path.join(os.getcwd(), "usr")):
-        os.mkdir(os.path.join(os.getcwd(), "usr"))
-
-    # For every folder/file, copy it into the /usr folder we just created.
-    for filename in os.listdir(os.path.join(os.getcwd(), folder_name, "usr")):
-        if not os.path.exists(os.path.join(os.getcwd(), "usr", filename)):
-            shutil.move(os.path.join(os.getcwd(), folder_name, "usr", filename), os.path.join(os.getcwd(), "usr", filename))
-
-    # now we do some thing for XML files; copy them next to the catkin binary
-    xml_path = os.path.join(os.getcwd(), "usr/lib/")
-    xml_files = os.listdir(xml_path)
-
-    try:
-        os.makedirs(destination_folder)
-    except:
-        logging.info("Error XML folder either exists or can't be created.")
-
-    for files in xml_files:
-        if files.endswith(".xml"):
-            origin_file = os.path.join(xml_path, files)
-            print('Copying ' + origin_file + ' to ' + destination_folder)
-            shutil.copy(origin_file, destination_folder)
+    # finally, copy the shared libraries into the output folder
+    src_file = os.path.join(unpack_dir, ARCHS[arch]['shared_library'])
+    logging.info('Copying shared library to {0}'.format(destination_folder))
+    shutil.copyfile(src_file, os.path.join(destination_folder, 'libSpinnaker.so'))
