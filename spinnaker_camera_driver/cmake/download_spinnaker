@@ -181,8 +181,7 @@ if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
             tar.extractall()
 
     logging.info("Unpacking debs.")
-    debs = glob.glob(os.path.join(os.getcwd(), folder_name, "libspinvideoencoder-*.deb"))
-    debs += glob.glob(os.path.join(os.getcwd(), folder_name, "*spinnaker-*.deb"))
+    debs = glob.glob(os.path.join(os.getcwd(), folder_name, "*spinnaker-*.deb"))
     unpack_dir = os.path.join(os.getcwd(), 'flir_camera_driver', 'spinnaker_camera_driver')
     for deb in debs:
         logging.info('Extracting {0}'.format(deb))
