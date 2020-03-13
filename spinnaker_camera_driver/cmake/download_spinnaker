@@ -183,6 +183,8 @@ if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
     logging.info("Unpacking debs.")
     debs = glob.glob(os.path.join(os.getcwd(), folder_name, "*spinnaker-*.deb"))
     unpack_dir = os.path.join(os.getcwd(), 'flir_camera_driver', 'spinnaker_camera_driver')
+    if not os.path.exists(unpack_dir):
+        os.makedirs(unpack_dir)
     for deb in debs:
         logging.info('Extracting {0}'.format(deb))
         subprocess.call(['dpkg', '--extract', deb, unpack_dir])
