@@ -182,18 +182,16 @@ if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
 
     logging.info("Unpacking debs.")
     debs = glob.glob(os.path.join(os.getcwd(), folder_name, "*spinnaker-*.deb"))
-    unpack_dir = os.path.join(os.getcwd(), 'flir_camera_driver', 'spinnaker_camera_driver')
+    unpack_dir = os.path.join(os.getcwd())
     if not os.path.exists(unpack_dir):
         os.makedirs(unpack_dir)
     for deb in debs:
         logging.info('Extracting {0}'.format(deb))
         subprocess.call(['dpkg', '--extract', deb, unpack_dir])
 
-    ## Fix for 1.13.0.31
-    #os.remove(os.path.join(unpack_dir, "usr/lib/libspinnaker.so.1"))
-    #os.symlink(shared_library, os.path.join(unpack_dir, "usr/lib/libSpinnaker.so.1"))
-
     # finally, copy the shared libraries into the output folder
     src_file = os.path.join(unpack_dir, ARCHS[arch]['shared_library'])
     logging.info('Copying shared library to {0}'.format(destination_folder))
+    if not os.path.exists(destination_folder):
+        os.makedirs(destination_folder)
     shutil.copyfile(src_file, os.path.join(destination_folder, 'libSpinnaker.so'))
