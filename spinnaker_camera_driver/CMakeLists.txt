@@ -11,15 +11,12 @@ find_package(catkin REQUIRED COMPONENTS
   wfov_camera_msgs
 )
 
-find_package(OpenCV REQUIRED)
-
 generate_dynamic_reconfigure_options(
   cfg/Spinnaker.cfg
 )
 
 catkin_package(CATKIN_DEPENDS
   image_exposure_msgs nodelet roscpp sensor_msgs wfov_camera_msgs
-  DEPENDS OpenCV
 )
 
 
@@ -42,8 +39,7 @@ message(STATUS "libSpinnaker include: ${Spinnaker_INCLUDE_DIRS}")
 
 include_directories(SYSTEM
                     ${Spinnaker_INCLUDE_DIRS}
-                    ${catkin_INCLUDE_DIRS}
-                    ${OpenCV_INCLUDE_DIRS})
+                    ${catkin_INCLUDE_DIRS})
 include_directories(include)
 
 add_library(SpinnakerCameraLib src/SpinnakerCamera.cpp)
@@ -52,8 +48,7 @@ add_library(SpinnakerCameraLib src/SpinnakerCamera.cpp)
 target_link_libraries(SpinnakerCameraLib
                       Camera
                       ${Spinnaker_LIBRARIES}
-                      ${catkin_LIBRARIES}
-                      ${OpenCV_LIBRARIES})
+                      ${catkin_LIBRARIES})
 
 
 # Test Executable for Spinnaker
