@@ -586,7 +586,7 @@ private:
 
             // wfov_image->temperature = spinnaker_.getCameraTemperature();
 
-            ros::Time time = ros::Time::now();
+            ros::Time time = ros::Time::now() + ros::Duration(config_.time_offset);
             wfov_image->header.stamp = time;
             wfov_image->image.header.stamp = time;
 
