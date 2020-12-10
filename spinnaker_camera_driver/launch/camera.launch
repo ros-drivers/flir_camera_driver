@@ -29,7 +29,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   <arg name="camera_name"               default="camera" />
   <arg name="camera_serial"             default="0" />
   <arg name="calibrated"                default="0" />
-
+  <arg name="device_type"               default="USB3" />
   <!-- When unspecified, the driver will use the default framerate as given by the
       camera itself. Use the parameter 'control_frame_rate' to enable manual frame 
       rate control, and 'frame_rate' to set the frame rate value. -->
@@ -46,7 +46,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
       <param name="frame_id"                        value="camera" />
       <param name="serial"                          value="$(arg camera_serial)" />
-
+      <param name="device_type"                     value="$(arg device_type)" />
+          
       <!-- Frame rate -->
       <param name="acquisition_frame_rate_enable"   value="$(arg control_frame_rate)" />
       <param name="acquisition_frame_rate"          value="$(arg frame_rate)" />
@@ -56,9 +57,5 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
              value="file://$(env HOME)/.ros/camera_info/$(arg camera_serial).yaml" />
     </node>
 
-    <!-- Debayering nodelet -->
-    <node pkg="nodelet" type="nodelet" name="image_proc_debayer"
-          args="load image_proc/debayer camera_nodelet_manager">
-    </node>
   </group>
 </launch>

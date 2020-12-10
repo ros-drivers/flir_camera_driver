@@ -374,7 +374,13 @@ private:
     diag_man->addDiagnostic("PowerSupplyVoltage", true, std::make_pair(4.5f, 5.2f), 4.4f, 5.3f);
     diag_man->addDiagnostic("PowerSupplyCurrent", true, std::make_pair(0.4f, 0.6f), 0.3f, 1.0f);
     diag_man->addDiagnostic<int>("DeviceUptime");
-    diag_man->addDiagnostic<int>("U3VMessageChannelID");
+    
+    std::string device_type;
+    pnh.param<std::string>("device_type", device_type, "USB3");
+    if (device_type == "USB3")
+    {
+        diag_man->addDiagnostic<int>("U3VMessageChannelID");
+    }
   }
 
   /**
