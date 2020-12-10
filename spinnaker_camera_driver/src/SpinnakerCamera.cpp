@@ -321,7 +321,7 @@ void SpinnakerCamera::stop()
   }
 }
 
-void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_id)
+bool SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_id)
 {
   std::lock_guard<std::mutex> scopedLock(mutex_);
 
@@ -339,7 +339,7 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
       {
         ROS_WARN_STREAM("[SpinnakerCamera::grabImage] Image received from camera " + std::to_string(serial_) +
                                  " is incomplete.");
-        return;
+        return false;
       }
       else
       {
@@ -438,6 +438,7 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
         // ROS_INFO_ONCE("\033[93m wxh: (%d, %d), stride: %d \n", width, height, stride);
         fillImage(*image, imageEncoding, height, width, stride, image_ptr->GetData());
         image->header.frame_id = frame_id;
+        return true;
       }  // end else
     }
     catch (const Spinnaker::Exception& e)

@@ -581,7 +581,10 @@ private:
             wfov_camera_msgs::WFOVImagePtr wfov_image(new wfov_camera_msgs::WFOVImage);
             // Get the image from the camera library
             NODELET_DEBUG_ONCE("Starting a new grab from camera with serial {%d}.", spinnaker_.getSerial());
-            spinnaker_.grabImage(&wfov_image->image, frame_id_);
+            if (!spinnaker_.grabImage(&wfov_image->image, frame_id_))
+            {
+              continue;
+            }
 
             // Set other values
             wfov_image->header.frame_id = frame_id_;
