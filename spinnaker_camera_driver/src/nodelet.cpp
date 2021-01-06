@@ -138,6 +138,8 @@ private:
       binning_x_ = config.image_format_x_binning * config.image_format_x_decimation;
       binning_y_ = config.image_format_y_binning * config.image_format_y_decimation;
 
+      enable_ptp_ = config.enable_ptp;
+
       // Store CameraInfo RegionOfInterest information
       // TODO(mhosmar): Not compliant with CameraInfo message: "A particular ROI always denotes the
       //                same window of pixels on the camera sensor, regardless of binning settings."
@@ -595,10 +597,12 @@ private:
 
             // wfov_image->temperature = spinnaker_.getCameraTemperature();
 
-            ros::Time time = ros::Time::now();
-            wfov_image->header.stamp = time;
-            wfov_image->image.header.stamp = time;
-
+            if (!enable_ptp_)
+            {
+              ros::Time time = ros::Time::now();
+              wfov_image->header.stamp = time;
+              wfov_image->image.header.stamp = time;
+            }
             // Set the CameraInfo message
             ci_.reset(new sensor_msgs::CameraInfo(cinfo_->getCameraInfo()));
             ci_->header.stamp = wfov_image->image.header.stamp;
@@ -713,6 +717,8 @@ private:
   size_t roi_width_;     ///< Camera Info ROI width
   bool do_rectify_;  ///< Whether or not to rectify as if part of an image.  Set to false if whole image, and true if in
                      /// ROI mode.
+
+  bool enable_ptp_;
 
   // For GigE cameras:
   /// If true, GigE packet size is automatically determined, otherwise packet_size_ is used:

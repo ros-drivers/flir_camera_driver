@@ -93,6 +93,10 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
     setProperty(node_map_, "ExposureMode", config.exposure_mode);
     setProperty(node_map_, "ExposureAuto", config.exposure_auto);
 
+    setProperty(node_map_, "GevIEEE1588", config.enable_ptp);
+
+    const std::string entry_name("SlaveOnly");
+    setProperty(node_map_, "GevIEEE1588Mode", entry_name);
     // Set sharpness
     if (IsAvailable(node_map_->GetNode("SharpeningEnable")))
     {

@@ -26,7 +26,7 @@ catkin_package(CATKIN_DEPENDS
 # contains them. We work around this by downloading the archive directly from
 # their website during this step in the build process.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
-find_package(Spinnaker QUIET)
+find_package(Spinnaker)
 if(NOT Spinnaker_FOUND)
   message(STATUS "libSpinnaker not found in system library path")
   include(cmake/DownloadSpinnaker.cmake)
@@ -35,7 +35,6 @@ endif()
 
 message(STATUS "libSpinnaker library: ${Spinnaker_LIBRARIES}")
 message(STATUS "libSpinnaker include: ${Spinnaker_INCLUDE_DIRS}")
-
 
 include_directories(SYSTEM
                     ${Spinnaker_INCLUDE_DIRS}
@@ -108,10 +107,6 @@ if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/usr/lib)
            PATTERN libQt* EXCLUDE)
 else()
   get_filename_component(Spinnaker_LIB_DIR ${Spinnaker_LIBRARIES} DIRECTORY)
-  file(READ ${PROJECT_SOURCE_DIR}/cmake/install_files filenames)
-  foreach(filename ${filenames})
-    install(FILES ${Spinnaker_LIB_DIR}/${filename} DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-  endforeach()
 endif()
 
 install(FILES nodelet_plugins.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
