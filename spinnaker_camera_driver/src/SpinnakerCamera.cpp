@@ -138,24 +138,32 @@ void SpinnakerCamera::connect()
     // If we have a specific camera to connect to (specified by a serial number)
     if (serial_ != 0)
     {
-      const auto serial_string = std::to_string(serial_);
-
-      try
-      {
-        pCam_ = camList_.GetBySerial(serial_string);
-      }
-      catch (const Spinnaker::Exception& e)
-      {
-        throw std::runtime_error("[SpinnakerCamera::connect] Could not find camera with serial number " +
-                                 serial_string + ". Is that camera plugged in? Error: " + std::string(e.what()));
-      }
-    }
-    else
-    {
       // Connect to any camera (the first)
       try
       {
-        pCam_ = camList_.GetByIndex(0);
+        const unsigned int numCams = camList_.GetSize();
+        for (unsigned int i = 0; i < numCams; i++)
+        {
+          auto tempCam = camList_.GetByIndex(i);
+          Spinnaker::GenApi::INodeMap& genTLNodeMap = tempCam->GetTLDeviceNodeMap();
+
+          Spinnaker::GenApi::CBooleanPtr wrongSubnet = genTLNodeMap.GetNode("GevDeviceIsWrongSubnet");
+          Spinnaker::GenApi::CStringPtr serialNumber = genTLNodeMap.GetNode("DeviceSerialNumber");
+          if (wrongSubnet->GetValue()) {
+            ROS_INFO_STREAM("[SpinnakerCamera::connect] Skipping wrong subnet.");
+            continue;
+          }
+          ROS_INFO_STREAM("[SpinnakerCamera::connect] Found camera on correct subnet.");
+
+	  if (std::to_string(serial_) != serialNumber->ToString().c_str())
+          {
+            ROS_INFO_STREAM("[SpinnakerCamera::connect] Serial number does not match.");
+            continue;
+          }
+
+          pCam_ = tempCam;
+          break;
+        }
       }
       catch (const Spinnaker::Exception& e)
       {
@@ -217,6 +225,7 @@ void SpinnakerCamera::connect()
     try
     {
       // Initialize Camera
+      ROS_INFO_STREAM("[SpinnakerCamera::connect]: Initializing camera.");
       pCam_->Init();
 
       // Retrieve GenICam nodemap
