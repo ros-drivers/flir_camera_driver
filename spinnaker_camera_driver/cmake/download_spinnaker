@@ -40,113 +40,39 @@ import glob
 
 logging.basicConfig(level=logging.INFO)
 
-URL_TEMPLATE = URL_TEMPLATES = {
-    'deb': 'https://packages.clearpathrobotics.com/stable/flir/Spinnaker/Ubuntu{version}/spinnaker-1.27.0.48-Ubuntu{version}-{arch}-pkg.tar.gz',
-    'src': None         # if we ever have non-deb archives that require manual extraction, those package URLS will go here.
-}
+URL_TEMPLATE = 'https://packages.clearpathrobotics.com/stable/flir/Spinnaker/Ubuntu{os_version}/spinnaker-{spinnaker_version}-Ubuntu{os_version}-{arch}-pkg.tar.gz'
 
 ARCHS = {
-    'i386': {
-        'linux_arch': 'i386',
-        'current': '16.04',
-        'type': 'deb',
-        'folder_name': 'spinnaker-1.27.0.48-i386',
-        'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
-        'debs': [
-            'libspinnaker-1.27.0.48_i386.deb',
-            'libspinnaker-1.27.0.48_i386-dev.deb',
-            'libspinnaker-c-1.27.0.48_i386.deb',
-            'libspinnaker-c-1.27.0.48_i386-dev.deb',
-            'libspinvideo-1.27.0.48_i386.deb',
-            'libspinvideo-1.27.0.48_i386-dev.deb',
-            'libspinvideo-c-1.27.0.48_i386.deb',
-            'libspinvideo-c-1.27.0.48_i386-dev.deb',
-            'spinnaker-1.27.0.48_i386.deb',
-            'spinnaker-doc-1.27.0.48_i386.deb',
-            'spinupdate-1.27.0.48_i386.deb',
-            'spinupdate-1.27.0.48_i386-dev.deb',
-            'spinview-qt-1.27.0.48_i386.deb',
-            'spinview-qt-1.27.0.48_i386-dev.deb'
-        ]
-    },
-    'x86_64': {
-        'linux_arch': 'amd64',
-        'current': '16.04',
-        'future': '18.04',
-        'type': 'deb',
-        'folder_name': 'spinnaker-1.27.0.48-amd64',
-        'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
-        'debs': [
-            'libspinnaker-1.27.0.48_amd64.deb',
-            'libspinnaker-1.27.0.48_amd64-dev.deb',
-            'libspinnaker-c-1.27.0.48_amd64.deb',
-            'libspinnaker-c-1.27.0.48_amd64-dev.deb',
-            'libspinvideo-1.27.0.48_amd64.deb',
-            'libspinvideo-1.27.0.48_amd64-dev.deb',
-            'libspinvideo-c-1.27.0.48_amd64.deb',
-            'libspinvideo-c-1.27.0.48_amd64-dev.deb',
-            'spinnaker-1.27.0.48_amd64.deb',
-            'spinnaker-doc-1.27.0.48_amd64.deb',
-            'spinupdate-1.27.0.48_amd64.deb',
-            'spinupdate-1.27.0.48_amd64-dev.deb',
-            'spinview-qt-1.27.0.48_amd64.deb',
-            'spinview-qt-1.27.0.48_amd64-dev.deb'
-        ]
-    },
-    'armv7': {
-        'linux_arch': 'armhf',
-        'current': '16.04',
-        'type': 'deb',
-        'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
-        'folder_name': 'spinnaker-1.27.0.48_armhf',
-        'debs': [
-            'libspinnaker-1.27.0.48_armhf.deb',
-            'libspinnaker-1.27.0.48_armhf-dev.deb',
-            'libspinnaker-c-1.27.0.48_armhf.deb',
-            'libspinnaker-c-1.27.0.48_armhf-dev.deb',
-            'libspinvideo-1.27.0.48_armhf.deb',
-            'libspinvideo-1.27.0.48_armhf-dev.deb',
-            'libspinvideo-c-1.27.0.48_armhf.deb',
-            'libspinvideo-c-1.27.0.48_armhf-dev.deb',
-            'spinnaker-1.27.0.48_armhf.deb',
-            'spinnaker-doc-1.27.0.48_armhf.deb',
-            'spinupdate-1.27.0.48_armhf.deb',
-            'spinupdate-1.27.0.48_armhf-dev.deb',
-            'spinview-qt-1.27.0.48_armhf.deb',
-            'spinview-qt-1.27.0.48_armhf-dev.deb'
-        ]
-    },
-    'armv8':  {
-        'linux_arch': 'armh64',
-        'current': '16.04',
-        'future': '18.04',
-        'type': 'deb',
-        'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
-        'folder_name': 'spinnaker-1.27.0.48_arm64',
-        'debs': [
-            'libspinnaker-1.27.0.48_arm64.deb',
-            'libspinnaker-1.27.0.48_arm64-dev.deb',
-            'libspinnaker-c-1.27.0.48_arm64.deb',
-            'libspinnaker-c-1.27.0.48_arm64-dev.deb',
-            'libspinvideo-1.27.0.48_arm64.deb',
-            'libspinvideo-1.27.0.48_arm64-dev.deb',
-            'libspinvideo-c-1.27.0.48_arm64.deb',
-            'libspinvideo-c-1.27.0.48_arm64-dev.deb',
-            'spinnaker-1.27.0.48_arm64.deb',
-            'spinnaker-doc-1.27.0.48_arm64.deb',
-            'spinupdate-1.27.0.48_arm64.deb',
-            'spinupdate-1.27.0.48_arm64-dev.deb',
-            'spinview-qt-1.27.0.48_arm64.deb',
-            'spinview-qt-1.27.0.48_arm64-dev.deb'
-        ]
-    }
+  'i386': 'i386',
+  'x86_64': 'amd64',
+  'armv7': 'armhf',
+  'armv8': 'armh64'
 }
 
-
 OS_LIBRARY_VERSION = {
-  'jessie': 'current',
-  'xenial': 'current',
-  'bionic': 'future'
+  'jessie': '16.04',
+  'xenial': '16.04',
+  'bionic': '18.04',
+  'focal': '20.04'
+}
+
+SPINNAKER_INFO = {
+  'jessie': {
+    'version': '1.27.0.48',
+    'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48'
+  },
+  'xenial': {
+    'version': '1.27.0.48',
+    'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48'
+  },
+  'bionic': {
+    'version': '1.27.0.48',
+    'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48'
+  },
+  'focal': {
+    'version': '2.2.0.48',
+    'shared_library': 'opt/spinnaker/lib/libSpinnaker.so.2.2.0.48'
+  }
 }
 
 arch = sys.argv[1]
@@ -154,12 +80,13 @@ destination_folder = sys.argv[2]
 os_code_name = sys.argv[3]
 
 os_version = OS_LIBRARY_VERSION[os_code_name]
-archive_url = URL_TEMPLATES[ARCHS[arch]['type']].format(
-    arch=ARCHS[arch]['linux_arch'],
-    version=ARCHS[arch][os_version])
-folder_name = ARCHS[arch]['folder_name']
-shared_library = ARCHS[arch]['shared_library']
-
+spinnaker_version = SPINNAKER_INFO[os_code_name]['version']
+archive_url = URL_TEMPLATE.format(
+    arch=ARCHS[arch],
+    os_version=os_version,
+    spinnaker_version=spinnaker_version)
+folder_name = 'spinnaker-{}-{}'.format(spinnaker_version, ARCHS[arch])
+shared_library = SPINNAKER_INFO[os_code_name]['shared_library']
 
 logging.info("CPU architecture is %s", arch)
 logging.info("OS code name is %s", os_code_name)
@@ -177,12 +104,11 @@ if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
         resp = opener.open(archive_url)
 
         logging.info("Unpacking tarball.")
-        logging.info(resp.info())
         with tarfile.open(mode="r:gz", fileobj=io.BytesIO(resp.read())) as tar:
             tar.extractall()
 
     logging.info("Unpacking debs.")
-    debs = glob.glob(os.path.join(os.getcwd(), folder_name, "*spinnaker-*.deb"))
+    debs = glob.glob(os.path.join(os.getcwd(), folder_name, "*spinnaker*.deb"))
     unpack_dir = os.path.join(os.getcwd())
     if not os.path.exists(unpack_dir):
         os.makedirs(unpack_dir)
@@ -191,7 +117,7 @@ if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
         subprocess.call(['dpkg', '--extract', deb, unpack_dir])
 
     # finally, copy the shared libraries into the output folder
-    src_file = os.path.join(unpack_dir, ARCHS[arch]['shared_library'])
+    src_file = os.path.join(unpack_dir, shared_library)
     logging.info('Copying shared library to {0}'.format(destination_folder))
     if not os.path.exists(destination_folder):
         os.makedirs(destination_folder)
