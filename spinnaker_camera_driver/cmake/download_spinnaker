@@ -83,6 +83,7 @@ logging.info("CPU architecture is %s", arch)
 logging.info("OS code name is %s", os_code_name)
 
 if not os.path.exists(target_folder):
+    os.makedirs(target_folder)
     cj = http.cookiejar.CookieJar()
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
     opener.addheaders = [
@@ -95,12 +96,15 @@ if not os.path.exists(target_folder):
     with tarfile.open(mode="r:gz", fileobj=io.BytesIO(resp.read())) as tar:
         tar.extractall()
 
-    logging.info("Unpacking debs to {}.".format(target_folder))
     debs = glob.glob(os.path.join(os.getcwd(), "*", "*spinnaker*.deb"))
-    if not os.path.exists(target_folder):
-        os.makedirs(target_folder)
+    logging.info('Unpacking debs to {}.'.format(target_folder))
     for deb in debs:
         logging.info('Extracting {0}'.format(deb))
         subprocess.call(['dpkg', '--extract', deb, target_folder])
+    # SDK version 1.27.0.48 has broken symlinks
+    if spinnaker_version == '1.27.0.48':
+        lib_path = os.path.join(target_folder, 'usr', 'lib')
+        os.unlink(os.path.join(lib_path, 'libspinnaker.so.1'))
+        os.symlink(os.path.join(lib_path, 'libSpinnaker.so.1.27.0.48'), os.path.join(lib_path, 'libSpinnaker.so.1'))
 else:
     logging.info('Download folder {} already exists. Skipping.'.format(target_folder))
