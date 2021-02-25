@@ -103,6 +103,7 @@ if not os.path.exists(target_folder):
         subprocess.call(['dpkg', '--extract', deb, target_folder])
     # SDK version 1.27.0.48 has broken symlinks
     if spinnaker_version == '1.27.0.48':
+        logging.info('Patching broken symlink.')
         lib_path = os.path.join(target_folder, 'usr', 'lib')
         os.unlink(os.path.join(lib_path, 'libspinnaker.so.1'))
         os.symlink(os.path.join(lib_path, 'libSpinnaker.so.1.27.0.48'), os.path.join(lib_path, 'libSpinnaker.so.1'))
