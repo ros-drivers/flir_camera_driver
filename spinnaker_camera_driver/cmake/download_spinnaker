@@ -26,6 +26,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import argparse
 import http.cookiejar
 import io
 import logging
@@ -34,7 +35,6 @@ import subprocess
 import sys
 import tarfile
 import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
 import os
 import glob
 
@@ -42,7 +42,7 @@ logging.basicConfig(level=logging.INFO)
 
 URL_TEMPLATE = 'https://packages.clearpathrobotics.com/stable/flir/Spinnaker/Ubuntu{os_version}/spinnaker-{spinnaker_version}-Ubuntu{os_version}-{arch}-pkg.tar.gz'
 
-ARCHS = {
+ARCH_MAPPINGS = {
   'i386': 'i386',
   'x86_64': 'amd64',
   'armv7': 'armhf',
@@ -56,69 +56,49 @@ OS_LIBRARY_VERSION = {
   'focal': '20.04'
 }
 
-SPINNAKER_INFO = {
-  'jessie': {
-    'version': '1.27.0.48',
-    'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48'
-  },
-  'xenial': {
-    'version': '1.27.0.48',
-    'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48'
-  },
-  'bionic': {
-    'version': '1.27.0.48',
-    'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48'
-  },
-  'focal': {
-    'version': '2.2.0.48',
-    'shared_library': 'opt/spinnaker/lib/libSpinnaker.so.2.2.0.48'
-  }
+SPINNAKER_SDK_VERSIONS = {
+  'jessie': '1.27.0.48',
+  'xenial': '1.27.0.48',
+  'bionic': '1.27.0.48',
+  'focal': '2.2.0.48'
 }
 
-arch = sys.argv[1]
-destination_folder = sys.argv[2]
-os_code_name = sys.argv[3]
+parser = argparse.ArgumentParser()
+parser.add_argument('arch', choices=ARCH_MAPPINGS.keys())
+parser.add_argument('os', choices=OS_LIBRARY_VERSION.keys())
+parser.add_argument('target_folder')
+args = parser.parse_args()
+arch = args.arch
+os_code_name = args.os
+target_folder = args.target_folder
 
 os_version = OS_LIBRARY_VERSION[os_code_name]
-spinnaker_version = SPINNAKER_INFO[os_code_name]['version']
+spinnaker_version = SPINNAKER_SDK_VERSIONS[os_code_name]
 archive_url = URL_TEMPLATE.format(
-    arch=ARCHS[arch],
+    arch=ARCH_MAPPINGS[arch],
     os_version=os_version,
     spinnaker_version=spinnaker_version)
-folder_name = 'spinnaker-{}-{}'.format(spinnaker_version, ARCHS[arch])
-shared_library = SPINNAKER_INFO[os_code_name]['shared_library']
 
 logging.info("CPU architecture is %s", arch)
 logging.info("OS code name is %s", os_code_name)
-logging.info("Destination folder is %s", destination_folder)
 
 if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
-    if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
-        cj = http.cookiejar.CookieJar()
-        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
-        opener.addheaders = [
-            ('User-agent', 'Mozilla/5.0'),
-            ('Referer', 'https://www.ptgrey.com')]
+    cj = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+    opener.addheaders = [
+        ('User-agent', 'Mozilla/5.0'),
+        ('Referer', 'https://www.ptgrey.com')]
 
-        logging.info("Downloading SDK archive from {0}...".format(archive_url))
-        resp = opener.open(archive_url)
+    logging.info("Downloading SDK archive from {0}...".format(archive_url))
+    resp = opener.open(archive_url)
 
-        logging.info("Unpacking tarball.")
-        with tarfile.open(mode="r:gz", fileobj=io.BytesIO(resp.read())) as tar:
-            tar.extractall()
+    with tarfile.open(mode="r:gz", fileobj=io.BytesIO(resp.read())) as tar:
+        tar.extractall()
 
-    logging.info("Unpacking debs.")
-    debs = glob.glob(os.path.join(os.getcwd(), folder_name, "*spinnaker*.deb"))
-    unpack_dir = os.path.join(os.getcwd())
-    if not os.path.exists(unpack_dir):
-        os.makedirs(unpack_dir)
+    logging.info("Unpacking debs to {}.".format(target_folder))
+    debs = glob.glob(os.path.join(os.getcwd(), "*", "*spinnaker*.deb"))
+    if not os.path.exists(target_folder):
+        os.makedirs(target_folder)
     for deb in debs:
         logging.info('Extracting {0}'.format(deb))
-        subprocess.call(['dpkg', '--extract', deb, unpack_dir])
-
-    # finally, copy the shared libraries into the output folder
-    src_file = os.path.join(unpack_dir, shared_library)
-    logging.info('Copying shared library to {0}'.format(destination_folder))
-    if not os.path.exists(destination_folder):
-        os.makedirs(destination_folder)
-    shutil.copyfile(src_file, os.path.join(destination_folder, 'libSpinnaker.so'))
+        subprocess.call(['dpkg', '--extract', deb, target_folder])
