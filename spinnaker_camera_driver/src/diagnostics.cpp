@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <utility>
 #include <string>
+#include <memory>
 
 namespace spinnaker_camera_driver
 {

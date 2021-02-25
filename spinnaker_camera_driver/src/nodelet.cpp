@@ -70,6 +70,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <fstream>
 #include <string>
+#include <memory>
+#include <utility>
 
 namespace spinnaker_camera_driver
 {
