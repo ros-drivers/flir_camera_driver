@@ -43,24 +43,24 @@ logging.basicConfig(level=logging.INFO)
 URL_TEMPLATE = 'https://packages.clearpathrobotics.com/stable/flir/Spinnaker/Ubuntu{os_version}/spinnaker-{spinnaker_version}-Ubuntu{os_version}-{arch}-pkg.tar.gz'
 
 ARCH_MAPPINGS = {
-  'i386': 'i386',
+  'i386'  : 'i386',
   'x86_64': 'amd64',
-  'armv7': 'armhf',
-  'armv8': 'armh64'
+  'armv7' : 'armhf',
+  'armv8' : 'armh64'
 }
 
 OS_LIBRARY_VERSION = {
   'jessie': '16.04',
   'xenial': '16.04',
   'bionic': '18.04',
-  'focal': '20.04'
+  'focal' : '20.04'
 }
 
 SPINNAKER_SDK_VERSIONS = {
   'jessie': '1.27.0.48',
   'xenial': '1.27.0.48',
   'bionic': '1.27.0.48',
-  'focal': '2.2.0.48'
+  'focal' : '2.2.0.48'
 }
 
 parser = argparse.ArgumentParser()
@@ -82,7 +82,7 @@ archive_url = URL_TEMPLATE.format(
 logging.info("CPU architecture is %s", arch)
 logging.info("OS code name is %s", os_code_name)
 
-if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
+if not os.path.exists(target_folder):
     cj = http.cookiejar.CookieJar()
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
     opener.addheaders = [
@@ -102,3 +102,5 @@ if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
     for deb in debs:
         logging.info('Extracting {0}'.format(deb))
         subprocess.call(['dpkg', '--extract', deb, target_folder])
+else:
+    logging.info('Download folder {} already exists. Skipping.'.format(target_folder))

@@ -20,17 +20,20 @@ catkin_package(CATKIN_DEPENDS
 )
 
 
-# If Spinnacker is already present, use the found version. If not, download it.
+# If Spinnaker is already present, use the found version. If not, download it.
 # We can't resolve this dependency using the usual rosdep means because
 # the Point Grey EULA prohibits redistributing the headers or the packages which
 # contains them. We work around this by downloading the archive directly from
 # their website during this step in the build process.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
-find_package(Spinnaker QUIET)
+#find_package(Spinnaker QUIET)
 if(NOT Spinnaker_FOUND)
   message(STATUS "libSpinnaker not found in system library path")
   include(cmake/DownloadSpinnaker.cmake)
   download_spinnaker(Spinnaker_LIBRARIES Spinnaker_INCLUDE_DIRS)
+  #add_library(Spinnaker SHARED IMPORTED)
+  #  set_target_properties(Spinnaker PROPERTIES IMPORTED_LOCATION ${Spinnaker_LIBRARY_LOCATION})
+  #cmake_print_properties(Spinnaker PROPERTIES IMPORTED_LOCATION)
 endif()
 
 message(STATUS "libSpinnaker library: ${Spinnaker_LIBRARIES}")
