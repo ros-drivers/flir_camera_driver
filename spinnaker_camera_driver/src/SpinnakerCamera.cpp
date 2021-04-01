@@ -336,8 +336,8 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
 
       if (image_ptr->IsIncomplete())
       {
-        throw std::runtime_error("[SpinnakerCamera::grabImage] Image received from camera " + std::to_string(serial_) +
-                                 " is incomplete.");
+		//throw std::runtime_error("[SpinnakerCamera::grabImage] Image received from camera " + std::to_string(serial_) + " is incomplete.");
+  		ROS_WARN("[SpinnakerCamera::grabImage] Image received from camera is incomplete.");
       }
       else
       {
