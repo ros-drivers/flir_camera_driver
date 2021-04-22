@@ -40,14 +40,14 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    @attention Carnegie Mellon University
 */
 
-#include "spinnaker_camera_driver/SpinnakerCamera.h"
+#include <ros/ros.h>
 
 #include <iostream>
 #include <sstream>
-#include <typeinfo>
 #include <string>
+#include <typeinfo>
 
-#include <ros/ros.h>
+#include "spinnaker_camera_driver/SpinnakerCamera.h"
 
 namespace spinnaker_camera_driver
 {
@@ -362,7 +362,8 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
         Spinnaker::GenICam::gcstring bayer_bg_str = "BayerBG";
 
         // if(isColor_ && bayer_format != NONE)
-        if (color_filter_ptr->GetCurrentEntry() != color_filter_ptr->GetEntryByName("None"))
+        if (color_filter_ptr->GetCurrentEntry() != color_filter_ptr->GetEntryByName("None") and
+            (bitsPerPixel == 16 or bitsPerPixel == 8))
         {
           if (bitsPerPixel == 16)
           {
