@@ -22,9 +22,9 @@ OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTE
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "spinnaker_camera_driver/gh3.h"
-
 #include <string>
+
+#include "spinnaker_camera_driver/gh3.h"
 
 namespace spinnaker_camera_driver
 {
@@ -144,9 +144,9 @@ void Gh3::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& lev
       setProperty(node_map_, "BalanceWhiteAuto", config.auto_white_balance);
       if (config.auto_white_balance.compare(std::string("Off")) == 0)
       {
-        setProperty(node_map_, "BalanceRatioSelector", "Blue");
+        setProperty(node_map_, "BalanceRatioSelector", std::string("Blue"));
         setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_blue_ratio));
-        setProperty(node_map_, "BalanceRatioSelector", "Red");
+        setProperty(node_map_, "BalanceRatioSelector", std::string("Red"));
         setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_red_ratio));
       }
     }
