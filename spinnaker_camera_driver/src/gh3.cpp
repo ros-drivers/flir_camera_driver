@@ -66,6 +66,7 @@ void Gh3::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& lev
     if (level >= LEVEL_RECONFIGURE_STOP)
       setImageControlFormats(config);
 
+    setProperty(node_map_, "TriggerMode", std::string("Off"));
     setFrameRate(static_cast<float>(config.acquisition_frame_rate));
     setProperty(node_map_, "AcquisitionFrameRateEnabled",
                 config.acquisition_frame_rate_enable);  // Set enable after frame rate encase its false
@@ -73,15 +74,14 @@ void Gh3::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& lev
     // Set Trigger and Strobe Settings
     // NOTE: The trigger must be disabled (i.e. TriggerMode = "Off") in order to configure whether the source is
     // software or hardware.
-    setProperty(node_map_, "TriggerMode", std::string("Off"));
     setProperty(node_map_, "TriggerSource", config.trigger_source);
     setProperty(node_map_, "TriggerSelector", config.trigger_selector);
     setProperty(node_map_, "TriggerActivation", config.trigger_activation_mode);
-    setProperty(node_map_, "TriggerMode", config.enable_trigger);
 
     setProperty(node_map_, "LineSelector", config.line_selector);
     setProperty(node_map_, "LineMode", config.line_mode);
-    // setProperty(node_map_, "LineSource", config.line_source); // Not available in GH3
+    //The enumeration is not available, but the node is, accessing it sets a default value enabling output
+    setProperty(node_map_, "LineSource", config.line_source); // Not available in GH3
 
     // Set auto exposure
     setProperty(node_map_, "ExposureMode", config.exposure_mode);
@@ -150,6 +150,8 @@ void Gh3::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& lev
         setProperty(node_map_, "BalanceRatio", static_cast<float>(config.white_balance_red_ratio));
       }
     }
+
+    setProperty(node_map_, "TriggerMode", config.enable_trigger);
   }
   catch (const Spinnaker::Exception& e)
   {
