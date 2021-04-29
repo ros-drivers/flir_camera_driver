@@ -14,7 +14,7 @@ permission of Clearpath Robotics.
 
 // Spinnaker Includes
 #include "Spinnaker.h"
-// #include "SpinGenApi/SpinnakerGenApi.h"
+#include "SpinGenApi/SpinnakerGenApi.h"
 
 namespace spinnaker_camera_driver
 {
@@ -33,12 +33,15 @@ SpinnakerTestNode::SpinnakerTestNode()
 
 void SpinnakerTestNode::test()
 {
+  std::cout << "SpinnakerTestNode::test(): " << __LINE__ << std::endl;
   Spinnaker::SystemPtr system = Spinnaker::System::GetInstance();
 
+  std::cout << "SpinnakerTestNode::test(): " << __LINE__ << std::endl;
   Spinnaker::InterfaceList interfaceList = system->GetInterfaces();
   unsigned int numInterfaces = interfaceList.GetSize();
   std::printf("\033[93m[Spinnaker] Number of interfaces detected: %d \n", numInterfaces);
 
+  std::cout << "SpinnakerTestNode::test(): " << __LINE__ << std::endl;
   Spinnaker::CameraList camList = system->GetCameras();
   unsigned int numCameras = camList.GetSize();
 
@@ -78,7 +81,9 @@ void SpinnakerTestNode::test()
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "spinnaker_test_node");
+  std::cout << "main(): " << __LINE__ << std::endl;
   spinnaker_camera_driver::SpinnakerTestNode node;
+  std::cout << "main(): " << __LINE__ << std::endl;
   ros::spin();
   return 0;
 }

@@ -46,14 +46,20 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char** argv)
 {
+	std::cout << __LINE__ << std::endl; 
   ros::init(argc, argv, "spinnaker_camera_node");
 
   // This is code based nodelet loading, the preferred nodelet launching is done through roslaunch
   nodelet::Loader nodelet;
+  std::cout << __LINE__ << std::endl;
   nodelet::M_string remap(ros::names::getRemappings());
+  std::cout << __LINE__ << std::endl;
   nodelet::V_string nargv;
+  std::cout << __LINE__ << std::endl;
   std::string nodelet_name = ros::this_node::getName();
+  std::cout << __LINE__ << std::endl;
   nodelet.load(nodelet_name, "spinnaker_camera_driver/SpinnakerCameraNodelet", remap, nargv);
+  std::cout << __LINE__ << std::endl;
 
   ros::spin();
 

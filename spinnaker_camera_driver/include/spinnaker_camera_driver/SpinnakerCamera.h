@@ -169,6 +169,11 @@ public:
     return serial_;
   }
 
+  bool isFullImage() const
+  {
+	  return is_full_image_;
+  }
+
 private:
   uint32_t serial_;  ///< A variable to hold the serial number of the desired camera.
 
@@ -198,6 +203,8 @@ private:
   unsigned int packet_delay_;
 
   uint64_t timeout_;
+
+  bool is_full_image_;
 
   // This function configures the camera to add chunk data to each image. It does
   // this by enabling each type of chunk data before enabling chunk data mode.

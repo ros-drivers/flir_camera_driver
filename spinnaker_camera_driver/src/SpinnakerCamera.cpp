@@ -53,13 +53,17 @@ namespace spinnaker_camera_driver
 {
 SpinnakerCamera::SpinnakerCamera()
   : serial_(0)
-  , system_(Spinnaker::System::GetInstance())
-  , camList_(system_->GetCameras())
+  /*, system_(Spinnaker::System::GetInstance())
+  , camList_(system_->GetCameras())*/
   , pCam_(static_cast<int>(NULL))  // Hack to suppress compiler warning. Spinnaker has only one contructor which takes
                                    // an int
   , camera_(static_cast<int>(NULL))
   , captureRunning_(false)
 {
+	std::cout << "SpinnakerCamera(): " << __LINE__ << std::endl;
+	system_ = Spinnaker::System::GetInstance();
+	std::cout << "SpinnakerCamera(): " << __LINE__ << std::endl;
+	camList_ = system_->GetCameras();
   unsigned int num_cameras = camList_.GetSize();
   ROS_INFO_STREAM_ONCE("[SpinnakerCamera]: Number of cameras detected: " << num_cameras);
 }
@@ -336,11 +340,13 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
 
       if (image_ptr->IsIncomplete())
       {
-		//throw std::runtime_error("[SpinnakerCamera::grabImage] Image received from camera " + std::to_string(serial_) + " is incomplete.");
-  		ROS_WARN("[SpinnakerCamera::grabImage] Image received from camera is incomplete.");
+			is_full_image_ = false;
+			//throw std::runtime_error("[SpinnakerCamera::grabImage] Image received from camera " + std::to_string(serial_) + " is incomplete.");
+			ROS_WARN("[SpinnakerCamera::grabImage] Image received from camera is incomplete.");
       }
       else
       {
+		  is_full_image_ = true; 
         // Set Image Time Stamp
         image->header.stamp.sec = image_ptr->GetTimeStamp() * 1e-9;
         image->header.stamp.nsec = image_ptr->GetTimeStamp();
