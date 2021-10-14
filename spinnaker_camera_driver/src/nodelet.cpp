@@ -338,6 +338,8 @@ private:
 
     // Set up a diagnosed publisher
     double desired_freq;
+    std::string device_type;
+    pnh.param<std::string>("device_type", device_type, "USB3");
     pnh.param<double>("desired_freq", desired_freq, 30.0);
     pnh.param<double>("min_freq", min_freq_, desired_freq);
     pnh.param<double>("max_freq", max_freq_, desired_freq);
@@ -374,7 +376,10 @@ private:
     diag_man->addDiagnostic("PowerSupplyVoltage", true, std::make_pair(4.5f, 5.2f), 4.4f, 5.3f);
     diag_man->addDiagnostic("PowerSupplyCurrent", true, std::make_pair(0.4f, 0.6f), 0.3f, 1.0f);
     diag_man->addDiagnostic<int>("DeviceUptime");
-    diag_man->addDiagnostic<int>("U3VMessageChannelID");
+    if( device_type.compare("USB3") == 0 )
+    {
+      diag_man->addDiagnostic<int>("U3VMessageChannelID");
+    }
   }
 
   /**
