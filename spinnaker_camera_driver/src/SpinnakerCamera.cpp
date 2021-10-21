@@ -60,9 +60,9 @@ SpinnakerCamera::SpinnakerCamera()
   , camera_(static_cast<int>(NULL))
   , captureRunning_(false)
 {
-	std::cout << "SpinnakerCamera(): " << __LINE__ << std::endl;
+	//std::cout << "SpinnakerCamera(): " << __LINE__ << std::endl;
 	system_ = Spinnaker::System::GetInstance();
-	std::cout << "SpinnakerCamera(): " << __LINE__ << std::endl;
+	//std::cout << "SpinnakerCamera(): " << __LINE__ << std::endl;
 	camList_ = system_->GetCameras();
   unsigned int num_cameras = camList_.GetSize();
   ROS_INFO_STREAM_ONCE("[SpinnakerCamera]: Number of cameras detected: " << num_cameras);
