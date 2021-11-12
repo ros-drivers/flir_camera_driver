@@ -334,109 +334,111 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
       //  std::string format(image_ptr->GetPixelFormatName());
       //  std::printf("\033[100m format: %s \n", format.c_str());
 
-      if (image_ptr->IsIncomplete())
+      //throw std::runtime_error("[SpinnakerCamera::grabImage] Image received from camera " + std::to_string(serial_) +
+      //                         " is incomplete.");
+      while (image_ptr->IsIncomplete())
       {
-        throw std::runtime_error("[SpinnakerCamera::grabImage] Image received from camera " + std::to_string(serial_) +
-                                 " is incomplete.");
+        ROS_WARN_STREAM_ONCE("[SpinnakerCamera::grabImage] Image received from camera " << std::to_string(serial_) << " is incomplete. Trying again.");
+        image_ptr = pCam_->GetNextImage(timeout_);
       }
-      else
+    
+    
+      // Set Image Time Stamp
+      image->header.stamp.sec = image_ptr->GetTimeStamp() * 1e-9;
+      image->header.stamp.nsec = image_ptr->GetTimeStamp();
+
+      // Check the bits per pixel.
+      size_t bitsPerPixel = image_ptr->GetBitsPerPixel();
+
+      // --------------------------------------------------
+      // Set the image encoding
+      std::string imageEncoding = sensor_msgs::image_encodings::MONO8;
+
+      Spinnaker::GenApi::CEnumerationPtr color_filter_ptr =
+          static_cast<Spinnaker::GenApi::CEnumerationPtr>(node_map_->GetNode("PixelColorFilter"));
+
+      Spinnaker::GenICam::gcstring color_filter_str = color_filter_ptr->ToString();
+      Spinnaker::GenICam::gcstring bayer_rg_str = "BayerRG";
+      Spinnaker::GenICam::gcstring bayer_gr_str = "BayerGR";
+      Spinnaker::GenICam::gcstring bayer_gb_str = "BayerGB";
+      Spinnaker::GenICam::gcstring bayer_bg_str = "BayerBG";
+
+      // if(isColor_ && bayer_format != NONE)
+      if (color_filter_ptr->GetCurrentEntry() != color_filter_ptr->GetEntryByName("None"))
       {
-        // Set Image Time Stamp
-        image->header.stamp.sec = image_ptr->GetTimeStamp() * 1e-9;
-        image->header.stamp.nsec = image_ptr->GetTimeStamp();
-
-        // Check the bits per pixel.
-        size_t bitsPerPixel = image_ptr->GetBitsPerPixel();
-
-        // --------------------------------------------------
-        // Set the image encoding
-        std::string imageEncoding = sensor_msgs::image_encodings::MONO8;
-
-        Spinnaker::GenApi::CEnumerationPtr color_filter_ptr =
-            static_cast<Spinnaker::GenApi::CEnumerationPtr>(node_map_->GetNode("PixelColorFilter"));
-
-        Spinnaker::GenICam::gcstring color_filter_str = color_filter_ptr->ToString();
-        Spinnaker::GenICam::gcstring bayer_rg_str = "BayerRG";
-        Spinnaker::GenICam::gcstring bayer_gr_str = "BayerGR";
-        Spinnaker::GenICam::gcstring bayer_gb_str = "BayerGB";
-        Spinnaker::GenICam::gcstring bayer_bg_str = "BayerBG";
-
-        // if(isColor_ && bayer_format != NONE)
-        if (color_filter_ptr->GetCurrentEntry() != color_filter_ptr->GetEntryByName("None"))
+        if (bitsPerPixel == 16)
         {
-          if (bitsPerPixel == 16)
+          // 16 Bits per Pixel
+          if (color_filter_str.compare(bayer_rg_str) == 0)
           {
-            // 16 Bits per Pixel
-            if (color_filter_str.compare(bayer_rg_str) == 0)
-            {
-              imageEncoding = sensor_msgs::image_encodings::BAYER_RGGB16;
-            }
-            else if (color_filter_str.compare(bayer_gr_str) == 0)
-            {
-              imageEncoding = sensor_msgs::image_encodings::BAYER_GRBG16;
-            }
-            else if (color_filter_str.compare(bayer_gb_str) == 0)
-            {
-              imageEncoding = sensor_msgs::image_encodings::BAYER_GBRG16;
-            }
-            else if (color_filter_str.compare(bayer_bg_str) == 0)
-            {
-              imageEncoding = sensor_msgs::image_encodings::BAYER_BGGR16;
-            }
-            else
-            {
-              throw std::runtime_error("[SpinnakerCamera::grabImage] Bayer format not recognized for 16-bit format.");
-            }
+            imageEncoding = sensor_msgs::image_encodings::BAYER_RGGB16;
+          }
+          else if (color_filter_str.compare(bayer_gr_str) == 0)
+          {
+            imageEncoding = sensor_msgs::image_encodings::BAYER_GRBG16;
+          }
+          else if (color_filter_str.compare(bayer_gb_str) == 0)
+          {
+            imageEncoding = sensor_msgs::image_encodings::BAYER_GBRG16;
+          }
+          else if (color_filter_str.compare(bayer_bg_str) == 0)
+          {
+            imageEncoding = sensor_msgs::image_encodings::BAYER_BGGR16;
           }
           else
           {
-            // 8 Bits per Pixel
-            if (color_filter_str.compare(bayer_rg_str) == 0)
-            {
-              imageEncoding = sensor_msgs::image_encodings::BAYER_RGGB8;
-            }
-            else if (color_filter_str.compare(bayer_gr_str) == 0)
-            {
-              imageEncoding = sensor_msgs::image_encodings::BAYER_GRBG8;
-            }
-            else if (color_filter_str.compare(bayer_gb_str) == 0)
-            {
-              imageEncoding = sensor_msgs::image_encodings::BAYER_GBRG8;
-            }
-            else if (color_filter_str.compare(bayer_bg_str) == 0)
-            {
-              imageEncoding = sensor_msgs::image_encodings::BAYER_BGGR8;
-            }
-            else
-            {
-              throw std::runtime_error("[SpinnakerCamera::grabImage] Bayer format not recognized for 8-bit format.");
-            }
+            throw std::runtime_error("[SpinnakerCamera::grabImage] Bayer format not recognized for 16-bit format.");
           }
         }
-        else  // Mono camera or in pixel binned mode.
+        else
         {
-          if (bitsPerPixel == 16)
+          // 8 Bits per Pixel
+          if (color_filter_str.compare(bayer_rg_str) == 0)
           {
-            imageEncoding = sensor_msgs::image_encodings::MONO16;
+            imageEncoding = sensor_msgs::image_encodings::BAYER_RGGB8;
           }
-          else if (bitsPerPixel == 24)
+          else if (color_filter_str.compare(bayer_gr_str) == 0)
           {
-            imageEncoding = sensor_msgs::image_encodings::RGB8;
+            imageEncoding = sensor_msgs::image_encodings::BAYER_GRBG8;
+          }
+          else if (color_filter_str.compare(bayer_gb_str) == 0)
+          {
+            imageEncoding = sensor_msgs::image_encodings::BAYER_GBRG8;
+          }
+          else if (color_filter_str.compare(bayer_bg_str) == 0)
+          {
+            imageEncoding = sensor_msgs::image_encodings::BAYER_BGGR8;
           }
           else
           {
-            imageEncoding = sensor_msgs::image_encodings::MONO8;
+            throw std::runtime_error("[SpinnakerCamera::grabImage] Bayer format not recognized for 8-bit format.");
           }
         }
+      }
+      else  // Mono camera or in pixel binned mode.
+      {
+        if (bitsPerPixel == 16)
+        {
+          imageEncoding = sensor_msgs::image_encodings::MONO16;
+        }
+        else if (bitsPerPixel == 24)
+        {
+          imageEncoding = sensor_msgs::image_encodings::RGB8;
+        }
+        else
+        {
+          imageEncoding = sensor_msgs::image_encodings::MONO8;
+        }
+      }
 
-        int width = image_ptr->GetWidth();
-        int height = image_ptr->GetHeight();
-        int stride = image_ptr->GetStride();
+      int width = image_ptr->GetWidth();
+      int height = image_ptr->GetHeight();
+      int stride = image_ptr->GetStride();
 
-        // ROS_INFO_ONCE("\033[93m wxh: (%d, %d), stride: %d \n", width, height, stride);
-        fillImage(*image, imageEncoding, height, width, stride, image_ptr->GetData());
-        image->header.frame_id = frame_id;
-      }  // end else
+      // ROS_INFO_ONCE("\033[93m wxh: (%d, %d), stride: %d \n", width, height, stride);
+      fillImage(*image, imageEncoding, height, width, stride, image_ptr->GetData());
+      image->header.frame_id = frame_id;
+   
     }
     catch (const Spinnaker::Exception& e)
     {
