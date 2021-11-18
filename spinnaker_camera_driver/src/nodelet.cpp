@@ -347,30 +347,30 @@ private:
                             // frequencies.
     pnh.param<double>("freq_tolerance", freq_tolerance, 0.1);
     int window_size;  // Number of samples to consider in frequency
-    pnh.param<int>("window_size", window_size, 100);
+    pnh.param<int>("window_size", window_size, 30);
     double min_acceptable;  // The minimum publishing delay (in seconds) before warning.  Negative values mean future
                             // dated messages.
     pnh.param<double>("min_acceptable_delay", min_acceptable, 0.0);
     double max_acceptable;  // The maximum publishing delay (in seconds) before warning.
     pnh.param<double>("max_acceptable_delay", max_acceptable, 0.2);
     ros::SubscriberStatusCallback cb2 = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
-    pub_.reset(
-        new diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage>(
-            nh.advertise<wfov_camera_msgs::WFOVImage>("image", queue_size, cb2, cb2),
-            updater_, diagnostic_updater::FrequencyStatusParam(
-                          &min_freq_, &max_freq_, freq_tolerance, window_size),
-            diagnostic_updater::TimeStampStatusParam(min_acceptable,
-                                                     max_acceptable)));
+    pub_.reset(new diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage>(
+        nh.advertise<wfov_camera_msgs::WFOVImage>("image", queue_size, cb2, cb2),
+        updater_, 
+        diagnostic_updater::FrequencyStatusParam(&min_freq_,
+                                                 &max_freq_,
+                                                 freq_tolerance,
+                                                 window_size),
+        diagnostic_updater::TimeStampStatusParam(min_acceptable,
+                                                 max_acceptable)));
 
     // Set up diagnostics aggregator publisher and diagnostics manager
-    ros::SubscriberStatusCallback diag_cb =
-        boost::bind(&SpinnakerCameraNodelet::diagCb, this);
-    diagnostics_pub_.reset(
-        new ros::Publisher(nh.advertise<diagnostic_msgs::DiagnosticArray>(
-            "/diagnostics", 1, diag_cb, diag_cb)));
+    ros::SubscriberStatusCallback diag_cb = boost::bind(&SpinnakerCameraNodelet::diagCb, this);
+    diagnostics_pub_.reset(new ros::Publisher(
+        nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1, diag_cb, diag_cb)));
 
     diag_man = std::unique_ptr<DiagnosticsManager>(new DiagnosticsManager(
-        frame_id_, std::to_string(spinnaker_.getSerial()), diagnostics_pub_));
+        frame_id_, std::to_string(spinnaker_.getSerial()), diagnostics_pub_, nh));
     diag_man->addDiagnostic("DeviceTemperature", true, std::make_pair(0.0f, 90.0f), -10.0f, 95.0f);
     diag_man->addDiagnostic("AcquisitionResultingFrameRate", true, std::make_pair(10.0f, 60.0f), 5.0f, 90.0f);
     diag_man->addDiagnostic("PowerSupplyVoltage", true, std::make_pair(4.5f, 5.2f), 4.4f, 5.3f);
@@ -418,6 +418,7 @@ private:
                                                            // to stop this
                                                            // thread.
     {
+      diag_man->addAnalyzers();
       diag_man->processDiagnostics(&spinnaker_);
     }
   }
@@ -538,7 +539,6 @@ private:
                   getMTNodeHandle().subscribe("image_exposure_sequence", 10,
                                               &spinnaker_camera_driver::SpinnakerCameraNodelet::gainWBCallback, this);
             }
-
             state = CONNECTED;
           }
           catch (const std::runtime_error& e)
