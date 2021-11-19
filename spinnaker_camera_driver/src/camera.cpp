@@ -231,6 +231,9 @@ void Camera::setImageControlFormats(const spinnaker_camera_driver::SpinnakerConf
 
   // Set Pixel Format
   setProperty(node_map_, "PixelFormat", config.image_format_color_coding);
+
+  // Set ISP Enable
+  setProperty(node_map_, "IspEnable", config.isp_enable);
 }
 
 void Camera::setGain(const float& gain)
