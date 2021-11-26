@@ -414,11 +414,11 @@ private:
 
   void diagPoll()
   {
+    diag_man->addAnalyzers();
     while (!boost::this_thread::interruption_requested())  // Block until we need
                                                            // to stop this
                                                            // thread.
     {
-      diag_man->addAnalyzers();
       diag_man->processDiagnostics(&spinnaker_);
     }
   }

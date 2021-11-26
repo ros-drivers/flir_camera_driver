@@ -78,22 +78,50 @@ void DiagnosticsManager::addAnalyzers()
   // Get Namespace
   std::string node_name = ros::this_node::getName().substr(1);
   std::string node_namespace = ros::this_node::getNamespace();
+  std::string node_prefix = "";
+  std::string node_path; 
+  std::string node_id = node_name;
 
-  // Set AnalyzerGroup Parameters if not Published
-  if(!ros::param::has("analyzers/spinnaker/path"))
+  // Create "Fake" Namespace for Diagnostics
+  if(node_namespace == "/")
   {
-    ros::param::set("analyzers/spinnaker/path", "Spinnaker");
-  }
-  if(!ros::param::has("analyzers/spinnaker/type"))
-  {
-    ros::param::set("analyzers/spinnaker/type", "diagnostic_aggregator/AnalyzerGroup");
+    node_namespace = ros::this_node::getName();
+    node_prefix = ros::this_node::getName() + "/";
   }
 
-  // Set Analyzer Parameters
-  ros::param::set("analyzers/spinnaker/analyzers/" + camera_name_ + "/path", camera_name_);
-  ros::param::set("analyzers/spinnaker/analyzers/" + camera_name_ + "/type", "diagnostic_aggregator/GenericAnalyzer");
-  ros::param::set("analyzers/spinnaker/analyzers/" + camera_name_ + "/startswith", node_name);
-  ros::param::set("analyzers/spinnaker/analyzers/" + camera_name_ + "/remove_prefix", node_name);
+  // Sanitize Node ID
+  size_t pos = node_id.find("/");
+  while(pos != std::string::npos)
+  {
+    node_id.replace(pos, 1, "_");
+    pos = node_id.find("/");
+  }
+
+  // Sanitize Node Path
+  node_path = node_id;
+  pos = node_path.find("_");
+  while(pos != std::string::npos)
+  {
+    node_path.replace(pos, 1, " ");
+    pos = node_path.find("_");
+  }
+
+  // GroupAnalyzer Parameters
+  if(!ros::param::has(node_prefix + "analyzers/spinnaker/path"))
+  {
+    ros::param::set(node_prefix + "analyzers/spinnaker/path", "Spinnaker");
+    ros::param::set(node_prefix + "analyzers/spinnaker/type", "diagnostic_aggregator/AnalyzerGroup");
+  }
+
+  // Analyzer Parameters
+  std::string analyzerPath = node_prefix + "analyzers/spinnaker/analyzers/" + node_id;
+  if(!ros::param::has(analyzerPath + "/path"))
+  {
+    ros::param::set(analyzerPath + "/path", node_path);
+    ros::param::set(analyzerPath + "/type", "diagnostic_aggregator/GenericAnalyzer");
+    ros::param::set(analyzerPath + "/startswith", node_name);
+    ros::param::set(analyzerPath + "/remove_prefix", node_name);
+  }
 
   // Bond to Diagnostics Aggregator
   if(bond_ == nullptr)
@@ -115,9 +143,6 @@ void DiagnosticsManager::addAnalyzers()
   }
   bond_->start();
   ros::service::call("/diagnostics_agg/add_diagnostics", srv);
-
-  // Form Bond
-  //bond_->waitUntilFormed(ros::Duration(1000));
 }
 
 template <typename T>
