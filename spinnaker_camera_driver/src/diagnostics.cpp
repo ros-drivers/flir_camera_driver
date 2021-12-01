@@ -36,8 +36,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace spinnaker_camera_driver
 {
 DiagnosticsManager::DiagnosticsManager(const std::string name, const std::string serial,
-                                       std::shared_ptr<ros::Publisher> const& pub)
-  : camera_name_(name), serial_number_(serial), diagnostics_pub_(pub)
+                                       std::shared_ptr<ros::Publisher> const& pub,
+                                       ros::NodeHandle& nh)
+  : camera_name_(name), serial_number_(serial), diagnostics_pub_(pub), nh_(nh)
 {
 }
 
@@ -72,45 +73,128 @@ void DiagnosticsManager::addDiagnostic(const Spinnaker::GenICam::gcstring name, 
   float_params_.push_back(param);
 }
 
+void DiagnosticsManager::addAnalyzers()
+{
+  // Get Namespace
+  std::string node_name = ros::this_node::getName().substr(1);
+  std::string node_namespace = ros::this_node::getNamespace();
+  std::string node_prefix = "";
+  std::string node_path; 
+  std::string node_id = node_name;
+
+  // Create "Fake" Namespace for Diagnostics
+  if(node_namespace == "/")
+  {
+    node_namespace = ros::this_node::getName();
+    node_prefix = ros::this_node::getName() + "/";
+  }
+
+  // Sanitize Node ID
+  size_t pos = node_id.find("/");
+  while(pos != std::string::npos)
+  {
+    node_id.replace(pos, 1, "_");
+    pos = node_id.find("/");
+  }
+
+  // Sanitize Node Path
+  node_path = node_id;
+  pos = node_path.find("_");
+  while(pos != std::string::npos)
+  {
+    node_path.replace(pos, 1, " ");
+    pos = node_path.find("_");
+  }
+
+  // GroupAnalyzer Parameters
+  if(!ros::param::has(node_prefix + "analyzers/spinnaker/path"))
+  {
+    ros::param::set(node_prefix + "analyzers/spinnaker/path", "Spinnaker");
+    ros::param::set(node_prefix + "analyzers/spinnaker/type", "diagnostic_aggregator/AnalyzerGroup");
+  }
+
+  // Analyzer Parameters
+  std::string analyzerPath = node_prefix + "analyzers/spinnaker/analyzers/" + node_id;
+  if(!ros::param::has(analyzerPath + "/path"))
+  {
+    ros::param::set(analyzerPath + "/path", node_path);
+    ros::param::set(analyzerPath + "/type", "diagnostic_aggregator/GenericAnalyzer");
+    ros::param::set(analyzerPath + "/startswith", node_name);
+    ros::param::set(analyzerPath + "/remove_prefix", node_name);
+  }
+
+  // Bond to Diagnostics Aggregator
+  if(bond_ == nullptr)
+  {
+    bond_ = std::shared_ptr<bond::Bond>(new bond::Bond("/diagnostics_agg/bond" + node_namespace, node_namespace));
+  }
+  else if(!bond_->isBroken())
+  {
+    return;
+  }
+  bond_->setConnectTimeout(120);
+
+  // Add Diagnostics
+  diagnostic_msgs::AddDiagnostics srv;
+  srv.request.load_namespace = node_namespace;
+  if(!ros::service::waitForService("/diagnostics_agg/add_diagnostics", 1000))
+  {
+    return;
+  }
+  bond_->start();
+  ros::service::call("/diagnostics_agg/add_diagnostics", srv);
+}
+
 template <typename T>
 diagnostic_msgs::DiagnosticStatus DiagnosticsManager::getDiagStatus(const diagnostic_params<T>& param, const T value)
 {
+  std::string node_name = ros::this_node::getName().substr(1);
   diagnostic_msgs::KeyValue kv;
   kv.key = param.parameter_name;
   kv.value = std::to_string(value);
 
   diagnostic_msgs::DiagnosticStatus diag_status;
   diag_status.values.push_back(kv);
-  diag_status.name = "Spinnaker " + Spinnaker::GenICam::gcstring(camera_name_.c_str()) + " " + param.parameter_name;
+  diag_status.name = node_name + ":" + std::string(param.parameter_name.c_str());
   diag_status.hardware_id = serial_number_;
 
   // Determine status level
   if (!param.check_ranges || (value > param.operational_range.first && value <= param.operational_range.second))
   {
     diag_status.level = 0;
-    diag_status.message = "OK";
+    diag_status.message = "OK: " + std::string(param.parameter_name) + " performing in expected operational range.";
   }
   else if (value >= param.warn_range_lower && value <= param.warn_range_upper)
   {
     diag_status.level = 1;
-    diag_status.message = "WARNING";
+    diag_status.message = "WARNING: " + std::string(param.parameter_name.c_str()) + " is not in expected operational range.";
   }
   else
   {
     diag_status.level = 2;
-    diag_status.message = "ERROR";
+    diag_status.message = "ERROR: " + std::string(param.parameter_name.c_str()) + " is in critical operation range.";
   }
+  // Warning Range
+  kv.key = "Warning Range";
+  kv.value = "[" + std::to_string(param.warn_range_lower) + ", " + std::to_string(param.warn_range_upper) + "]";
+  diag_status.values.push_back(kv);
+
+  // Operational Range
+  kv.key = "Operational Range";
+  kv.value = "[" + std::to_string(param.operational_range.first) + ", " + std::to_string(param.operational_range.second) + "]";
+  diag_status.values.push_back(kv);
 
   return diag_status;
 }
 
 void DiagnosticsManager::processDiagnostics(SpinnakerCamera* spinnaker)
 {
+  std::string node_name = ros::this_node::getName().substr(1);
   diagnostic_msgs::DiagnosticArray diag_array;
 
   // Manufacturer Info
   diagnostic_msgs::DiagnosticStatus diag_manufacture_info;
-  diag_manufacture_info.name = "Spinnaker " + camera_name_ + " Manufacture Info";
+  diag_manufacture_info.name = node_name + ": Manufacture Info";
   diag_manufacture_info.hardware_id = serial_number_;
 
   for (const std::string param : manufacturer_params_)
