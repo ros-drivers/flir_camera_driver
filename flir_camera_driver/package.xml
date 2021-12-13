@@ -11,6 +11,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <exec_depend>spinnaker_camera_driver</exec_depend>
+  <exec_depend>flir_camera_description</exec_depend>
 
   <export>
   <metapackage/>
