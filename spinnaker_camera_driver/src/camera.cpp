@@ -67,6 +67,7 @@ void Camera::setFrameRate(const float frame_rate)
 
 void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& level)
 {
+  if(!config.set_new_config) return;
   try
   {
     if (level >= LEVEL_RECONFIGURE_STOP)
@@ -75,6 +76,10 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
     setFrameRate(static_cast<float>(config.acquisition_frame_rate));
     // Set enable after frame rate encase its false
     setProperty(node_map_, "AcquisitionFrameRateEnable", config.acquisition_frame_rate_enable);
+
+    // Set 3.3V out put to support external circuitry
+    setProperty(node_map_, "V3_3Enable", config.enable_3V_output);
+
 
     // Set Trigger and Strobe Settings
     // NOTE: The trigger must be disabled (i.e. TriggerMode = "Off") in order to configure whether the source is
