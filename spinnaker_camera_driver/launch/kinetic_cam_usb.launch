@@ -34,12 +34,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
       camera itself. Use the parameter 'control_frame_rate' to enable manual frame 
       rate control, and 'frame_rate' to set the frame rate value. -->
   <arg name="control_frame_rate"        default="True" />
-  <arg name="frame_rate"                default="5" />
+  <arg name="frame_rate"                default="10" />
   <arg name="color"                     default="Mono8" />
 
   <!-- Width / height settings -->
-  <arg name="width"                     default="3096" />
-  <arg name="height"                    default="2094" />
+  <arg name="width"                     default="1280" />
+  <arg name="height"                    default="1024" />
 
   <!-- Auto exposure settings -->
   <arg name="ae_upper_limit"            default="50000" />
