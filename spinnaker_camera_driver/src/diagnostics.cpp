@@ -199,6 +199,17 @@ void DiagnosticsManager::processDiagnostics(SpinnakerCamera* spinnaker)
 
   for (const std::string param : manufacturer_params_)
   {
+    // Check if Readable
+    if(!spinnaker->readableProperty(Spinnaker::GenICam::gcstring(param.c_str())))
+    {
+      diagnostic_msgs::KeyValue kv;
+      kv.key = param;
+      kv.value = "Property not Available and Readable";
+      diag_manufacture_info.values.push_back(kv);
+      continue;
+    }
+
+    // Write if Readable
     Spinnaker::GenApi::CStringPtr string_ptr = static_cast<Spinnaker::GenApi::CStringPtr>(
         spinnaker->readProperty(Spinnaker::GenICam::gcstring(param.c_str())));
 
@@ -213,6 +224,16 @@ void DiagnosticsManager::processDiagnostics(SpinnakerCamera* spinnaker)
   // Float based parameters
   for (const diagnostic_params<float>& param : float_params_)
   {
+    // Check if Readable
+    if(!spinnaker->readableProperty(Spinnaker::GenICam::gcstring(param.parameter_name)))
+    {
+      diagnostic_msgs::KeyValue kv;
+      kv.key = param.parameter_name;
+      kv.value = "Property not Available and Readable";
+      diag_manufacture_info.values.push_back(kv);
+      continue;
+    }
+
     Spinnaker::GenApi::CFloatPtr float_ptr =
         static_cast<Spinnaker::GenApi::CFloatPtr>(spinnaker->readProperty(param.parameter_name));
 
@@ -225,6 +246,16 @@ void DiagnosticsManager::processDiagnostics(SpinnakerCamera* spinnaker)
   // Int based parameters
   for (const diagnostic_params<int>& param : integer_params_)
   {
+    // Check if Readable
+    if(!spinnaker->readableProperty(Spinnaker::GenICam::gcstring(param.parameter_name)))
+    {
+      diagnostic_msgs::KeyValue kv;
+      kv.key = param.parameter_name;
+      kv.value = "Property not Available and Readable";
+      diag_manufacture_info.values.push_back(kv);
+      continue;
+    }
+
     Spinnaker::GenApi::CIntegerPtr integer_ptr =
         static_cast<Spinnaker::GenApi::CIntegerPtr>(spinnaker->readProperty(param.parameter_name));
 

@@ -162,6 +162,7 @@ public:
   void setGain(const float& gain);
   int getHeightMax();
   int getWidthMax();
+  bool readableProperty(const Spinnaker::GenICam::gcstring property_name);
   Spinnaker::GenApi::CNodePtr readProperty(const Spinnaker::GenICam::gcstring property_name);
 
   uint32_t getSerial()
