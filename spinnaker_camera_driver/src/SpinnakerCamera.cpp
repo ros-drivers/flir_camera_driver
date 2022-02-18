@@ -118,6 +118,18 @@ int SpinnakerCamera::getWidthMax()
     return 0;
 }
 
+bool SpinnakerCamera::readableProperty(const Spinnaker::GenICam::gcstring property_name)
+{
+  if (camera_)
+  {
+    return camera_->readableProperty(property_name);
+  }
+  else
+  {
+    return 0;
+  }
+}
+
 Spinnaker::GenApi::CNodePtr SpinnakerCamera::readProperty(const Spinnaker::GenICam::gcstring property_name)
 {
   if (camera_)

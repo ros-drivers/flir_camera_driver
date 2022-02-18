@@ -68,6 +68,8 @@ public:
 
   Spinnaker::GenApi::CNodePtr
   readProperty(const Spinnaker::GenICam::gcstring property_name);
+  bool
+  readableProperty(const Spinnaker::GenICam::gcstring property_name);
 
 protected:
   Spinnaker::GenApi::INodeMap* node_map_;

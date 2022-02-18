@@ -319,6 +319,12 @@ Spinnaker::GenApi::CNodePtr Camera::readProperty(const Spinnaker::GenICam::gcstr
   return ptr;
 }
 
+bool Camera::readableProperty(const Spinnaker::GenICam::gcstring property_name)
+{
+  Spinnaker::GenApi::CNodePtr ptr = node_map_->GetNode(property_name);
+  return Spinnaker::GenApi::IsAvailable(ptr) && Spinnaker::GenApi::IsReadable(ptr);
+}
+
 Camera::Camera(Spinnaker::GenApi::INodeMap* node_map)
 {
   node_map_ = node_map;
