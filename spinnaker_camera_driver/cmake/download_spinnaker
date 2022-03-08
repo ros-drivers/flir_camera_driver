@@ -41,79 +41,34 @@ import glob
 logging.basicConfig(level=logging.INFO)
 
 URL_TEMPLATE = URL_TEMPLATES = {
-    'deb': 'https://packages.clearpathrobotics.com/stable/flir/Spinnaker/Ubuntu{version}/spinnaker-1.27.0.48-Ubuntu{version}-{arch}-pkg.tar.gz',
+    'deb': 'https://packages.clearpathrobotics.com/stable/flir/Spinnaker/Ubuntu{version}/spinnaker-2.2.0.48-Ubuntu{version}-{arch}-pkg.tar.gz',
     'src': None         # if we ever have non-deb archives that require manual extraction, those package URLS will go here.
 }
 
 ARCHS = {
-    'i386': {
-        'linux_arch': 'i386',
-        'current': '16.04',
-        'type': 'deb',
-        'folder_name': 'spinnaker-1.27.0.48-i386',
-        'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
-        'debs': [
-            'libspinnaker-1.27.0.48_i386.deb',
-            'libspinnaker-1.27.0.48_i386-dev.deb',
-            'libspinnaker-c-1.27.0.48_i386.deb',
-            'libspinnaker-c-1.27.0.48_i386-dev.deb',
-            'libspinvideo-1.27.0.48_i386.deb',
-            'libspinvideo-1.27.0.48_i386-dev.deb',
-            'libspinvideo-c-1.27.0.48_i386.deb',
-            'libspinvideo-c-1.27.0.48_i386-dev.deb',
-            'spinnaker-1.27.0.48_i386.deb',
-            'spinnaker-doc-1.27.0.48_i386.deb',
-            'spinupdate-1.27.0.48_i386.deb',
-            'spinupdate-1.27.0.48_i386-dev.deb',
-            'spinview-qt-1.27.0.48_i386.deb',
-            'spinview-qt-1.27.0.48_i386-dev.deb'
-        ]
-    },
     'x86_64': {
         'linux_arch': 'amd64',
-        'current': '16.04',
-        'future': '18.04',
+        'current': '20.04',
+        'future': '20.04',
         'type': 'deb',
-        'folder_name': 'spinnaker-1.27.0.48-amd64',
-        'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
-        'debs': [
-            'libspinnaker-1.27.0.48_amd64.deb',
-            'libspinnaker-1.27.0.48_amd64-dev.deb',
-            'libspinnaker-c-1.27.0.48_amd64.deb',
-            'libspinnaker-c-1.27.0.48_amd64-dev.deb',
-            'libspinvideo-1.27.0.48_amd64.deb',
-            'libspinvideo-1.27.0.48_amd64-dev.deb',
-            'libspinvideo-c-1.27.0.48_amd64.deb',
-            'libspinvideo-c-1.27.0.48_amd64-dev.deb',
-            'spinnaker-1.27.0.48_amd64.deb',
-            'spinnaker-doc-1.27.0.48_amd64.deb',
-            'spinupdate-1.27.0.48_amd64.deb',
-            'spinupdate-1.27.0.48_amd64-dev.deb',
-            'spinview-qt-1.27.0.48_amd64.deb',
-            'spinview-qt-1.27.0.48_amd64-dev.deb'
-        ]
-    },
-    'armv7': {
-        'linux_arch': 'armhf',
-        'current': '16.04',
-        'type': 'deb',
-        'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
-        'folder_name': 'spinnaker-1.27.0.48_armhf',
-        'debs': [
-            'libspinnaker-1.27.0.48_armhf.deb',
-            'libspinnaker-1.27.0.48_armhf-dev.deb',
-            'libspinnaker-c-1.27.0.48_armhf.deb',
-            'libspinnaker-c-1.27.0.48_armhf-dev.deb',
-            'libspinvideo-1.27.0.48_armhf.deb',
-            'libspinvideo-1.27.0.48_armhf-dev.deb',
-            'libspinvideo-c-1.27.0.48_armhf.deb',
-            'libspinvideo-c-1.27.0.48_armhf-dev.deb',
-            'spinnaker-1.27.0.48_armhf.deb',
-            'spinnaker-doc-1.27.0.48_armhf.deb',
-            'spinupdate-1.27.0.48_armhf.deb',
-            'spinupdate-1.27.0.48_armhf-dev.deb',
-            'spinview-qt-1.27.0.48_armhf.deb',
-            'spinview-qt-1.27.0.48_armhf-dev.deb'
+        'folder_name': 'spinnaker-2.2.0.48-amd64',
+        'shared_library': 'usr/lib/libSpinnaker.so.2.2.0.48',
+        'debs':[
+            'libgentl_2.2.0.48_amd64.deb',
+            'libspinnaker_2.2.0.48_amd64.deb',
+            'libspinnaker-c_2.2.0.48_amd64.deb',
+            'libspinnaker-c-dev_2.2.0.48_amd64.deb',
+            'libspinnaker-dev_2.2.0.48_amd64.deb',
+            'libspinvideo_2.2.0.48_amd64.deb',
+            'libspinvideo-c_2.2.0.48_amd64.deb',
+            'libspinvideo-c-dev_2.2.0.48_amd64.deb',
+            'libspinvideo-dev_2.2.0.48_amd64.deb',
+            'spinnaker_2.2.0.48_amd64.deb',
+            'spinnaker-doc_2.2.0.48_amd64.deb',
+            'spinupdate_2.2.0.48_amd64.deb',
+            'spinupdate-dev_2.2.0.48_amd64.deb',
+            'spinview-qt_2.2.0.48_amd64.deb',
+            'spinview-qt-dev_2.2.0.48_amd64.deb'
         ]
     },
     'armv8':  {
@@ -124,28 +79,28 @@ ARCHS = {
         'shared_library': 'usr/lib/libSpinnaker.so.1.27.0.48',
         'folder_name': 'spinnaker-1.27.0.48_arm64',
         'debs': [
-            'libspinnaker-1.27.0.48_arm64.deb',
-            'libspinnaker-1.27.0.48_arm64-dev.deb',
-            'libspinnaker-c-1.27.0.48_arm64.deb',
-            'libspinnaker-c-1.27.0.48_arm64-dev.deb',
-            'libspinvideo-1.27.0.48_arm64.deb',
-            'libspinvideo-1.27.0.48_arm64-dev.deb',
-            'libspinvideo-c-1.27.0.48_arm64.deb',
-            'libspinvideo-c-1.27.0.48_arm64-dev.deb',
-            'spinnaker-1.27.0.48_arm64.deb',
-            'spinnaker-doc-1.27.0.48_arm64.deb',
-            'spinupdate-1.27.0.48_arm64.deb',
-            'spinupdate-1.27.0.48_arm64-dev.deb',
-            'spinview-qt-1.27.0.48_arm64.deb',
-            'spinview-qt-1.27.0.48_arm64-dev.deb'
+            'libgentl_2.2.0.48_arm64.deb',
+            'libspinnaker_2.2.0.48_arm64.deb',
+            'libspinnaker-c_2.2.0.48_arm64.deb',
+            'libspinnaker-c-dev_2.2.0.48_arm64.deb',
+            'libspinnaker-dev_2.2.0.48_arm64.deb',
+            'libspinvideo_2.2.0.48_arm64.deb',
+            'libspinvideo-c_2.2.0.48_arm64.deb',
+            'libspinvideo-c-dev_2.2.0.48_arm64.deb',
+            'libspinvideo-dev_2.2.0.48_arm64.deb',
+            'spinnaker_2.2.0.48_arm64.deb',
+            'spinnaker-doc_2.2.0.48_arm64.deb',
+            'spinupdate_2.2.0.48_arm64.deb',
+            'spinupdate-dev_2.2.0.48_arm64.deb',
+            'spinview-qt_2.2.0.48_arm64.deb',
+            'spinview-qt-dev_2.2.0.48_arm64.deb'
         ]
     }
 }
 
 
 OS_LIBRARY_VERSION = {
-  'jessie': 'current',
-  'xenial': 'current',
+  'bionic': 'current',
   'bionic': 'future'
 }
 
