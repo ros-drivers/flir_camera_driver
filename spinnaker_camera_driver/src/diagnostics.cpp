@@ -30,14 +30,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "spinnaker_camera_driver/diagnostics.h"
 
-#include <utility>
+#include <memory>
 #include <string>
+#include <utility>
 
 namespace spinnaker_camera_driver
 {
 DiagnosticsManager::DiagnosticsManager(const std::string name, const std::string serial,
                                        std::shared_ptr<ros::Publisher> const& pub,
-                                       ros::NodeHandle& nh)
+                                       const ros::NodeHandle& nh)
   : camera_name_(name), serial_number_(serial), diagnostics_pub_(pub), nh_(nh)
 {
 }
@@ -79,11 +80,11 @@ void DiagnosticsManager::addAnalyzers()
   std::string node_name = ros::this_node::getName().substr(1);
   std::string node_namespace = ros::this_node::getNamespace();
   std::string node_prefix = "";
-  std::string node_path; 
+  std::string node_path;
   std::string node_id = node_name;
 
   // Create "Fake" Namespace for Diagnostics
-  if(node_namespace == "/")
+  if (node_namespace == "/")
   {
     node_namespace = ros::this_node::getName();
     node_prefix = ros::this_node::getName() + "/";
@@ -91,7 +92,7 @@ void DiagnosticsManager::addAnalyzers()
 
   // Sanitize Node ID
   size_t pos = node_id.find("/");
-  while(pos != std::string::npos)
+  while (pos != std::string::npos)
   {
     node_id.replace(pos, 1, "_");
     pos = node_id.find("/");
@@ -100,14 +101,14 @@ void DiagnosticsManager::addAnalyzers()
   // Sanitize Node Path
   node_path = node_id;
   pos = node_path.find("_");
-  while(pos != std::string::npos)
+  while (pos != std::string::npos)
   {
     node_path.replace(pos, 1, " ");
     pos = node_path.find("_");
   }
 
   // GroupAnalyzer Parameters
-  if(!ros::param::has(node_prefix + "analyzers/spinnaker/path"))
+  if (!ros::param::has(node_prefix + "analyzers/spinnaker/path"))
   {
     ros::param::set(node_prefix + "analyzers/spinnaker/path", "Spinnaker");
     ros::param::set(node_prefix + "analyzers/spinnaker/type", "diagnostic_aggregator/AnalyzerGroup");
@@ -115,7 +116,7 @@ void DiagnosticsManager::addAnalyzers()
 
   // Analyzer Parameters
   std::string analyzerPath = node_prefix + "analyzers/spinnaker/analyzers/" + node_id;
-  if(!ros::param::has(analyzerPath + "/path"))
+  if (!ros::param::has(analyzerPath + "/path"))
   {
     ros::param::set(analyzerPath + "/path", node_path);
     ros::param::set(analyzerPath + "/type", "diagnostic_aggregator/GenericAnalyzer");
@@ -124,11 +125,11 @@ void DiagnosticsManager::addAnalyzers()
   }
 
   // Bond to Diagnostics Aggregator
-  if(bond_ == nullptr)
+  if (bond_ == nullptr)
   {
     bond_ = std::shared_ptr<bond::Bond>(new bond::Bond("/diagnostics_agg/bond" + node_namespace, node_namespace));
   }
-  else if(!bond_->isBroken())
+  else if (!bond_->isBroken())
   {
     return;
   }
@@ -137,7 +138,7 @@ void DiagnosticsManager::addAnalyzers()
   // Add Diagnostics
   diagnostic_msgs::AddDiagnostics srv;
   srv.request.load_namespace = node_namespace;
-  if(!ros::service::waitForService("/diagnostics_agg/add_diagnostics", 1000))
+  if (!ros::service::waitForService("/diagnostics_agg/add_diagnostics", 1000))
   {
     return;
   }
@@ -162,26 +163,31 @@ diagnostic_msgs::DiagnosticStatus DiagnosticsManager::getDiagStatus(const diagno
   if (!param.check_ranges || (value > param.operational_range.first && value <= param.operational_range.second))
   {
     diag_status.level = 0;
-    diag_status.message = "OK: " + std::string(param.parameter_name) + " performing in expected operational range.";
+    diag_status.message = "OK: " + std::string(param.parameter_name)
+                          + " performing in expected operational range.";
   }
   else if (value >= param.warn_range_lower && value <= param.warn_range_upper)
   {
     diag_status.level = 1;
-    diag_status.message = "WARNING: " + std::string(param.parameter_name.c_str()) + " is not in expected operational range.";
+    diag_status.message = "WARNING: " + std::string(param.parameter_name.c_str())
+                          + " is not in expected operational range.";
   }
   else
   {
     diag_status.level = 2;
-    diag_status.message = "ERROR: " + std::string(param.parameter_name.c_str()) + " is in critical operation range.";
+    diag_status.message = "ERROR: " + std::string(param.parameter_name.c_str())
+                          + " is in critical operation range.";
   }
   // Warning Range
   kv.key = "Warning Range";
-  kv.value = "[" + std::to_string(param.warn_range_lower) + ", " + std::to_string(param.warn_range_upper) + "]";
+  kv.value = "[" + std::to_string(param.warn_range_lower) + ", "
+              + std::to_string(param.warn_range_upper) + "]";
   diag_status.values.push_back(kv);
 
   // Operational Range
   kv.key = "Operational Range";
-  kv.value = "[" + std::to_string(param.operational_range.first) + ", " + std::to_string(param.operational_range.second) + "]";
+  kv.value = "[" + std::to_string(param.operational_range.first) + ", "
+              + std::to_string(param.operational_range.second) + "]";
   diag_status.values.push_back(kv);
 
   return diag_status;
@@ -200,7 +206,7 @@ void DiagnosticsManager::processDiagnostics(SpinnakerCamera* spinnaker)
   for (const std::string param : manufacturer_params_)
   {
     // Check if Readable
-    if(!spinnaker->readableProperty(Spinnaker::GenICam::gcstring(param.c_str())))
+    if (!spinnaker->readableProperty(Spinnaker::GenICam::gcstring(param.c_str())))
     {
       diagnostic_msgs::KeyValue kv;
       kv.key = param;
@@ -225,7 +231,7 @@ void DiagnosticsManager::processDiagnostics(SpinnakerCamera* spinnaker)
   for (const diagnostic_params<float>& param : float_params_)
   {
     // Check if Readable
-    if(!spinnaker->readableProperty(Spinnaker::GenICam::gcstring(param.parameter_name)))
+    if (!spinnaker->readableProperty(Spinnaker::GenICam::gcstring(param.parameter_name)))
     {
       diagnostic_msgs::KeyValue kv;
       kv.key = param.parameter_name;
@@ -247,7 +253,7 @@ void DiagnosticsManager::processDiagnostics(SpinnakerCamera* spinnaker)
   for (const diagnostic_params<int>& param : integer_params_)
   {
     // Check if Readable
-    if(!spinnaker->readableProperty(Spinnaker::GenICam::gcstring(param.parameter_name)))
+    if (!spinnaker->readableProperty(Spinnaker::GenICam::gcstring(param.parameter_name)))
     {
       diagnostic_msgs::KeyValue kv;
       kv.key = param.parameter_name;

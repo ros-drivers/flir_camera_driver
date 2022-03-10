@@ -69,7 +69,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <dynamic_reconfigure/server.h>  // Needed for the dynamic_reconfigure gui service to run
 
 #include <fstream>
+#include <memory>
 #include <string>
+#include <utility>
 
 namespace spinnaker_camera_driver
 {
@@ -356,7 +358,7 @@ private:
     ros::SubscriberStatusCallback cb2 = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
     pub_.reset(new diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage>(
         nh.advertise<wfov_camera_msgs::WFOVImage>("image", queue_size, cb2, cb2),
-        updater_, 
+        updater_,
         diagnostic_updater::FrequencyStatusParam(&min_freq_,
                                                  &max_freq_,
                                                  freq_tolerance,
@@ -376,7 +378,7 @@ private:
     diag_man->addDiagnostic("PowerSupplyVoltage", true, std::make_pair(4.5f, 5.2f), 4.4f, 5.3f);
     diag_man->addDiagnostic("PowerSupplyCurrent", true, std::make_pair(0.4f, 0.6f), 0.3f, 1.0f);
     diag_man->addDiagnostic<int>("DeviceUptime");
-    if( device_type.compare("USB3") == 0 )
+    if (device_type.compare("USB3") == 0 )
     {
       diag_man->addDiagnostic<int>("U3VMessageChannelID");
     }

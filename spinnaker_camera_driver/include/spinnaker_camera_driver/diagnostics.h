@@ -49,8 +49,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ros/ros.h>
 #include <bondcpp/bond.h>
 
-#include <utility>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace spinnaker_camera_driver
@@ -58,7 +59,9 @@ namespace spinnaker_camera_driver
 class DiagnosticsManager
 {
 public:
-  DiagnosticsManager(const std::string name, const std::string serial, std::shared_ptr<ros::Publisher> const& pub, ros::NodeHandle& nh);
+  DiagnosticsManager(const std::string name, const std::string serial,
+                      std::shared_ptr<ros::Publisher> const& pub,
+                      const ros::NodeHandle& nh);
   ~DiagnosticsManager();
 
   /*!
