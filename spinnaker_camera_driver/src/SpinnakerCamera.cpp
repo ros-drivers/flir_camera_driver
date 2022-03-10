@@ -346,15 +346,17 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
       //  std::string format(image_ptr->GetPixelFormatName());
       //  std::printf("\033[100m format: %s \n", format.c_str());
 
-      //throw std::runtime_error("[SpinnakerCamera::grabImage] Image received from camera " + std::to_string(serial_) +
-      //                         " is incomplete.");
+      //  throw std::runtime_error("[SpinnakerCamera::grabImage] Image received from camera "
+      //                            + std::to_string(serial_)
+      //                            + " is incomplete.");
       while (image_ptr->IsIncomplete())
       {
-        ROS_WARN_STREAM_ONCE("[SpinnakerCamera::grabImage] Image received from camera " << std::to_string(serial_) << " is incomplete. Trying again.");
+        ROS_WARN_STREAM_ONCE("[SpinnakerCamera::grabImage] Image received from camera "
+                              << std::to_string(serial_)
+                              << " is incomplete. Trying again.");
         image_ptr = pCam_->GetNextImage(timeout_);
       }
-    
-    
+
       // Set Image Time Stamp
       image->header.stamp.sec = image_ptr->GetTimeStamp() * 1e-9;
       image->header.stamp.nsec = image_ptr->GetTimeStamp();
@@ -450,7 +452,6 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
       // ROS_INFO_ONCE("\033[93m wxh: (%d, %d), stride: %d \n", width, height, stride);
       fillImage(*image, imageEncoding, height, width, stride, image_ptr->GetData());
       image->header.frame_id = frame_id;
-   
     }
     catch (const Spinnaker::Exception& e)
     {
