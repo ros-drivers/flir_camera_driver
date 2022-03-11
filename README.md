@@ -1,7 +1,5 @@
 # flir_camera_driver
 
-[![Build Status](https://travis-ci.org/ros-drivers/flir_camera_driver.png?branch=kinetic-devel)](https://travis-ci.org/ros-drivers/flir_camera_driver)
-
 This repository contains packages for FlirImaging's line of cameras. This repositories intent is to make use of Flir's newly developed SDK: Spinnaker. The camera driver is an evolution of pointgrey_camera_driver. It has been updated to use the new methods provided by the SDK.
 
 ## Packages
