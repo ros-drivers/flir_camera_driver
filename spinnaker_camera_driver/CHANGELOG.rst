@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2022-03-11)
+------------------
 * Changes.
 * Merge pull request `#91 <https://github.com/ros-drivers/flir_camera_driver/issues/91>`_ from luis-camero/noetic-devel
   ROS Industrial CI
