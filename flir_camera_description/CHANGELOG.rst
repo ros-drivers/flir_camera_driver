@@ -4,6 +4,11 @@ Changelog for package pointgrey_camera_description
 
 Forthcoming
 -----------
+* Bump CMake version to avoid CMP0048 warning.
+* Bumped flir_camera_description verison.
+* Changes.
+* Merge pull request `#91 <https://github.com/ros-drivers/flir_camera_driver/issues/91>`_ from luis-camero/noetic-devel
+  ROS Industrial CI
 * Removed launch and rviz folders from CMakeLists
 * URDF Description, Diagnostics, ISP Enable, and Launch Files (`#81 <https://github.com/ros-drivers/flir_camera_driver/issues/81>`_)
   * Changes required to use GigE Blackfly S version
@@ -15,7 +20,7 @@ Forthcoming
   * Switched order of configuration to put ISP enable next to color encoding
   * Updated config to include enumeration for Off, Once, Continuous parameters, and udpated diagnostics.launch
   * Handled issue where no namespace prevents diagnostics_agg from loading from analyzer paramaters
-* Contributors: luis-camero
+* Contributors: Tony Baltovski, luis-camero
 
 0.1.0 (2021-11-10)
 -------------------

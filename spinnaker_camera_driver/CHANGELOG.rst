@@ -4,9 +4,14 @@ Changelog for package spinnaker_camera_driver
 
 Forthcoming
 -----------
+* Changes.
+* Merge pull request `#91 <https://github.com/ros-drivers/flir_camera_driver/issues/91>`_ from luis-camero/noetic-devel
+  ROS Industrial CI
 * Fixed all issues reported by roslint
 * Updated file paths to /opt/spinnaker instead of /usr/spinnaker
 * Updated download_spinnaker look-up table
+* Merge pull request `#88 <https://github.com/ros-drivers/flir_camera_driver/issues/88>`_ from luis-camero/noetic-devel
+  Add readable check to SDK parameters
 * Add readable check to SDK parameters
 * URDF Description, Diagnostics, ISP Enable, and Launch Files (`#81 <https://github.com/ros-drivers/flir_camera_driver/issues/81>`_)
   * Changes required to use GigE Blackfly S version
@@ -51,6 +56,8 @@ Forthcoming
   * [spinnaker_camera_driver] Updated diagnostics launchfile
 * Removed opencv as depend. (`#46 <https://github.com/ros-drivers/flir_camera_driver/issues/46>`_)
 * Changed the download script to check for destination folder and moved unpack directory. (`#44 <https://github.com/ros-drivers/flir_camera_driver/issues/44>`_)
+* Merge pull request `#42 <https://github.com/ros-drivers/flir_camera_driver/issues/42>`_ from civerachb-cpr/rpsw-185
+  Fix Flycap & Spinnaker endpoints
 * Create the directory if it doesn't exist
 * Remove an unnecessary deb
 * Spinnaker driver now successfully downloads & builds
