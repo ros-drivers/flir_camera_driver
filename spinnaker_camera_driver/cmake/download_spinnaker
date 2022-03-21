@@ -116,23 +116,21 @@ logging.info("CPU architecture is %s", arch)
 logging.info("OS code name is %s", os_code_name)
 logging.info("Destination folder is %s", destination_folder)
 
-if not os.path.exists(os.path.join(os.getcwd(), "usr/lib/")):
-    if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
-        cj = http.cookiejar.CookieJar()
-        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
-        opener.addheaders = [
-            ('User-agent', 'Mozilla/5.0'),
-            ('Referer', 'https://www.ptgrey.com')]
+if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
+    cj = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+    opener.addheaders = [
+        ('User-agent', 'Mozilla/5.0'),
+        ('Referer', 'https://www.ptgrey.com')]
 
-        logging.info("Downloading SDK archive from {0}...".format(archive_url))
-        resp = opener.open(archive_url)
+    logging.info("Downloading SDK archive from {0}...".format(archive_url))
+    resp = opener.open(archive_url)
 
-        logging.info("Unpacking tarball.")
-        with tarfile.open(mode="r:gz", fileobj=io.BytesIO(resp.read())) as tar:
-            tar.extractall()
+    logging.info("Unpacking tarball.")
+    with tarfile.open(mode="r:gz", fileobj=io.BytesIO(resp.read())) as tar:
+        tar.extractall()
 
     logging.info("Unpacking debs.")
-    #debs = glob.glob(os.path.join(os.getcwd(), folder_name, "*spinnaker-*.deb"))
     debs = glob.glob(os.path.join(os.getcwd(), folder_name, "*.deb"))
     unpack_dir = os.path.join(os.getcwd())
     if not os.path.exists(unpack_dir):
