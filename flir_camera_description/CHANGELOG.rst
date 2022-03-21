@@ -2,6 +2,9 @@
 Changelog for package pointgrey_camera_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.2.0 (2022-03-11)
 ------------------
 * Bump CMake version to avoid CMP0048 warning.
