@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>flir_camera_description</name>
-  <version>0.2.0</version>
+  <version>0.2.1</version>
   <description>URDF descriptions for Flir cameras</description>
 
   <maintainer email="lcamero@clearpathrobotics.com">Luis Camero</maintainer>

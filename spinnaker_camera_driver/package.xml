@@ -25,7 +25,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 -->
 <package format="2">
   <name>spinnaker_camera_driver</name>
-  <version>0.2.0</version>
+  <version>0.2.1</version>
   <description>Spinnaker camera driver based on Spinnaker.</description>
 
   <maintainer email="mhosmar@clearpathrobotics.com">Mike Hosmar</maintainer>
