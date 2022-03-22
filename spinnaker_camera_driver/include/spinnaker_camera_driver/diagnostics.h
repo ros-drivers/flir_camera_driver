@@ -133,9 +133,9 @@ private:
   // constuctor parameters
   std::string camera_name_;
   std::string serial_number_;
+  std::shared_ptr<ros::Publisher> diagnostics_pub_;
   ros::NodeHandle nh_;
   std::shared_ptr<bond::Bond> bond_ = nullptr;
-  std::shared_ptr<ros::Publisher> diagnostics_pub_;
 
   // vectors to keep track of the items to publish
   std::vector<diagnostic_params<int>> integer_params_;
