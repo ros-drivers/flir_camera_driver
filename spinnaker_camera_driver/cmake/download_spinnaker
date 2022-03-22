@@ -50,7 +50,7 @@ ARCHS = {
         'current': '20.04',
         'type': 'deb',
         'folder_name': 'spinnaker-2.2.0.48-amd64',
-        'shared_library': 'opt/spinnaker/lib/libSpinnaker.so.2.2.0.48',
+        'shared_library': 'opt/spinnaker/lib/',
         'debs':[
             'libgentl_2.2.0.48_amd64.deb',
             'libspinnaker_2.2.0.48_amd64.deb',
@@ -73,7 +73,7 @@ ARCHS = {
         'linux_arch': 'armh64',
         'current': '20.04',
         'type': 'deb',
-        'shared_library': 'opt/spinnaker/lib/libSpinnaker.so.2.2.0.48',
+        'shared_library': 'opt/spinnaker/lib/',
         'folder_name': 'spinnaker-2.2.0.48_arm64',
         'debs': [
             'libgentl_2.2.0.48_arm64.deb',
@@ -139,9 +139,13 @@ if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
         logging.info('Extracting {0}'.format(deb))
         subprocess.call(['dpkg', '--extract', deb, unpack_dir])
 
-    # finally, copy the shared libraries into the output folder
-    src_file = os.path.join(unpack_dir, shared_library)
-    logging.info('Copying shared library to {0}'.format(destination_folder))
+    # Copy the shared libraries into the output folder
+    logging.info('Copying libraries to {0}'.format(destination_folder))
     if not os.path.exists(destination_folder):
         os.makedirs(destination_folder)
-    shutil.copyfile(src_file, os.path.join(destination_folder, 'libSpinnaker.so'))
+    libs = glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "lib[!Q][!t]*.so*"))
+    for lib in libs:
+      logging.info('Copying: {}'.format(os.path.basename(lib)))
+      shutil.copyfile(lib, os.path.join(destination_folder, os.path.basename(lib)))
+else:
+    logging.info("Previous installation found, skipping...")
