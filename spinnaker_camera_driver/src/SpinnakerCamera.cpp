@@ -75,6 +75,9 @@ void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::Spinnak
   if (!pCam_)
   {
     SpinnakerCamera::connect();
+    SpinnakerCamera::updateCameraMode();
+    SpinnakerCamera::setMutipleCameraSynchronization();
+
   }
 
   // Activate mutex to prevent us from grabbing images during this time
@@ -95,6 +98,16 @@ void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::Spinnak
     camera_->setNewConfiguration(config, level);
   }
 }  // end setNewConfiguration
+
+void SpinnakerCamera::setMutipleCameraSynchronization(){
+    ROS_WARN_STREAM("[SpinnakerCamera]: Setting multiple camera synchronization.");
+    bool capture_was_running = captureRunning_;
+    start();  // For some reason some params only work after aquisition has be started once.
+    stop();
+    camera_->setSynchronizationConfiguration();
+    if (capture_was_running)
+      start();
+}
 
 void SpinnakerCamera::setGain(const float& gain)
 {
@@ -332,7 +345,7 @@ void SpinnakerCamera::stop()
   }
 }
 
-void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_id)
+void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_id, ros::Time& stamp)
 {
   std::lock_guard<std::mutex> scopedLock(mutex_);
 
@@ -343,6 +356,7 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
     try
     {
       Spinnaker::ImagePtr image_ptr = pCam_->GetNextImage(timeout_);
+      stamp = ros::Time::now();
       //  std::string format(image_ptr->GetPixelFormatName());
       //  std::printf("\033[100m format: %s \n", format.c_str());
 
@@ -355,6 +369,7 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
                               << std::to_string(serial_)
                               << " is incomplete. Trying again.");
         image_ptr = pCam_->GetNextImage(timeout_);
+        stamp = ros::Time::now();
       }
 
       // Set Image Time Stamp
@@ -478,6 +493,23 @@ void SpinnakerCamera::setTimeout(const double& timeout)
 void SpinnakerCamera::setDesiredCamera(const uint32_t& id)
 {
   serial_ = id;
+}
+
+void SpinnakerCamera::setCameraMode(const std::string& mode)
+{
+  mode_ = mode;
+}
+
+void SpinnakerCamera::updateCameraMode()
+{
+  if(!mode_.empty()){
+    if(mode_ == "primary"){
+    camera_->setCameraOperationMode(OperationMode::PRIMARY);
+    }else{
+      camera_->setCameraOperationMode(OperationMode::SECONDARY);
+    }
+    ROS_INFO_STREAM("Camera " << serial_ << " is set as " << mode_ << " camera");
+  }
 }
 
 void SpinnakerCamera::ConfigureChunkData(const Spinnaker::GenApi::INodeMap& nodeMap)

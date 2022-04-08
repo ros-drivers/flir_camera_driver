@@ -88,6 +88,12 @@ public:
   */
   void setNewConfiguration(const spinnaker_camera_driver::SpinnakerConfig& config, const uint32_t& level);
 
+  /*!
+  * \brief Function that allows reconfiguration of the camera.
+
+  */
+  void setMutipleCameraSynchronization();
+
   /** Parameters that need a sensor to be stopped completely when changed. */
   static const uint8_t LEVEL_RECONFIGURE_CLOSE = 3;
 
@@ -137,7 +143,7 @@ public:
   * \param image sensor_msgs::Image that will be filled with the image currently in the buffer.
   * \param frame_id The name of the optical frame of the camera.
   */
-  void grabImage(sensor_msgs::Image* image, const std::string& frame_id);
+  void grabImage(sensor_msgs::Image* image, const std::string& frame_id, ros::Time& stamp);
 
   /*!
   * \brief Will set grabImage timeout for the camera.
@@ -159,6 +165,9 @@ public:
   * \param id serial number for the camera.  Should be something like 10491081.
   */
   void setDesiredCamera(const uint32_t& id);
+  void setCameraMode(const std::string& mode);
+  void updateCameraMode();
+
 
   void setGain(const float& gain);
   int getHeightMax();
@@ -170,7 +179,7 @@ public:
   {
     return serial_;
   }
-
+  
 private:
   uint32_t serial_;  ///< A variable to hold the serial number of the desired camera.
 
@@ -190,7 +199,7 @@ private:
 
   /// If true, camera is currently running in color mode, otherwise camera is running in mono mode
   bool isColor_;
-
+  std::string mode_;
   // For GigE cameras:
   /// If true, GigE packet size is automatically determined, otherwise packet_size_ is used:
   bool auto_packet_size_;

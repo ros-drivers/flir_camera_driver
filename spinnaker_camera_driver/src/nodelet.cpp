@@ -295,9 +295,12 @@ private:
     }
 
     NODELET_DEBUG_ONCE("Using camera serial %d", serial);
+    std::string mode;
+    pnh.param<std::string>("mode", mode, "");
+    NODELET_INFO_ONCE("Mode %s", mode.c_str());
 
     spinnaker_.setDesiredCamera((uint32_t)serial);
-
+    spinnaker_.setCameraMode(mode);
     // Get GigE camera parameters:
     pnh.param<int>("packet_size", packet_size_, 1400);
     pnh.param<bool>("auto_packet_size", auto_packet_size_, true);
@@ -517,6 +520,9 @@ private:
 
             NODELET_DEBUG("Connected to camera.");
 
+            // Setting camera as primary or secondary or auto mode
+            spinnaker_.updateCameraMode();
+            spinnaker_.setMutipleCameraSynchronization();
             // Set last configuration, forcing the reconfigure level to stop
             spinnaker_.setNewConfiguration(config_, SpinnakerCamera::LEVEL_RECONFIGURE_STOP);
 
@@ -582,7 +588,8 @@ private:
             wfov_camera_msgs::WFOVImagePtr wfov_image(new wfov_camera_msgs::WFOVImage);
             // Get the image from the camera library
             NODELET_DEBUG_ONCE("Starting a new grab from camera with serial {%d}.", spinnaker_.getSerial());
-            spinnaker_.grabImage(&wfov_image->image, frame_id_);
+            ros::Time stamp;
+            spinnaker_.grabImage(&wfov_image->image, frame_id_, stamp);
 
             // Set other values
             wfov_image->header.frame_id = frame_id_;
@@ -593,9 +600,9 @@ private:
 
             // wfov_image->temperature = spinnaker_.getCameraTemperature();
 
-            ros::Time time = ros::Time::now() + ros::Duration(config_.time_offset);
-            wfov_image->header.stamp = time;
-            wfov_image->image.header.stamp = time;
+            // ros::Time time = ros::Time::now() + ros::Duration(config_.time_offset);
+            wfov_image->header.stamp = stamp;
+            wfov_image->image.header.stamp = stamp;
 
             // Set the CameraInfo message
             ci_.reset(new sensor_msgs::CameraInfo(cinfo_->getCameraInfo()));
@@ -619,6 +626,7 @@ private:
             if (it_pub_.getNumSubscribers() > 0)
             {
               sensor_msgs::ImagePtr image(new sensor_msgs::Image(wfov_image->image));
+              image->header.stamp = stamp;
               it_pub_.publish(image, ci_);
             }
           }

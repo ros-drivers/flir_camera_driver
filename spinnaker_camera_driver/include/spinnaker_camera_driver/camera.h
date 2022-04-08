@@ -44,6 +44,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 namespace spinnaker_camera_driver
 {
+
+enum OperationMode{
+  AUTO,
+  PRIMARY,
+  SECONDARY
+};
+
 class Camera
 {
 public:
@@ -51,7 +58,10 @@ public:
   ~Camera()
   {
   }
+
   virtual void setNewConfiguration(const spinnaker_camera_driver::SpinnakerConfig& config, const uint32_t& level);
+  void setCameraOperationMode(const OperationMode& mode);
+  void setSynchronizationConfiguration();
 
   /** Parameters that need a sensor to be stopped completely when changed. */
   static const uint8_t LEVEL_RECONFIGURE_CLOSE = 3;
@@ -66,10 +76,8 @@ public:
   int getHeightMax();
   int getWidthMax();
 
-  Spinnaker::GenApi::CNodePtr
-  readProperty(const Spinnaker::GenICam::gcstring property_name);
-  bool
-  readableProperty(const Spinnaker::GenICam::gcstring property_name);
+  Spinnaker::GenApi::CNodePtr readProperty(const Spinnaker::GenICam::gcstring property_name);
+  bool readableProperty(const Spinnaker::GenICam::gcstring property_name);
 
 protected:
   Spinnaker::GenApi::INodeMap* node_map_;
@@ -78,6 +86,7 @@ protected:
 
   int height_max_;
   int width_max_;
+  OperationMode mode_;
 
   /*!
   * \brief Changes the video mode of the connected camera.
