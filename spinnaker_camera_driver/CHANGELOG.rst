@@ -2,6 +2,13 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.2 (2022-03-28)
+------------------
+* Added new-line at EOF
+* Spinnaker libraries are now all copied to usr/lib
+* Reordered definitions to prevent compiler warnings
+* Contributors: Luis Camero
+
 0.2.1 (2022-03-21)
 ------------------
 * Removed check for build/usr/lib which would cause build to skip Spinnaker SDK install
