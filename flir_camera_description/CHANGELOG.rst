@@ -28,8 +28,8 @@ Changelog for package pointgrey_camera_description
   * Handled issue where no namespace prevents diagnostics_agg from loading from analyzer paramaters
 * Contributors: Tony Baltovski, luis-camero
 
-Forthcoming
------------
+0.2.3 (2022-04-19)
+------------------
 * 0.2.2
 * Changes.
 * 0.2.1
