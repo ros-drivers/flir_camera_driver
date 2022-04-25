@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="camera_name" default="stereorig" />
+
+  <arg name="primary_camera_serial" default="21387972" />
+  <arg name="primary_camera_frame" default="left" />
+  <arg name="secondary_camera_serial" default="21502646" />
+  <arg name="secondary_camera_frame" default="right" />
+
+
+  <arg name="device_type" default="USB3" />
+  <!-- USB3 or GigE -->
+
+  <!-- When unspecified, the driver will use the default framerate as given by the
+      camera itself. Use the parameter 'control_frame_rate' to enable manual frame 
+      rate control, and 'frame_rate' to set the frame rate value. -->
+  <arg name="control_frame_rate" default="True" />
+  <arg name="frame_rate" default="30" />
+
+  <!-- Disabling ISP will dramatically increase frame-rate. However, it can only be 
+      disabled when using Bayer encoding (e.g. BayerRG8)-->
+  <arg name="encoding" default="RGB8Packed" />
+  <arg name="color_balance" default="Continuous" />
+  <!-- Off, Once, or Continuous -->
+
+  <!-- Nodelet manager -->
+
+  <group ns="$(arg camera_name)">
+    <!-- Camera nodelet -->
+    <node pkg="spinnaker_camera_driver" type="stereo_camera_node" name="spinnaker_stereo_camera_node" required="true">
+      <param name="primary_cam_serial" value="$(arg primary_camera_serial)" />
+      <param name="primary_camera_frame" value="$(arg primary_camera_frame)" />
+      <param name="secondary_cam_serial" value="$(arg secondary_camera_serial)" />
+      <param name="secondary_camera_frame" value="$(arg secondary_camera_frame)" />
+
+      <param name="device_type" value="$(arg device_type)" />
+
+      <!-- Frame rate -->
+      <param name="acquisition_frame_rate_enable" value="$(arg control_frame_rate)" />
+      <param name="acquisition_frame_rate" value="$(arg frame_rate)" />
+
+      <!-- Image Processing -->
+      <param name="auto_white_balance" value="$(arg color_balance)" />
+      <param name="image_format_color_coding" value="$(arg encoding)" />
+
+    </node>
+
+  </group>
+</launch>

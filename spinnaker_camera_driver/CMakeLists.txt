@@ -88,9 +88,19 @@ add_executable(spinnaker_camera_node src/node.cpp)
 target_link_libraries(spinnaker_camera_node SpinnakerCameraLib ${catkin_LIBRARIES})
 set_target_properties(spinnaker_camera_node PROPERTIES OUTPUT_NAME camera_node PREFIX "")
 
+
+add_library(SpinnakerStereoCameraNodelet src/stereonodelet.cpp)
+target_link_libraries(SpinnakerStereoCameraNodelet Diagnostics SpinnakerCameraLib Camera Gh3 Cm3 ${catkin_LIBRARIES})
+
+add_executable(spinnaker_stereo_camera_node src/stereo_node.cpp)
+target_link_libraries(spinnaker_stereo_camera_node SpinnakerCameraLib ${catkin_LIBRARIES})
+set_target_properties(spinnaker_stereo_camera_node PROPERTIES OUTPUT_NAME stereo_camera_node PREFIX "")
+
+
 install(TARGETS
   SpinnakerCameraLib
   SpinnakerCameraNodelet
+  SpinnakerStereoCameraNodelet
   Camera
   Cm3
   Gh3

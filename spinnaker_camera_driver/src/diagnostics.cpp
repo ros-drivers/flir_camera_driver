@@ -37,8 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace spinnaker_camera_driver
 {
 DiagnosticsManager::DiagnosticsManager(const std::string name, const std::string serial,
-                                       std::shared_ptr<ros::Publisher> const& pub,
-                                       const ros::NodeHandle& nh)
+                                       std::shared_ptr<ros::Publisher> const& pub, const ros::NodeHandle& nh)
   : camera_name_(name), serial_number_(serial), diagnostics_pub_(pub), nh_(nh)
 {
 }
@@ -163,31 +162,28 @@ diagnostic_msgs::DiagnosticStatus DiagnosticsManager::getDiagStatus(const diagno
   if (!param.check_ranges || (value > param.operational_range.first && value <= param.operational_range.second))
   {
     diag_status.level = 0;
-    diag_status.message = "OK: " + std::string(param.parameter_name)
-                          + " performing in expected operational range.";
+    diag_status.message = "OK: " + std::string(param.parameter_name) + " performing in expected operational range.";
   }
   else if (value >= param.warn_range_lower && value <= param.warn_range_upper)
   {
     diag_status.level = 1;
-    diag_status.message = "WARNING: " + std::string(param.parameter_name.c_str())
-                          + " is not in expected operational range.";
+    diag_status.message =
+        "WARNING: " + std::string(param.parameter_name.c_str()) + " is not in expected operational range.";
   }
   else
   {
     diag_status.level = 2;
-    diag_status.message = "ERROR: " + std::string(param.parameter_name.c_str())
-                          + " is in critical operation range.";
+    diag_status.message = "ERROR: " + std::string(param.parameter_name.c_str()) + " is in critical operation range.";
   }
   // Warning Range
   kv.key = "Warning Range";
-  kv.value = "[" + std::to_string(param.warn_range_lower) + ", "
-              + std::to_string(param.warn_range_upper) + "]";
+  kv.value = "[" + std::to_string(param.warn_range_lower) + ", " + std::to_string(param.warn_range_upper) + "]";
   diag_status.values.push_back(kv);
 
   // Operational Range
   kv.key = "Operational Range";
-  kv.value = "[" + std::to_string(param.operational_range.first) + ", "
-              + std::to_string(param.operational_range.second) + "]";
+  kv.value =
+      "[" + std::to_string(param.operational_range.first) + ", " + std::to_string(param.operational_range.second) + "]";
   diag_status.values.push_back(kv);
 
   return diag_status;

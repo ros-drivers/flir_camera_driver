@@ -59,9 +59,8 @@ namespace spinnaker_camera_driver
 class DiagnosticsManager
 {
 public:
-  DiagnosticsManager(const std::string name, const std::string serial,
-                      std::shared_ptr<ros::Publisher> const& pub,
-                      const ros::NodeHandle& nh);
+  DiagnosticsManager(const std::string name, const std::string serial, std::shared_ptr<ros::Publisher> const& pub,
+                     const ros::NodeHandle& nh);
   ~DiagnosticsManager();
 
   /*!

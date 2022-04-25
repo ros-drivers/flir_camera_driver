@@ -28,3 +28,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
     <description>This is the nodelet for the Point Grey Camera Driver.</description>
   </class>
 </library>
+
+<library path="lib/libSpinnakerStereoCameraNodelet">
+  <class name="spinnaker_camera_driver/SpinnakerStereoCameraNodelet" type="spinnaker_camera_driver::SpinnakerStereoCameraNodelet" base_class_type="nodelet::Nodelet">
+    <description>This is the nodelet for the Point Grey Camera Driver.</description>
+  </class>
+</library>
