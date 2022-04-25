@@ -143,7 +143,11 @@ if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
     logging.info('Copying libraries to {0}'.format(destination_folder))
     if not os.path.exists(destination_folder):
         os.makedirs(destination_folder)
-    libs = glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "lib[!Q][!t]*.so*"))
+    libs = glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "libSpinnaker*.so*"))
+    libs += glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "libG*.so*"))
+    libs += glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "lib*Parser*.so*"))
+    libs += glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "libLog*.so*"))
+    libs += glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "libNodeMapData*.so*"))
     for lib in libs:
       logging.info('Copying: {}'.format(os.path.basename(lib)))
       shutil.copyfile(lib, os.path.join(destination_folder, os.path.basename(lib)))
