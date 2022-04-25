@@ -5,14 +5,17 @@ This repository contains packages for FlirImaging's line of cameras. This reposi
 ## Packages
 
 ### Spinnaker Camera Driver
-The camera driver supports USB3 and GIGE cameras are planned. Note thats support for FireWire cameras is dropped in this SDK. The driver has been tested with a Blackfly S and Chameleon 3 camera. Differences between cameras requires that each camera model needs a customized interface class.  If your camera type is not included, consider contributing the interface by referring to the section bellow.
+
+The camera driver supports USB3 and GIGE cameras are planned. Note thats support for FireWire cameras is dropped in this SDK. The driver has been tested with a Blackfly S and Chameleon 3 camera. Differences between cameras requires that each camera model needs a customized interface class. If your camera type is not included, consider contributing the interface by referring to the section bellow.
 
 ##### Contributing
+
 Due to differences in parameter naming the configuration is separated from the main library. `camera.cpp` contains the base class `Camera` which can be extended to accommodate different cameras. The base class is based on BlackFly S and `cm3.cpp` extends it adding support for Chameleon3. To add a camera create a new derived class of `Camera` and add the model name to the check in `SpinnakerCamera::connect`.
 
 When contributing make sure the travis job suceeds and please use [roscpp_code_format](https://github.com/davetcoleman/roscpp_code_format) to format your code.
 
 ## Licence
+
 ROS-compatible Camera drivers originally provided by NREC, part of Carnegie Mellon University's robotics institute.
 These drives are included along with modifications of the standard ros image messages that enable HDR and physics based vision.
 

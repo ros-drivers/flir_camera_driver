@@ -28,6 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 namespace spinnaker_camera_driver
 {
+
 void Camera::init()
 {
   Spinnaker::GenApi::CIntegerPtr height_max_ptr = node_map_->GetNode("HeightMax");
@@ -46,6 +47,7 @@ void Camera::init()
   //=====================================
   setMaxInt(node_map_, "DeviceLinkThroughputLimit");
 }
+
 void Camera::setFrameRate(const float frame_rate)
 {
   // This enables the "AcquisitionFrameRateEnabled"
@@ -72,30 +74,40 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
     if (level >= LEVEL_RECONFIGURE_STOP)
       setImageControlFormats(config);
 
-    setFrameRate(static_cast<float>(config.acquisition_frame_rate));
     // Set enable after frame rate encase its false
-    if(mode_ == OperationMode::SECONDARY){
+    if (mode_ == OperationMode::SECONDARY)
+    {
       setProperty(node_map_, "AcquisitionFrameRateEnable", false);
-    }else{
+    }
+    else
+    {
+      setFrameRate(static_cast<float>(config.acquisition_frame_rate));
       setProperty(node_map_, "AcquisitionFrameRateEnable", config.acquisition_frame_rate_enable);
     }
     // Set Trigger and Strobe Settings
     // NOTE: The trigger must be disabled (i.e. TriggerMode = "Off") in order to configure whether the source is
     // software or hardware.
 
-    if(mode_ != SECONDARY){
+    if (mode_ != SECONDARY)
+    {
       setProperty(node_map_, "TriggerMode", std::string("Off"));
       setProperty(node_map_, "TriggerSource", config.trigger_source);
       setProperty(node_map_, "TriggerSelector", config.trigger_selector);
       setProperty(node_map_, "TriggerActivation", config.trigger_activation_mode);
       setProperty(node_map_, "TriggerMode", config.enable_trigger);
-    }else{
-      ROS_WARN_STREAM("[Camera::setNewConfiguration] Secondary cameras need fixed trigger configuration. Should not be changed. ");
+    }
+    else
+    {
+      ROS_WARN_STREAM(
+          "[Camera::setNewConfiguration] Secondary cameras need fixed trigger configuration. Should not be changed. ");
     }
 
-    if(mode_ == OperationMode::PRIMARY && (config.line_selector == "Line1" || config.line_selector == "Line2")){
-        ROS_WARN_STREAM("[Camera::setNewConfiguration] Line1 & Line2 have fixed configuration in Primary Mode");
-    }else{
+    if (mode_ == OperationMode::PRIMARY && (config.line_selector == "Line1" || config.line_selector == "Line2"))
+    {
+      ROS_WARN_STREAM("[Camera::setNewConfiguration] Line1 & Line2 have fixed configuration in Primary Mode");
+    }
+    else
+    {
       setProperty(node_map_, "LineSelector", config.line_selector);
       setProperty(node_map_, "LineMode", config.line_mode);
       setProperty(node_map_, "LineSource", config.line_source);
@@ -254,17 +266,16 @@ void Camera::setGain(const float& gain)
   setProperty(node_map_, "Gain", static_cast<float>(gain));
 }
 
-
 void Camera::setCameraOperationMode(const OperationMode& mode)
 {
   ROS_INFO_STREAM("[Camera::setCameraOperationMode] Setting camera operation mode to " << mode);
   mode_ = mode;
 }
 
-
-void Camera::setSynchronizationConfiguration(){
-  if(mode_ == OperationMode::PRIMARY){
-
+void Camera::setSynchronizationConfiguration()
+{
+  if (mode_ == OperationMode::PRIMARY)
+  {
     setProperty(node_map_, "LineSelector", std::string("Line1"));
     setProperty(node_map_, "LineMode", std::string("Output"));
 
@@ -272,13 +283,13 @@ void Camera::setSynchronizationConfiguration(){
     setProperty(node_map_, "V3_3Enable", true);
 
     ROS_WARN_STREAM("[Camera::setSynchronizationConfiguration] set camera operation mode to " << mode_);
-
-  }else if(mode_ == OperationMode::SECONDARY){
-
+  }
+  else if (mode_ == OperationMode::SECONDARY)
+  {
     setProperty(node_map_, "TriggerMode", std::string("Off"));
     setProperty(node_map_, "TriggerSelector", std::string("FrameStart"));
     setProperty(node_map_, "TriggerSource", std::string("Line3"));
-    setProperty(node_map_, "TriggerActivation", std::string("FallEdge"));
+    setProperty(node_map_, "TriggerActivation", std::string("RisingEdge"));
     setProperty(node_map_, "TriggerOverlap", std::string("ReadOut"));
     setProperty(node_map_, "TriggerMode", std::string("On"));
 

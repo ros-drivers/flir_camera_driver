@@ -47,31 +47,26 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 // ROS and associated nodelet interface and PLUGINLIB declaration header
-#include "ros/ros.h"
-#include <pluginlib/class_list_macros.h>
-#include <nodelet/nodelet.h>
-
-#include "spinnaker_camera_driver/SpinnakerCamera.h"  // The actual standalone library for the Spinnakers
-#include "spinnaker_camera_driver/diagnostics.h"
-
-#include <image_transport/image_transport.h>          // ROS library that allows sending compressed images
 #include <camera_info_manager/camera_info_manager.h>  // ROS library that publishes CameraInfo topics
-#include <sensor_msgs/CameraInfo.h>                   // ROS message header for CameraInfo
-
-#include <wfov_camera_msgs/WFOVImage.h>
-#include <image_exposure_msgs/ExposureSequence.h>  // Message type for configuring gain and white balance.
-
-#include <diagnostic_updater/diagnostic_updater.h>  // Headers for publishing diagnostic messages.
+#include <diagnostic_updater/diagnostic_updater.h>    // Headers for publishing diagnostic messages.
 #include <diagnostic_updater/publisher.h>
+#include <dynamic_reconfigure/server.h>            // Needed for the dynamic_reconfigure gui service to run
+#include <image_exposure_msgs/ExposureSequence.h>  // Message type for configuring gain and white balance.
+#include <image_transport/image_transport.h>       // ROS library that allows sending compressed images
+#include <nodelet/nodelet.h>
+#include <pluginlib/class_list_macros.h>
+#include <sensor_msgs/CameraInfo.h>  // ROS message header for CameraInfo
+#include <wfov_camera_msgs/WFOVImage.h>
 
 #include <boost/thread.hpp>  // Needed for the nodelet to launch the reading thread.
-
-#include <dynamic_reconfigure/server.h>  // Needed for the dynamic_reconfigure gui service to run
-
 #include <fstream>
 #include <memory>
 #include <string>
 #include <utility>
+
+#include "ros/ros.h"
+#include "spinnaker_camera_driver/SpinnakerCamera.h"  // The actual standalone library for the Spinnakers
+#include "spinnaker_camera_driver/diagnostics.h"
 
 namespace spinnaker_camera_driver
 {
@@ -113,14 +108,14 @@ public:
 
 private:
   /*!
-  * \brief Function that allows reconfiguration of the camera.
-  *
-  * This function serves as a callback for the dynamic reconfigure service.  It simply passes the configuration object
-  * to the driver to allow the camera to reconfigure.
-  * \param config  camera_library::CameraConfig object passed by reference.  Values will be changed to those the driver
-  * is currently using.
-  * \param level driver_base reconfiguration level.  See driver_base/SensorLevels.h for more information.
-  */
+   * \brief Function that allows reconfiguration of the camera.
+   *
+   * This function serves as a callback for the dynamic reconfigure service.  It simply passes the configuration object
+   * to the driver to allow the camera to reconfigure.
+   * \param config  camera_library::CameraConfig object passed by reference.  Values will be changed to those the driver
+   * is currently using.
+   * \param level driver_base reconfiguration level.  See driver_base/SensorLevels.h for more information.
+   */
 
   void paramCallback(const spinnaker_camera_driver::SpinnakerConfig& config, uint32_t level)
   {
@@ -181,10 +176,10 @@ private:
   }
 
   /*!
-  * \brief Connection callback to only do work when someone is listening.
-  *
-  * This function will connect/disconnect from the camera depending on who is using the output.
-  */
+   * \brief Connection callback to only do work when someone is listening.
+   *
+   * This function will connect/disconnect from the camera depending on who is using the output.
+   */
   void connectCb()
   {
     if (!pubThread_)  // We need to connect
@@ -247,11 +242,11 @@ private:
   }
 
   /*!
-  * \brief Serves as a psuedo constructor for nodelets.
-  *
-  * This function needs to do the MINIMUM amount of work to get the nodelet running.  Nodelets should not call blocking
-  * functions here.
-  */
+   * \brief Serves as a psuedo constructor for nodelets.
+   *
+   * This function needs to do the MINIMUM amount of work to get the nodelet running.  Nodelets should not call blocking
+   * functions here.
+   */
   void onInit()
   {
     // Get nodeHandles
@@ -360,28 +355,23 @@ private:
     pnh.param<double>("max_acceptable_delay", max_acceptable, 0.2);
     ros::SubscriberStatusCallback cb2 = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
     pub_.reset(new diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage>(
-        nh.advertise<wfov_camera_msgs::WFOVImage>("image", queue_size, cb2, cb2),
-        updater_,
-        diagnostic_updater::FrequencyStatusParam(&min_freq_,
-                                                 &max_freq_,
-                                                 freq_tolerance,
-                                                 window_size),
-        diagnostic_updater::TimeStampStatusParam(min_acceptable,
-                                                 max_acceptable)));
+        nh.advertise<wfov_camera_msgs::WFOVImage>("image", queue_size, cb2, cb2), updater_,
+        diagnostic_updater::FrequencyStatusParam(&min_freq_, &max_freq_, freq_tolerance, window_size),
+        diagnostic_updater::TimeStampStatusParam(min_acceptable, max_acceptable)));
 
     // Set up diagnostics aggregator publisher and diagnostics manager
     ros::SubscriberStatusCallback diag_cb = boost::bind(&SpinnakerCameraNodelet::diagCb, this);
-    diagnostics_pub_.reset(new ros::Publisher(
-        nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1, diag_cb, diag_cb)));
+    diagnostics_pub_.reset(
+        new ros::Publisher(nh.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1, diag_cb, diag_cb)));
 
-    diag_man = std::unique_ptr<DiagnosticsManager>(new DiagnosticsManager(
-        frame_id_, std::to_string(spinnaker_.getSerial()), diagnostics_pub_, nh));
+    diag_man = std::unique_ptr<DiagnosticsManager>(
+        new DiagnosticsManager(frame_id_, std::to_string(spinnaker_.getSerial()), diagnostics_pub_, nh));
     diag_man->addDiagnostic("DeviceTemperature", true, std::make_pair(0.0f, 90.0f), -10.0f, 95.0f);
     diag_man->addDiagnostic("AcquisitionResultingFrameRate", true, std::make_pair(10.0f, 60.0f), 5.0f, 90.0f);
     diag_man->addDiagnostic("PowerSupplyVoltage", true, std::make_pair(4.5f, 5.2f), 4.4f, 5.3f);
     diag_man->addDiagnostic("PowerSupplyCurrent", true, std::make_pair(0.4f, 0.6f), 0.3f, 1.0f);
     diag_man->addDiagnostic<int>("DeviceUptime");
-    if (device_type.compare("USB3") == 0 )
+    if (device_type.compare("USB3") == 0)
     {
       diag_man->addDiagnostic<int>("U3VMessageChannelID");
     }
@@ -429,11 +419,11 @@ private:
   }
 
   /*!
-  * \brief Function for the boost::thread to grabImages and publish them.
-  *
-  * This function continues until the thread is interupted.  Responsible for getting sensor_msgs::Image and publishing
-  * them.
-  */
+   * \brief Function for the boost::thread to grabImages and publish them.
+   *
+   * This function continues until the thread is interupted.  Responsible for getting sensor_msgs::Image and publishing
+   * them.
+   */
   void devicePoll()
   {
     ROS_INFO_ONCE("devicePoll");
@@ -567,8 +557,9 @@ private:
             NODELET_DEBUG("Starting camera.");
             spinnaker_.start();
             NODELET_DEBUG("Started camera.");
-            NODELET_DEBUG("Attention: if nothing subscribes to the camera topic, the camera_info is not published "
-                          "on the correspondent topic.");
+            NODELET_DEBUG(
+                "Attention: if nothing subscribes to the camera topic, the camera_info is not published "
+                "on the correspondent topic.");
             state = STARTED;
           }
           catch (std::runtime_error& e)
@@ -701,7 +692,7 @@ private:
   SpinnakerCamera spinnaker_;      ///< Instance of the SpinnakerCamera library, used to interface with the hardware.
   sensor_msgs::CameraInfoPtr ci_;  ///< Camera Info message.
   std::string frame_id_;           ///< Frame id for the camera messages, defaults to 'camera'
-  std::shared_ptr<boost::thread> pubThread_;  ///< The thread that reads and publishes the images.
+  std::shared_ptr<boost::thread> pubThread_;   ///< The thread that reads and publishes the images.
   std::shared_ptr<boost::thread> diagThread_;  ///< The thread that reads and publishes the diagnostics.
 
   std::unique_ptr<DiagnosticsManager> diag_man;

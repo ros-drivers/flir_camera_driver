@@ -52,8 +52,9 @@ inline bool setProperty(Spinnaker::GenApi::INodeMap* node_map, const std::string
   {
     ROS_ERROR_STREAM("[SpinnakerCamera]: ("
                      << static_cast<Spinnaker::GenApi::CStringPtr>(node_map->GetNode("DeviceID"))->GetValue()
-                     << ") Enumeration name " << property_name << " not "
-                                                                  "implemented.");
+                     << ") Enumeration name " << property_name
+                     << " not "
+                        "implemented.");
     return false;
   }
 

@@ -42,12 +42,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "spinnaker_camera_driver/SpinnakerCamera.h"
 
+#include <ros/ros.h>
+
 #include <iostream>
 #include <sstream>
-#include <typeinfo>
 #include <string>
-
-#include <ros/ros.h>
+#include <typeinfo>
 
 namespace spinnaker_camera_driver
 {
@@ -75,9 +75,8 @@ void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::Spinnak
   if (!pCam_)
   {
     SpinnakerCamera::connect();
-    SpinnakerCamera::updateCameraMode();
-    SpinnakerCamera::setMutipleCameraSynchronization();
-
+    // SpinnakerCamera::updateCameraMode();
+    // SpinnakerCamera::setMutipleCameraSynchronization();
   }
 
   // Activate mutex to prevent us from grabbing images during this time
@@ -99,14 +98,14 @@ void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::Spinnak
   }
 }  // end setNewConfiguration
 
-void SpinnakerCamera::setMutipleCameraSynchronization(){
-    ROS_WARN_STREAM("[SpinnakerCamera]: Setting multiple camera synchronization.");
-    bool capture_was_running = captureRunning_;
-    start();  // For some reason some params only work after aquisition has be started once.
-    stop();
-    camera_->setSynchronizationConfiguration();
-    if (capture_was_running)
-      start();
+void SpinnakerCamera::setMutipleCameraSynchronization()
+{
+  bool capture_was_running = captureRunning_;
+  start();  // For some reason some params only work after aquisition has be started once.
+  stop();
+  camera_->setSynchronizationConfiguration();
+  if (capture_was_running)
+    start();
 }
 
 void SpinnakerCamera::setGain(const float& gain)
@@ -366,17 +365,11 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
       while (image_ptr->IsIncomplete())
       {
         ROS_WARN_STREAM_ONCE("[SpinnakerCamera::grabImage] Image received from camera "
-                              << std::to_string(serial_)
-                              << " is incomplete. Trying again.");
+                             << std::to_string(serial_) << " is incomplete. Trying again.");
         image_ptr = pCam_->GetNextImage(timeout_);
         stamp = ros::Time::now();
       }
 
-      // Set Image Time Stamp
-      image->header.stamp.sec = image_ptr->GetTimeStamp() * 1e-9;
-      image->header.stamp.nsec = image_ptr->GetTimeStamp() % 1000000000;
-      assert(image->header.stamp.toNSec() == image_ptr->GetTimeStamp());
-      
       // Check the bits per pixel.
       size_t bitsPerPixel = image_ptr->GetBitsPerPixel();
 
@@ -477,8 +470,9 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
   }
   else if (pCam_)
   {
-    throw CameraNotRunningException("[SpinnakerCamera::grabImage] Camera is currently not running.  Please start "
-                                    "capturing frames first.");
+    throw CameraNotRunningException(
+        "[SpinnakerCamera::grabImage] Camera is currently not running.  Please start "
+        "capturing frames first.");
   }
   else
   {
@@ -502,10 +496,14 @@ void SpinnakerCamera::setCameraMode(const std::string& mode)
 
 void SpinnakerCamera::updateCameraMode()
 {
-  if(!mode_.empty()){
-    if(mode_ == "primary"){
-    camera_->setCameraOperationMode(OperationMode::PRIMARY);
-    }else{
+  if (!mode_.empty())
+  {
+    if (mode_ == "primary")
+    {
+      camera_->setCameraOperationMode(OperationMode::PRIMARY);
+    }
+    else
+    {
       camera_->setCameraOperationMode(OperationMode::SECONDARY);
     }
     ROS_INFO_STREAM("Camera " << serial_ << " is set as " << mode_ << " camera");

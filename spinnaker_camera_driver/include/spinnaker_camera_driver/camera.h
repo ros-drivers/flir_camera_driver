@@ -45,7 +45,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 namespace spinnaker_camera_driver
 {
 
-enum OperationMode{
+enum OperationMode
+{
   AUTO,
   PRIMARY,
   SECONDARY
