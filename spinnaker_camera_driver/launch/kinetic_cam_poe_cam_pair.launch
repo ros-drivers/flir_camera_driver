@@ -28,26 +28,26 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
        If not specified, defaults to first camera found. -->
 
   <arg name="camera_name"               default="stereo" />
-  <arg name="camera_name_left"          default="camera_left" />
-  <arg name="camera_serial_left"        default="22072264" />
+  <arg name="camera_name_left"          default="cam_driver_side" />
+  <arg name="camera_serial_left"        default="22073953" />
 
-  <arg name="camera_name_right"         default="camera_right" />
-  <arg name="camera_serial_right"       default="22073953" />
+  <arg name="camera_name_right"         default="cam_forward" />
+  <arg name="camera_serial_right"       default="22072264" />
 
   <arg name="control_frame_rate"        default="True" />
-  <arg name="frame_rate"                default="15" />
+  <arg name="frame_rate"                default="10" />
   <arg name="color"                     default="Mono8" />
 
   <arg name="width"                     default="1920" />
   <arg name="height"                    default="1200" />
 
   <arg name="ae_upper_limit"            default="50000" />
-  <arg name="ae_gain"                   default="18"    />
+  <arg name="ae_gain"                   default="5"    />
 
   <arg name="calibrated"                default="false" />
 
   <group ns="$(arg camera_name)">
-      <group ns="left">
+      <group ns="driver_side">
       <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
 
       <!-- Camera nodelet -->
@@ -80,7 +80,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
       </node>
     </group>
 
-      <group ns="right">
+      <group ns="forward">
       <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
 
       <!-- Camera nodelet -->
@@ -114,4 +114,11 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
     </group>
 
   </group>
+
+  <!-- RVIZ -->
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/stereo_cam_test.rviz"/>
+
+  <!-- RQT RECONFIGURE -->
+  <node name="reconfigurererer" pkg="rqt_reconfigure" type="rqt_reconfigure" output="log"/>
+
 </launch>
