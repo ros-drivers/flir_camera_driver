@@ -44,7 +44,7 @@ void Camera::init()
   width_max_ = width_max_ptr->GetValue();
   // Set Throughput to maximum
   //=====================================
-  setMaxInt(node_map_, "DeviceLinkThroughputLimit");
+  // setMaxInt(node_map_, "DeviceLinkThroughputLimit"); // Commented out to prevent ros from setting to maximum
 }
 void Camera::setFrameRate(const float frame_rate)
 {
