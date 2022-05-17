@@ -27,15 +27,15 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
    <!-- Determine this using rosrun spinnaker_camera_driver list_cameras.
        If not specified, defaults to first camera found. -->
 
-  <arg name="camera_name"               default="stereo" />
+  <arg name="camera_name"               default="fisheye" />
 
   <arg name="camera_name_left"          default="cam_driver_side" />
   <arg name="camera_serial_left"        default="21455859" />
   <arg name="camera_name_right"         default="cam_forward" />
   <arg name="camera_serial_right"       default="21455860" />
 
-  <arg name="control_frame_rate"        default="True" />
-  <arg name="frame_rate"                default="5.0" />
+  <arg name="control_frame_rate"        default="true" />
+  <arg name="frame_rate"                default="5" />
   <arg name="color"                     default="Mono8" />
 
   <arg name="width"                     default="3096" />
