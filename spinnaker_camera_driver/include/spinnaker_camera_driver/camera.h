@@ -89,7 +89,6 @@ protected:
   */
   virtual void setFrameRate(const float frame_rate);
   virtual void setImageControlFormats(const spinnaker_camera_driver::SpinnakerConfig& config);
-  virtual void setDeviceLinkThroughput(const int throughput_limit, const bool enable);
 
   void setGigEPacketSize(const int size);
   /*!

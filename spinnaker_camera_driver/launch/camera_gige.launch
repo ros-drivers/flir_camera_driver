@@ -67,7 +67,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   -->
 
   <!-- Parameters for GigE cameras -->
-  <arg name="enable_throughput_limit"   default="False" />
+  <arg name="enable_gige_parameters"    default="False" />
   <arg name="throughput_limit"          default="125000000" />
   <arg name="packet_size"               default="1400" />
 
@@ -95,7 +95,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
       <param name="auto_white_balance"                  value="$(arg color_balance)" />
       <param name="image_format_color_coding"           value="$(arg encoding)" />
 
-      <param name="device_link_throughput_limit_enable" value="$(arg enable_throughput_limit)" />
+      <param name="gige_parameter_enable"               value="$(arg enable_gige_parameters)" />
       <param name="device_link_throughput_limit"        value="$(arg throughput_limit)" />
       <param name="camera_packet_size"                  value="$(arg packet_size)" />
 

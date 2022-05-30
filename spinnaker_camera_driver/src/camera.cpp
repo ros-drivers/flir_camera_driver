@@ -63,20 +63,6 @@ void Camera::setFrameRate(const float frame_rate)
   ROS_DEBUG_STREAM("Current Frame rate: \t " << ptrAcquisitionFrameRate->GetValue());
 }
 
-void Camera::setDeviceLinkThroughput(const int throughput_limit, const bool enable)
-{
-  if (enable)
-  {
-    setProperty(node_map_, "DeviceLinkThroughputLimit", throughput_limit);
-  }
-  else
-  {
-    // Set Throughput to maximum
-    //=====================================
-    setMaxInt(node_map_, "DeviceLinkThroughputLimit");
-  }
-}
-
 void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& level)
 {
   try
@@ -192,8 +178,13 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
       setProperty(node_map_, "AutoExposureLightingMode", config.auto_exposure_lighting_mode);
     }
 
-    setDeviceLinkThroughput(config.device_link_throughput_limit, config.device_link_throughput_limit_enable);
-    setGigEPacketSize(config.camera_packet_size);
+    Spinnaker::GenApi::CEnumerationPtr device_type_ptr = node_map_->GetNode("DeviceType");
+    if (config.gige_parameter_enable)
+    {
+      // setDeviceLinkThroughput(config.device_link_throughput_limit);
+      setProperty(node_map_, "DeviceLinkThroughputLimit", config.device_link_throughput_limit);
+      setGigEPacketSize(config.camera_packet_size);
+    }
   }
   catch (const Spinnaker::Exception& e)
   {
