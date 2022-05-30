@@ -142,38 +142,84 @@ Spinnaker::GenApi::CNodePtr SpinnakerCamera::readProperty(const Spinnaker::GenIC
   }
 }
 
+void SpinnakerCamera::findCameraPtr()
+{
+  // If we have a specific camera to connect to (specified by a serial number)
+  if (serial_ != 0)
+  {
+    const auto serial_string = std::to_string(serial_);
+
+    try
+    {
+      pCam_ = camList_.GetBySerial(serial_string);
+    }
+    catch (const Spinnaker::Exception& e)
+    {
+      throw std::runtime_error("[SpinnakerCamera::connect] Could not find camera with serial number " +
+                                serial_string + ". Is that camera plugged in? Error: " + std::string(e.what()));
+    }
+  }
+  else
+  {
+    // Connect to any camera (the first)
+    try
+    {
+      pCam_ = camList_.GetByIndex(0);
+    }
+    catch (const Spinnaker::Exception& e)
+    {
+      throw std::runtime_error("[SpinnakerCamera::connect] Failed to get first connected camera. Error: " +
+                                std::string(e.what()));
+    }
+  }
+}
+
+void SpinnakerCamera::updateCameraPtr()
+{
+  if (pCam_->IsInitialized())
+  {
+    pCam_->DeInit();
+  }
+  int prev_cam_list_size = camList_.GetSize();
+  camList_.Clear();
+
+  // If a parameter changed on a camera (e.g. IP address), we need to update the cameras
+  for (size_t i = 0; i < 10; i++)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));  // Delay to let time to completely release the camera
+    system_->UpdateCameras();
+    camList_ = system_->GetCameras();
+    if (camList_.GetSize() == prev_cam_list_size)
+    {
+      break;
+    }
+  }
+  if (camList_.GetSize() != prev_cam_list_size)
+  {
+    throw std::runtime_error("[SpinnakerCamera::updateCameraPtr] Failed to reconnect to camera after changing IP. "
+                              "Try to reboot your camera.");
+  }
+
+  // For debugging purpose
+  // for (size_t idx = 0; idx < camList_.GetSize(); idx++)
+  // {
+  //   Spinnaker::CameraPtr cam = camList_.GetByIndex(idx);
+  //   Spinnaker::GenApi::INodeMap& node_map_local = cam->GetTLDeviceNodeMap();
+
+  //   Spinnaker::GenApi::CStringPtr sn = node_map_local.GetNode("DeviceSerialNumber");
+  //   std::cout << "Found SN " << sn->GetValue() << std::endl;
+  // }
+
+  // std::cout << "Targetting serial " << serial_ << std::endl;
+  pCam_ = nullptr;
+  findCameraPtr();
+}
+
 void SpinnakerCamera::connect()
 {
   if (!pCam_)
   {
-    // If we have a specific camera to connect to (specified by a serial number)
-    if (serial_ != 0)
-    {
-      const auto serial_string = std::to_string(serial_);
-
-      try
-      {
-        pCam_ = camList_.GetBySerial(serial_string);
-      }
-      catch (const Spinnaker::Exception& e)
-      {
-        throw std::runtime_error("[SpinnakerCamera::connect] Could not find camera with serial number " +
-                                 serial_string + ". Is that camera plugged in? Error: " + std::string(e.what()));
-      }
-    }
-    else
-    {
-      // Connect to any camera (the first)
-      try
-      {
-        pCam_ = camList_.GetByIndex(0);
-      }
-      catch (const Spinnaker::Exception& e)
-      {
-        throw std::runtime_error("[SpinnakerCamera::connect] Failed to get first connected camera. Error: " +
-                                 std::string(e.what()));
-      }
-    }
+    findCameraPtr();
     if (!pCam_ || !pCam_->IsValid())
     {
       throw std::runtime_error("[SpinnakerCamera::connect] Failed to obtain camera reference.");
@@ -187,7 +233,7 @@ void SpinnakerCamera::connect()
       if (serial_ == 0)
       {
         Spinnaker::GenApi::CStringPtr serial_ptr =
-            static_cast<Spinnaker::GenApi::CStringPtr>(genTLNodeMap.GetNode("DeviceID"));
+            static_cast<Spinnaker::GenApi::CStringPtr>(genTLNodeMap.GetNode("DeviceSerialNumber"));
         if (IsAvailable(serial_ptr) && IsReadable(serial_ptr))
         {
           serial_ = atoi(serial_ptr->GetValue().c_str());
@@ -217,6 +263,30 @@ void SpinnakerCamera::connect()
           }
         }
         // TODO(mhosmar): - check if interface is GigE and connect to GigE cam
+        // Actually: if GigE camera, auto force IP if no IP is set in config 
+        //   and if the camera is not on the right subnetwork,
+        // or update IP according to config (if specified)
+        if (device_type_ptr->GetIntValue() == Spinnaker::DeviceTypeEnum::DeviceType_GigEVision)
+        {
+
+          Spinnaker::GenApi::CBooleanPtr is_wrong_subnet = genTLNodeMap.GetNode("GevDeviceIsWrongSubnet");
+
+          if ((ip_ == 0) && is_wrong_subnet->GetValue())
+          {
+            ROS_WARN_STREAM("NO IP set for camera with serial " << serial_ << ". "
+                            << "Trying to auto force IP, which can lead to adresses issues.");
+            tryAutoForceIP();
+          }
+          else if (ip_ != 0)
+          {
+            setIP();
+          }
+
+          if (pCam_->IsInitialized())
+          {
+            pCam_->DeInit();
+          }
+        }
       }
     }
     catch (const Spinnaker::Exception& e)
@@ -249,6 +319,10 @@ void SpinnakerCamera::connect()
         camera_.reset(new Camera(node_map_));
         ROS_WARN("SpinnakerCamera::connect: Could not detect camera model name.");
       }
+
+      // Need to do this here: no reference to camera in Camera class
+      unsigned int packet_size_max = pCam_->DiscoverMaxPacketSize();
+      camera_->setPacketSizeMax(packet_size_max);
 
       // Configure chunk data - Enable Metadata
       // SpinnakerCamera::ConfigureChunkData(*node_map_);
@@ -477,6 +551,300 @@ void SpinnakerCamera::setTimeout(const double& timeout)
 void SpinnakerCamera::setDesiredCamera(const uint32_t& id)
 {
   serial_ = id;
+}
+void SpinnakerCamera::setDesiredIP(const std::string& ip)
+{
+  ip_ = fromStrToIP(ip);
+}
+void SpinnakerCamera::setDesiredSubnetMask(const std::string& mask)
+{
+  mask_ = fromStrToIP(mask);
+}
+void SpinnakerCamera::setDesiredGateway(const std::string& gateway)
+{
+  gateway_ = fromStrToIP(gateway);
+}
+
+int64_t SpinnakerCamera::fromStrToIP(const std::string ip_str)
+{
+  int64_t ip_int = 0;
+  std::ostringstream ip_part;
+  const char *ip_char = ip_str.c_str();
+  int n=3;
+  for (size_t i=0 ; i<ip_str.size() ; i++)
+  {
+    if (*ip_char != '.')
+    {
+      ip_part << *ip_char;
+      ip_char++;
+    }
+    else
+    {
+      ip_int += (atoi(ip_part.str().c_str()) * pow(256, n));
+
+      ip_part = std::ostringstream();
+      ip_char++;
+      n--;
+    }
+  }
+  ip_int += (atoi(ip_part.str().c_str()) * pow(256, n));
+
+  return ip_int;
+}
+
+std::string SpinnakerCamera::convertIPtoStr(const int64_t ip_int)
+{
+  unsigned int ip_us = static_cast<unsigned int>(ip_int);
+  std::ostringstream ip_str;
+  ip_str << ((ip_us & 0xFF000000) >> 24) << ".";
+  ip_str << ((ip_us & 0x00FF0000) >> 16) << ".";
+  ip_str << ((ip_us & 0x0000FF00) >> 8) << ".";
+  ip_str << (ip_us & 0x000000FF);
+
+  return ip_str.str();
+}
+
+void SpinnakerCamera::setIP()
+{
+  try
+  {
+    // Need to deinit the camera before updating its IP
+    bool is_cam_init = pCam_->IsInitialized();
+    if (is_cam_init)
+    {
+      pCam_->DeInit();
+    }
+
+    if (gateway_ == 0)
+    {
+      gateway_ = (ip_ & mask_) + 1;
+    }
+
+    if (pCam_ != nullptr)
+    {
+      Spinnaker::GenApi::INodeMap& node_mapTL = pCam_->GetTLDeviceNodeMap();
+      Spinnaker::GenApi::CEnumerationPtr device_type = node_mapTL.GetNode("DeviceType");
+      if (device_type->GetIntValue() != Spinnaker::DeviceTypeEnum::DeviceType_GigEVision)
+      {
+        ROS_INFO("[SpinnakerCamera::setIP] IP can only be set for GigEVision system");
+        return;
+      }
+
+      Spinnaker::GenApi::CStringPtr cam_serial = node_mapTL.GetNode("DeviceSerialNumber");
+
+      Spinnaker::GenApi::CIntegerPtr curr_ip = node_mapTL.GetNode("GevDeviceIPAddress");
+      if (ip_ == 0)
+      {
+        ROS_INFO_STREAM("[SpinnakerCamera::setIP] No changes made to camera's IP. Current value is "
+                        << curr_ip->GetValue());
+        return;
+      }
+      if (!IsReadable(curr_ip))
+      {
+        ROS_ERROR("[SpinnakerCamera::setIP] Cannot read the current IP address");
+      }
+      if (curr_ip->GetValue() == ip_)
+      {
+        return;
+      }
+
+      // First, update the network config at the TL level
+      Spinnaker::GenApi::CIntegerPtr camTLIP = node_mapTL.GetNode("GevDeviceForceIPAddress");
+      if (!IsWritable(camTLIP))
+      {
+        ROS_ERROR("[SpinnakerCamera::setIP] Cannot force IP on this device (TL level)");
+        return;
+      }
+      else
+      {
+        camTLIP->SetValue(ip_);
+        ROS_INFO_STREAM("[SpinnakerCamera::setIP] IP address set to " << convertIPtoStr(camTLIP->GetValue()));
+      }
+
+      Spinnaker::GenApi::CIntegerPtr camTL_mask = node_mapTL.GetNode("GevDeviceForceSubnetMask");
+
+      if (!IsWritable(camTL_mask))
+      {
+        ROS_ERROR("[SpinnakerCamera::setIP] Cannot force subnet mask on this device (TL level)");
+        return;
+      }
+      else
+      {
+        camTL_mask->SetValue(mask_);
+        ROS_INFO_STREAM("[SpinnakerCamera::setIP] Subnet mask set to " << convertIPtoStr(camTL_mask->GetValue()));
+      }
+
+      Spinnaker::GenApi::CIntegerPtr camTL_gateway = node_mapTL.GetNode("GevDeviceForceGateway");
+      if (!IsWritable(camTL_gateway))
+      {
+        ROS_ERROR("[SpinnakerCamera::setIP] Cannot force gateway on this device (TL level)");
+        return;
+      }
+      else
+      {
+        camTL_gateway->SetValue(gateway_);
+        ROS_INFO_STREAM("[SpinnakerCamera::setIP] Gateway set to " << convertIPtoStr(camTL_gateway->GetValue()));
+      }
+
+      Spinnaker::GenApi::CCommandPtr force_IP = node_mapTL.GetNode("GevDeviceForceIP");
+      if (!IsWritable(force_IP))
+      {
+        ROS_ERROR("[SpinnakerCamera::setIP] Cannot execute device force IP on this device");
+        return;
+      }
+      else
+      {
+        force_IP->Execute();
+      }
+
+      updateCameraPtr();
+    }
+
+    // Update parameters at camera level
+    if (pCam_ != nullptr)
+    {
+      Spinnaker::GenApi::INodeMap& node_mapTL = pCam_->GetTLDeviceNodeMap();  // Updated camera => update TL node map
+      Spinnaker::GenApi::CBooleanPtr is_wrong_subnet = node_mapTL.GetNode("GevDeviceIsWrongSubnet");
+
+      Spinnaker::GenApi::CStringPtr cam_serial = node_mapTL.GetNode("DeviceSerialNumber");
+
+      Spinnaker::GenApi::CIntegerPtr cam_ip = node_mapTL.GetNode("GevDeviceIPAddress");
+
+      if (!is_wrong_subnet->GetValue())
+      {
+        pCam_->Init();
+        Spinnaker::GenApi::INodeMap& node_map = pCam_->GetNodeMap();
+
+        Spinnaker::GenApi::CBooleanPtr is_IPConfig_persistent = node_map.GetNode("GevCurrentIPConfigurationPersistentIP");
+        if (!IsWritable(is_IPConfig_persistent))
+        {
+          ROS_ERROR("[SpinnakerCamera::setIP] Cannot set persistent IP address");
+          return;
+        }
+        else
+        {
+          is_IPConfig_persistent->SetValue(true);
+          ROS_INFO_STREAM("[SpinnakerCamera::setIP] Persistent IP config set to " << is_IPConfig_persistent->GetValue());
+        }
+
+        Spinnaker::GenApi::CIntegerPtr camIP = node_map.GetNode("GevPersistentIPAddress");
+        if (!IsWritable(camIP))
+        {
+          ROS_ERROR("[SpinnakerCamera::setIP] Cannot force IP on this device (camera level)");
+          is_IPConfig_persistent->SetValue(false);
+          return;
+        }
+        else
+        {
+          camIP->SetValue(ip_);
+        }
+
+        Spinnaker::GenApi::CIntegerPtr cam_mask = node_map.GetNode("GevPersistentSubnetMask");
+        if (!IsWritable(cam_mask))
+        {
+          ROS_ERROR("[SpinnakerCamera::setIP] Cannot force subnet mask on this device (camera level)");
+          is_IPConfig_persistent->SetValue(false);
+          return;
+        }
+        else
+        {
+          cam_mask->SetValue(mask_);
+        }
+
+        Spinnaker::GenApi::CIntegerPtr cam_gateway = node_map.GetNode("GevPersistentDefaultGateway");
+        if (!IsWritable(cam_gateway))
+        {
+          ROS_ERROR("[SpinnakerCamera::setIP] Cannot force gateway on this device (camera level)");
+          is_IPConfig_persistent->SetValue(false);
+          return;
+        }
+        else
+        {
+          cam_gateway->SetValue(gateway_);
+        }
+
+        ROS_INFO("[SpinnakerCamera::setIP] Finished camera network configuration");
+      }
+      else
+      {
+        throw std::runtime_error("[SpinnakerCamera::setIP] Camera is still on the wrong subnet. "
+                                  "Check your network configuration.");
+      }
+
+      // Let pCam_ state unchanged after changing IP
+      if (!is_cam_init && pCam_->IsInitialized())
+      {
+        pCam_->DeInit();
+      }
+      else if (is_cam_init && !pCam_->IsInitialized())
+      {
+        pCam_->Init();
+      }
+    }
+  }
+  catch(const Spinnaker::Exception& e)
+  {
+    std::runtime_error(e.what());
+  }
+}  // end setIP
+
+void SpinnakerCamera::tryAutoForceIP()
+{
+  Spinnaker::InterfaceList interfaces = system_->GetInterfaces();
+  for (unsigned int i = 0; i < interfaces.GetSize(); i++)
+  {
+    Spinnaker::InterfacePtr pInterface = interfaces.GetByIndex(i);
+    pInterface->UpdateCameras();
+    Spinnaker::GenApi::INodeMap& nodeMapInterface = pInterface->GetTLNodeMap();
+
+    Spinnaker::GenApi::CEnumerationPtr ptrInterfaceType = nodeMapInterface.GetNode("InterfaceType");
+    if (!IsAvailable(ptrInterfaceType) || !IsReadable(ptrInterfaceType))
+    {
+      ROS_ERROR_STREAM("[SpinnakerCamera::tryAutoForceIP] Unable to read InterfaceType for interface at index " << i);
+      continue;
+    }
+
+    if (ptrInterfaceType->GetIntValue() != Spinnaker::InterfaceTypeEnum::InterfaceType_GigEVision)
+    {
+      // Only force IP on GEV interface
+      continue;
+    }
+
+    Spinnaker::GenApi::CCommandPtr ptrAutoForceIP = nodeMapInterface.GetNode("GevDeviceAutoForceIP");
+    if (IsAvailable(ptrAutoForceIP) && IsWritable(ptrAutoForceIP))
+    {
+      if (!IsWritable(pInterface->TLInterface.DeviceSelector.GetAccessMode()))
+      {
+        ROS_ERROR("[SpinnakerCamera::tryAutoForceIP] Unable to write to the DeviceSelector node while forcing IP");
+      }
+      else
+      {
+        Spinnaker::CameraList cam_list = pInterface->GetCameras();
+        for (int i = 0; i < cam_list.GetSize(); i++)
+        {
+          Spinnaker::CameraPtr pCam = cam_list.GetByIndex(i);
+          if (!pCam_->GetUniqueID().compare(pCam->GetUniqueID()))
+          {
+            Spinnaker::GenApi::CStringPtr cam_serial = pCam->GetTLDeviceNodeMap().GetNode("DeviceSerialNumber");
+            ROS_INFO_STREAM("[SpinnakerCamera::tryAutoForceIP] Forced IP for camera with serial "
+                            << cam_serial->GetValue());
+
+            pInterface->TLInterface.DeviceSelector.SetValue(i);
+            pInterface->TLInterface.GevDeviceAutoForceIP.Execute();
+            break;
+          }
+        }
+        break;
+      }
+    }
+    else
+    {
+      ROS_WARN("[SpinnakerCamera::tryAutoForceIP] AutoForceIP not available for this interface");
+    }
+  }
+
+  interfaces.Clear();
+  updateCameraPtr();
 }
 
 void SpinnakerCamera::ConfigureChunkData(const Spinnaker::GenApi::INodeMap& nodeMap)

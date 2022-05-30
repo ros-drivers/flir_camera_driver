@@ -299,6 +299,16 @@ private:
     spinnaker_.setDesiredCamera((uint32_t)serial);
 
     // Get GigE camera parameters:
+    std::string cam_ip;
+    pnh.param<std::string>("camera_ip", cam_ip, "0");
+    spinnaker_.setDesiredIP(cam_ip);
+    std::string cam_subnet;
+    pnh.param<std::string>("camera_mask", cam_subnet, "255.255.255.0");
+    spinnaker_.setDesiredSubnetMask(cam_subnet);
+    std::string gateway;
+    pnh.param<std::string>("subnet_gateway", gateway, "0");
+    spinnaker_.setDesiredGateway(gateway);
+
     pnh.param<int>("packet_size", packet_size_, 1400);
     pnh.param<bool>("auto_packet_size", auto_packet_size_, true);
     pnh.param<int>("packet_delay", packet_delay_, 4000);

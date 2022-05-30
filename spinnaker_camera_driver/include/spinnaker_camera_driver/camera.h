@@ -63,6 +63,7 @@ public:
   static const uint8_t LEVEL_RECONFIGURE_RUNNING = 0;
 
   virtual void setGain(const float& gain);
+  inline void setPacketSizeMax(const unsigned int size) { packet_size_max_ = size; };
   int getHeightMax();
   int getWidthMax();
 
@@ -78,6 +79,7 @@ protected:
 
   int height_max_;
   int width_max_;
+  unsigned int packet_size_max_;
 
   /*!
   * \brief Changes the video mode of the connected camera.
@@ -87,6 +89,9 @@ protected:
   */
   virtual void setFrameRate(const float frame_rate);
   virtual void setImageControlFormats(const spinnaker_camera_driver::SpinnakerConfig& config);
+  virtual void setDeviceLinkThroughput(const int throughput_limit, const bool enable);
+
+  void setGigEPacketSize(const int size);
   /*!
   * \brief Set parameters relative to GigE cameras.
   *

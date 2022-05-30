@@ -42,10 +42,8 @@ void Camera::init()
     throw std::runtime_error("[Camera::init] Unable to read WidthMax");
   }
   width_max_ = width_max_ptr->GetValue();
-  // Set Throughput to maximum
-  //=====================================
-  setMaxInt(node_map_, "DeviceLinkThroughputLimit");
 }
+
 void Camera::setFrameRate(const float frame_rate)
 {
   // This enables the "AcquisitionFrameRateEnabled"
@@ -65,6 +63,20 @@ void Camera::setFrameRate(const float frame_rate)
   ROS_DEBUG_STREAM("Current Frame rate: \t " << ptrAcquisitionFrameRate->GetValue());
 }
 
+void Camera::setDeviceLinkThroughput(const int throughput_limit, const bool enable)
+{
+  if (enable)
+  {
+    setProperty(node_map_, "DeviceLinkThroughputLimit", throughput_limit);
+  }
+  else
+  {
+    // Set Throughput to maximum
+    //=====================================
+    setMaxInt(node_map_, "DeviceLinkThroughputLimit");
+  }
+}
+
 void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& level)
 {
   try
@@ -72,9 +84,12 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
     if (level >= LEVEL_RECONFIGURE_STOP)
       setImageControlFormats(config);
 
-    setFrameRate(static_cast<float>(config.acquisition_frame_rate));
-    // Set enable after frame rate encase its false
-    setProperty(node_map_, "AcquisitionFrameRateEnable", config.acquisition_frame_rate_enable);
+    if (config.acquisition_frame_rate_enable)
+    {
+      setFrameRate(static_cast<float>(config.acquisition_frame_rate));
+      // Set enable after frame rate encase its false
+      setProperty(node_map_, "AcquisitionFrameRateEnable", config.acquisition_frame_rate_enable);
+    }
 
     // Set Trigger and Strobe Settings
     // NOTE: The trigger must be disabled (i.e. TriggerMode = "Off") in order to configure whether the source is
@@ -176,6 +191,9 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
     {
       setProperty(node_map_, "AutoExposureLightingMode", config.auto_exposure_lighting_mode);
     }
+
+    setDeviceLinkThroughput(config.device_link_throughput_limit, config.device_link_throughput_limit_enable);
+    setGigEPacketSize(config.camera_packet_size);
   }
   catch (const Spinnaker::Exception& e)
   {
@@ -240,6 +258,18 @@ void Camera::setGain(const float& gain)
 {
   setProperty(node_map_, "GainAuto", "Off");
   setProperty(node_map_, "Gain", static_cast<float>(gain));
+}
+
+void Camera::setGigEPacketSize(const int size)
+{
+  if (size < packet_size_max_)
+  {
+    setProperty(node_map_, "GevSCPSPacketSize", size);
+  }
+  else
+  {
+    setProperty(node_map_, "GevSCPSPacketSize", static_cast<int>(packet_size_max_));
+  }
 }
 
 /*
