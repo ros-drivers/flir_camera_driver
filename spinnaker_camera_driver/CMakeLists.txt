@@ -120,7 +120,7 @@ install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 if (CATKIN_ENABLE_TESTING)
   find_package(roslaunch REQUIRED)
-  roslaunch_add_file_check(launch/camera.launch)
+  roslaunch_add_file_check(launch/test_spinnaker.launch)
 
   find_package(roslint REQUIRED)
   set(ROSLINT_CPP_OPTS "--filter=-build/c++11")
