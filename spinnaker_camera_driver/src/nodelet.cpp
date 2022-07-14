@@ -259,9 +259,6 @@ private:
     // Get a serial number through ros
     int serial = 0;
 
-    /*
-     * Test to see if XMLRPC is causing rosserial errors...
-     *
     XmlRpc::XmlRpcValue serial_xmlrpc;
     pnh.getParam("serial", serial_xmlrpc);
     if (serial_xmlrpc.getType() == XmlRpc::XmlRpcValue::TypeInt)
@@ -279,7 +276,6 @@ private:
       NODELET_DEBUG_ONCE("Serial XMLRPC type.");
       serial = 0;
     }
-    */
 
     std::string camera_serial_path;
     pnh.param<std::string>("camera_serial_path", camera_serial_path, "");
