@@ -3,7 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="fa2d9d9d-15eb-43e8-9c26-2a878faaab83" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spinnaker_camera_driver/src/nodelet.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/spinnaker_camera_driver/src/nodelet.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spinnaker_camera_driver/launch/kinetic_fisheye.launch" beforeDir="false" afterPath="$PROJECT_DIR$/spinnaker_camera_driver/launch/kinetic_fisheye.launch" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spinnaker_camera_driver/launch/kinetic_stereo.launch" beforeDir="false" afterPath="$PROJECT_DIR$/spinnaker_camera_driver/launch/kinetic_stereo.launch" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
