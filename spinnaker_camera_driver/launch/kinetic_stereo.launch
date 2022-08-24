@@ -48,7 +48,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
   <group ns="$(arg camera_name)">
       <group ns="camera_left">
-      <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
+      <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="log"/>
 
       <!-- Camera nodelet -->
       <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
@@ -81,7 +81,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
     </group>
 
       <group ns="camera_right">
-      <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
+      <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="log"/>
 
       <!-- Camera nodelet -->
       <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
