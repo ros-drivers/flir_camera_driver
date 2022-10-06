@@ -116,7 +116,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   </group>
 
   <!-- RVIZ -->
-  <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/stereo_cam_test.rviz"/> -->
+  <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/cam_test.rviz"/> -->
 
   <!-- RQT RECONFIGURE -->
   <!-- <node name="reconfigurererer" pkg="rqt_reconfigure" type="rqt_reconfigure" output="log"/> -->
