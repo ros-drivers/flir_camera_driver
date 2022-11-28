@@ -24,6 +24,7 @@ env:
   matrix: # each line is a job
     - ROS_DISTRO="kinetic"
     - ROS_DISTRO="melodic"
+    - ROS_DISTRO="noetic"
 
 # clone and run industrial_ci
 install:

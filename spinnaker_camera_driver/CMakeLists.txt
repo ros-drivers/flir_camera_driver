@@ -16,11 +16,11 @@ generate_dynamic_reconfigure_options(
 )
 
 catkin_package(CATKIN_DEPENDS
-  image_exposure_msgs nodelet roscpp sensor_msgs wfov_camera_msgs
+  image_exposure_msgs nodelet roscpp sensor_msgs wfov_camera_msgs dynamic_reconfigure
 )
 
 
-# If Spinnacker is already present, use the found version. If not, download it.
+# If Spinnaker is already present, use the found version. If not, download it.
 # We can't resolve this dependency using the usual rosdep means because
 # the Point Grey EULA prohibits redistributing the headers or the packages which
 # contains them. We work around this by downloading the archive directly from
@@ -100,19 +100,6 @@ install(TARGETS
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
-# Redistributing the flycapture .so file is permitted by the SDK EULA:
-# http://www.ptgrey.com/support/kb/data/PGR-FlyCap-SDK-LA.pdf
-if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/usr/lib)
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/usr/lib/ DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-           PATTERN libQt* EXCLUDE)
-else()
-  get_filename_component(Spinnaker_LIB_DIR ${Spinnaker_LIBRARIES} DIRECTORY)
-  file(READ ${PROJECT_SOURCE_DIR}/cmake/install_files filenames)
-  foreach(filename ${filenames})
-    install(FILES ${Spinnaker_LIB_DIR}/${filename} DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-  endforeach()
-endif()
 
 install(FILES nodelet_plugins.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
 
