@@ -27,7 +27,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 <launch>
   <arg name="camera_name"               default="stereo" />
   <arg name="camera_serial_color"       default="22220197" /> 
-  <arg name="calibrated"                default="False" />
+  <arg name="calibrated"                default="True" />
   <arg name="isp_enable"                default="False" /> 
   <arg name="encoding"                  default="BayerGB8" />
   <arg name="color_balance"             default="Continuous" />
