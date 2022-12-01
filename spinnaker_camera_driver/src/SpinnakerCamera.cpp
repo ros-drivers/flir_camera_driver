@@ -232,6 +232,8 @@ void SpinnakerCamera::connect()
         camera_.reset(new Cm3(node_map_));
       else if (model_name_str.find("Grasshopper3") != std::string::npos)
         camera_.reset(new Gh3(node_map_));
+      else if (model_name_str.find("Blackfly") != std::string::npos)
+          camera_.reset(new Gh3(node_map_));
       else
       {
         camera_.reset(new Camera(node_map_));

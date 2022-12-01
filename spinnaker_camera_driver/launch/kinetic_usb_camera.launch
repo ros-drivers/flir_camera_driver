@@ -23,7 +23,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 <launch>
    <!-- Determine this using rosrun spinnaker_camera_driver list_cameras.
        If not specified, defaults to first camera found. -->
-  <arg name="camera_name"               default="camera" />
+  <arg name="camera_name"               default="usb_camera" />
   <arg name="camera_serial"             default="0" />
   <arg name="calibrated"                default="0" />
   <arg name="device_type"               default="USB3" /> <!-- USB3 or GigE -->
@@ -37,7 +37,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   <!-- Disabling ISP will dramatically increase frame-rate. However, it can only be 
       disabled when using Bayer encoding (e.g. BayerRG8)-->
   <arg name="isp_enable"                default="False" /> 
-  <arg name="encoding"                  default="BGR8" />
+  <arg name="encoding"                  default="RGB8Packed" />
   <arg name="color_balance"             default="Continuous" /> <!-- Off, Once, or Continuous -->
   <!-- Available Encodings:
         Mono:              YUV:              YCbCr:          Other:
@@ -59,7 +59,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   <group ns="$(arg camera_name)">
     <!-- Nodelet manager -->
     <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
-->
+
     <!-- Camera nodelet -->
     <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
           args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
@@ -100,6 +100,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
       <param name="camera_info_url" if="$(arg calibrated)"
              value="file://$(env HOME)/cam_calibration_tests/ost.yaml" />
     </node>
+
+    <!-- RVIZ -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/cam_test.rviz"/>
 
     <!-- Debayering nodelet -->
     <node pkg="nodelet" type="nodelet" name="image_proc_debayer"

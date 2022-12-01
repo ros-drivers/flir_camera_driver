@@ -29,7 +29,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   <arg name="camera_name"               default="camera" />
   <arg name="camera_serial"             default="0" />
   <arg name="calibrated"                default="0" />
-  <arg name="device_type"               default="USB3" /> <!-- USB3 or GigE -->
+  <arg name="device_type"               default="GigE" /> <!-- USB3 or GigE -->
 
   <!-- When unspecified, the driver will use the default framerate as given by the
       camera itself. Use the parameter 'control_frame_rate' to enable manual frame 
