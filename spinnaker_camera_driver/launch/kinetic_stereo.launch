@@ -108,6 +108,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/cam_test.rviz"/> -->
 
   <!-- RQT RECONFIGURE -->
-  <node name="rqt_reconfigure_image_params" pkg="rqt_reconfigure" type="rqt_reconfigure" output="log"/>
+  <!-- <node name="rqt_reconfigure_image_params" pkg="rqt_reconfigure" type="rqt_reconfigure" output="log"/> -->
 
 </launch>
