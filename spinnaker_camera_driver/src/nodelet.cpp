@@ -303,9 +303,12 @@ private:
     pnh.param<bool>("auto_packet_size", auto_packet_size_, true);
     pnh.param<int>("packet_delay", packet_delay_, 4000);
     pnh.param<int>("throughput_limit", throughput_limit_, 125000000);
+<<<<<<< HEAD
     pnh.param<bool>("trigger", trigger_, false);
     pnh.param<bool>("sw_trigger", sw_trigger_, false);
     pnh.param<double>("max_trigger_delay", max_trigger_delay_, 0.2);
+=======
+>>>>>>> Added parameter for device throughput limit
 
     // TODO(mhosmar):  Set GigE parameters:
     // spinnaker_.setGigEParameters(auto_packet_size_, packet_size_, packet_delay_);
@@ -529,7 +532,10 @@ private:
             NODELET_DEBUG("Connected to camera.");
 
             // Set last configuration, forcing the reconfigure level to stop
+<<<<<<< HEAD
             ROS_INFO("Nodelet: throughput limit to %d",throughput_limit_);
+=======
+>>>>>>> Added parameter for device throughput limit
             spinnaker_.setThroughputLimit(throughput_limit_);
             spinnaker_.setNewConfiguration(config_, SpinnakerCamera::LEVEL_RECONFIGURE_STOP);
 
