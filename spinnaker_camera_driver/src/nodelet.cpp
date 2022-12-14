@@ -302,6 +302,7 @@ private:
     pnh.param<int>("packet_size", packet_size_, 1400);
     pnh.param<bool>("auto_packet_size", auto_packet_size_, true);
     pnh.param<int>("packet_delay", packet_delay_, 4000);
+    pnh.param<int>("throughput_limit", throughput_limit_, 125000000);
 
     // TODO(mhosmar):  Set GigE parameters:
     // spinnaker_.setGigEParameters(auto_packet_size_, packet_size_, packet_delay_);
@@ -518,6 +519,7 @@ private:
             NODELET_DEBUG("Connected to camera.");
 
             // Set last configuration, forcing the reconfigure level to stop
+            spinnaker_.setThroughputLimit(throughput_limit_);
             spinnaker_.setNewConfiguration(config_, SpinnakerCamera::LEVEL_RECONFIGURE_STOP);
 
             // Set the timeout for grabbing images.
@@ -719,6 +721,8 @@ private:
   int packet_size_;
   /// GigE packet delay:
   int packet_delay_;
+  /// GigE throughput limit:
+  int throughput_limit_;
 
   /// Configuration:
   spinnaker_camera_driver::SpinnakerConfig config_;

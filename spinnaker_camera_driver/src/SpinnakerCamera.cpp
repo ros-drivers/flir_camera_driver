@@ -96,6 +96,12 @@ void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::Spinnak
   }
 }  // end setNewConfiguration
 
+void SpinnakerCamera::setThroughputLimit(const uint32_t& limit)
+{
+  if (camera_)
+    camera_->setThroughputLimit(limit);
+}
+
 void SpinnakerCamera::setGain(const float& gain)
 {
   if (camera_)
@@ -376,6 +382,7 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
       Spinnaker::GenICam::gcstring bayer_gr_str = "BayerGR";
       Spinnaker::GenICam::gcstring bayer_gb_str = "BayerGB";
       Spinnaker::GenICam::gcstring bayer_bg_str = "BayerBG";
+
 
       // if(isColor_ && bayer_format != NONE)
       if (color_filter_ptr->GetCurrentEntry() != color_filter_ptr->GetEntryByName("None"))

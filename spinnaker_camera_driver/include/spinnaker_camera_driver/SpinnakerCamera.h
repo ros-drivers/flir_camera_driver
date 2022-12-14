@@ -159,6 +159,7 @@ public:
   * \param id serial number for the camera.  Should be something like 10491081.
   */
   void setDesiredCamera(const uint32_t& id);
+  void setThroughputLimit(const uint32_t& limit);
 
   void setGain(const float& gain);
   int getHeightMax();
@@ -198,6 +199,8 @@ private:
   unsigned int packet_size_;
   /// GigE packet delay:
   unsigned int packet_delay_;
+  /// GigE throughput limit:
+  unsigned int throughput_limit_;
 
   uint64_t timeout_;
 
