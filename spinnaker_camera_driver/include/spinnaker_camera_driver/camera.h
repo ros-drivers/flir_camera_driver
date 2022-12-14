@@ -65,6 +65,7 @@ public:
   virtual void setGain(const float& gain);
   int getHeightMax();
   int getWidthMax();
+  void setThroughputLimit(const int& limit);
 
   Spinnaker::GenApi::CNodePtr
   readProperty(const Spinnaker::GenICam::gcstring property_name);
