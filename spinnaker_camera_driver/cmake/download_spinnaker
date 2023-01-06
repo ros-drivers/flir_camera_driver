@@ -70,7 +70,7 @@ ARCHS = {
         ]
     },
     'armv8':  {
-        'linux_arch': 'armh64',
+        'linux_arch': 'arm64',
         'current': '20.04',
         'type': 'deb',
         'shared_library': 'opt/spinnaker/lib/',
