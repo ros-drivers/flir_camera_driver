@@ -76,6 +76,11 @@ Changelog for package spinnaker_camera_driver
 * Start overhauling the spinnaker download script so it works with the correct endpoint & matches the general structure of the pointgrey_camera_driver
 * Contributors: Adam Romlein, Chris I-B, Evan Bretl, Fabian Schilling, Ferdinand, Joseph Curtis, Luis Camero, Max Schwarz, Stephan, Tony Baltovski, Yoshua Nava, Yuki Furuta, luis-camero
 
+Forthcoming
+-----------
+* Fixed typo in arm64 arch.
+* Contributors: Tony Baltovski
+
 0.2.3 (2022-04-19)
 ------------------
 * Only install necessary libraries
