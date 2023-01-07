@@ -74,7 +74,7 @@ ARCHS = {
         'current': '20.04',
         'type': 'deb',
         'shared_library': 'opt/spinnaker/lib/',
-        'folder_name': 'spinnaker-2.2.0.48_arm64',
+        'folder_name': 'spinnaker-2.2.0.48-arm64',
         'debs': [
             'libgentl_2.2.0.48_arm64.deb',
             'libspinnaker_2.2.0.48_arm64.deb',
