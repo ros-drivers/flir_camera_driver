@@ -15,6 +15,9 @@ Changelog for package flir_camera_driver
 * Include flir_camera_description as dependency in metapackage
 * Contributors: Joey Yang, Tony Baltovski
 
+Forthcoming
+-----------
+
 0.2.4 (2023-01-06)
 ------------------
 
