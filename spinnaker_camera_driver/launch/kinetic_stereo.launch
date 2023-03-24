@@ -72,8 +72,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   </group>
 
   <!-- DEBAYER NODELET -->
-  <node pkg="nodelet" type="nodelet" name="image_proc_debayer"
-        args="load image_proc/debayer camera_nodelet_manager">
+  <node pkg="nodelet" type="nodelet" name="image_proc_debayer" args="load image_proc/debayer camera_nodelet_manager">
   </node>
 
   <!-- STEREO CAMERA DISPARITY -->
@@ -88,10 +87,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   <param name="/stereo/stereo_image_proc/texture_threshold" value="1000" />
 
   <!-- CAMERA RECTIFICATION / PROJECTION -->
-  <node ns="stereo/left" name="image_proc" pkg="image_proc" type="image_proc"> 
-  </node>
-  <node ns="stereo/right" name="image_proc" pkg="image_proc" type="image_proc"> 
-  </node>
+  <node ns="stereo/left" name="image_proc" pkg="image_proc" type="image_proc"> </node>
+  <node ns="stereo/right" name="image_proc" pkg="image_proc" type="image_proc"> </node>
 
   <!-- MANUAL HW TRIGGER PARAMS -->
   <!-- MINION CAMERA (SET TRIGGER MODE TO RECIEVE TRIGGER FROM MASTER) -->
@@ -105,9 +102,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   <param name="/stereo/right/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
 
   <!-- RVIZ -->
-  <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/cam_test.rviz"/> -->
+<!--   <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/cam_test.rviz"/> -->
 
   <!-- RQT RECONFIGURE -->
-  <!-- <node name="rqt_reconfigure_image_params" pkg="rqt_reconfigure" type="rqt_reconfigure" output="log"/> -->
+<!--   <node name="rqt_reconfigure_image_params" pkg="rqt_reconfigure" type="rqt_reconfigure" output="log"/> -->
 
 </launch>

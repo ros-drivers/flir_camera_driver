@@ -25,42 +25,42 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 -->
 
 <launch>
-  <arg name="camera_serial_color"       default="22220197" />
-  <arg name="calibrated"                default="True" />
+  <arg name="camera_serial_mono"       default="21455859" />
+  <arg name="calibrated"                default="False" />
   <arg name="isp_enable"                default="False" /> 
-  <arg name="encoding"                  default="BayerGB8" />
+  <arg name="encoding"                  default="Mono8" />
   <arg name="color_balance"             default="Continuous" />
 
-  <group ns="color">
+  <group ns="mono">
       <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
 
       <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
             args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
 
-        <param name="frame_id"                        value="camera_color" />
-        <param name="serial"                          value="$(arg camera_serial_color)" />
-        <param name="image_format_roi_width"          value="2448" />
+        <param name="frame_id"                        value="camera_mono" />
+        <param name="serial"                          value="$(arg camera_serial_mono)" />
+        <param name="image_format_roi_width"          value="3072" />
         <param name="image_format_roi_height"         value="2048" />
         <param name="isp_enable"                      value="$(arg isp_enable)" />
         <param name="auto_white_balance"              value="$(arg color_balance)" />
         <param name="image_format_color_coding"       value="$(arg encoding)" />
         <param name="camera_info_url" if="$(arg calibrated)"
-               value="file://$(env HOME)/ros/src/manager/calib/camera_intrinsic/$(arg camera_serial_color).yaml" />
+               value="file://$(env HOME)/ros/src/manager/calib/camera_intrinsic/$(arg camera_serial_mono).yaml" />
       </node>
   </group>
 
   <!-- CAMERA PARAMS -->
-  <param name="/color/spinnaker_camera_nodelet/acquisition_frame_rate_enable" value="true" />
-  <param name="/color/spinnaker_camera_nodelet/acquisition_frame_rate" value="5.0" />
-  <param name="/color/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
+  <param name="/mono/spinnaker_camera_nodelet/acquisition_frame_rate_enable" value="true" />
+  <param name="/mono/spinnaker_camera_nodelet/acquisition_frame_rate" value="5.0" />
+  <param name="/mono/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
 
   <!-- CAMERA DEBAYER NODELET -->
-  <node ns="/color" name="image_proc_debayer" pkg="nodelet" type="nodelet"
+  <node ns="/mono" name="image_proc_debayer" pkg="nodelet" type="nodelet"
     args="load image_proc/debayer camera_nodelet_manager">
   </node>
 
   <!-- CAMERA RECTIFICATION -->
-  <node ns="/color" name="image_proc" pkg="image_proc" type="image_proc">
+  <node ns="/mono" name="image_proc" pkg="image_proc" type="image_proc">
   </node>
 
   <!-- RVIZ -->
