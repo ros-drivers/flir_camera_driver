@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+
+<!--
+Software License Agreement (BSD)
+
+\authors   Michael Hosmar <mhosmar@clearpathrobotics.com>
+\copyright Copyright (c) 2018, Clearpath Robotics, Inc., All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+   following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the 
+   following disclaimer in the documentation and/or other materials provided with the distribution.
+ * Neither the name of Clearpath Robotics nor the names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WAR-
+RANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, IN-
+DIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<launch>
+  <arg name="camera_name"               default="stereo" />
+  <arg name="camera_serial_upper"       default="22241785" />
+  <arg name="camera_serial_lower"       default="22072264" /> <!-- MASTER CAMERA -->
+  <arg name="color"                     default="Mono8" />
+  <arg name="width"                     default="1920" />
+  <arg name="height"                    default="1200" />
+  <arg name="calibrated"                default="False" />
+
+  <group ns="$(arg camera_name)">
+      <group ns="upper">
+      <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
+
+      <!-- Camera nodelet -->
+      <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
+            args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
+
+        <param name="frame_id"                        value="camera_upper" />
+        <param name="serial"                          value="$(arg camera_serial_upper)" />
+        <param name="image_format_color_coding"       value="$(arg color)" />
+        <param name="image_format_roi_width"          value="$(arg width)" />
+        <param name="image_format_roi_height"         value="$(arg height)" />
+    </group>
+  </group>
+
+  <group ns="$(arg camera_name)">
+      <group ns="lower">
+      <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
+
+      <!-- Camera nodelet -->
+      <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
+            args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
+
+        <param name="frame_id"                        value="camera_lower" />
+        <param name="serial"                          value="$(arg camera_serial_lower)" />
+        <param name="image_format_color_coding"       value="$(arg color)" />
+        <param name="image_format_roi_width"          value="$(arg width)" />
+        <param name="image_format_roi_height"         value="$(arg height)" />
+    </group>
+  </group>
+
+  <!-- DEBAYER NODELET -->
+  <node pkg="nodelet" type="nodelet" name="image_proc_debayer" args="load image_proc/debayer camera_nodelet_manager">
+  </node>
+
+  <!-- MANUAL HW TRIGGER PARAMS -->
+  <!-- MINION CAMERA (SET TRIGGER MODE TO RECIEVE TRIGGER FROM MASTER) -->
+  <param name="/stereo/upper/spinnaker_camera_nodelet/trigger_source" value="Line3" />
+  <param name="/stereo/upper/spinnaker_camera_nodelet/enable_trigger" value="On" />
+  <param name="/stereo/upper/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
+
+  <!-- MASTER CAMERA (SET FRAME RATE) -->
+  <param name="/stereo/lower/spinnaker_camera_nodelet/acquisition_frame_rate" value="5.0" />
+  <param name="/stereo/lower/spinnaker_camera_nodelet/acquisition_frame_rate_enable" value="true" />
+  <param name="/stereo/lower/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
+
+  <!-- CAMERA RECTIFICATION / PROJECTION -->
+<!--   <node ns="stereo/upper" name="image_proc" pkg="image_proc" type="image_proc"> </node> -->
+<!--   <node ns="stereo/lower" name="image_proc" pkg="image_proc" type="image_proc"> </node> -->
+
+  <!-- STEREO CAMERA DISPARITY -->
+  <!-- COMPUTATIONALLY EXPENSIVE! -->
+<!--   <node ns="stereo" name="stereo_image_proc" pkg="stereo_image_proc" type="stereo_image_proc"> 
+      <param name="approximate_sync" value="true"/>
+  </node> -->
+
+  <!-- STEREO CAMERA DISPARITY PARAMS -->
+<!--   <param name="/stereo/stereo_image_proc/disparity_range" value="256" /> -->
+<!--   <param name="/stereo/stereo_image_proc/speckle_size" value="1000" /> -->
+<!--   <param name="/stereo/stereo_image_proc/texture_threshold" value="1000" /> -->
+
+  <!-- RVIZ -->
+<!--   <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/cam_test.rviz"/> -->
+
+  <!-- RQT RECONFIGURE -->
+<!--   <node name="rqt_reconfigure_image_params" pkg="rqt_reconfigure" type="rqt_reconfigure" output="log"/> -->
+
+</launch>
