@@ -26,23 +26,23 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 <launch>
   <arg name="camera_name"               default="stereo" />
-  <arg name="camera_serial_upper"       default="22073953" />
-  <arg name="camera_serial_lower"       default="22241794" /> <!-- MASTER CAMERA -->
+  <arg name="camera_serial_secondary"   default="22073953" />
+  <arg name="camera_serial_primary"     default="22241794" /> <!-- MASTER CAMERA -->
   <arg name="color"                     default="Mono8" />
   <arg name="width"                     default="1920" />
   <arg name="height"                    default="1200" />
   <arg name="calibrated"                default="False" />
 
   <group ns="$(arg camera_name)">
-      <group ns="upper">
+      <group ns="secondary">
       <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
 
       <!-- Camera nodelet -->
       <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
             args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
 
-        <param name="frame_id"                        value="camera_upper" />
-        <param name="serial"                          value="$(arg camera_serial_upper)" />
+        <param name="frame_id"                        value="camera_secondary" />
+        <param name="serial"                          value="$(arg camera_serial_secondary)" />
         <param name="image_format_color_coding"       value="$(arg color)" />
         <param name="image_format_roi_width"          value="$(arg width)" />
         <param name="image_format_roi_height"         value="$(arg height)" />
@@ -52,15 +52,15 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   </group>
 
   <group ns="$(arg camera_name)">
-      <group ns="lower">
+      <group ns="primary">
       <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
 
       <!-- Camera nodelet -->
       <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
             args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
 
-        <param name="frame_id"                        value="camera_lower" />
-        <param name="serial"                          value="$(arg camera_serial_lower)" />
+        <param name="frame_id"                        value="camera_primary" />
+        <param name="serial"                          value="$(arg camera_serial_primary)" />
         <param name="image_format_color_coding"       value="$(arg color)" />
         <param name="image_format_roi_width"          value="$(arg width)" />
         <param name="image_format_roi_height"         value="$(arg height)" />
@@ -75,18 +75,18 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
   <!-- MANUAL HW TRIGGER PARAMS -->
   <!-- MINION CAMERA (SET TRIGGER MODE TO RECIEVE TRIGGER FROM MASTER) -->
-  <param name="/stereo/upper/spinnaker_camera_nodelet/trigger_source" value="Line3" />
-  <param name="/stereo/upper/spinnaker_camera_nodelet/enable_trigger" value="On" />
-  <param name="/stereo/upper/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/trigger_source" value="Line3" />
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/enable_trigger" value="On" />
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
 
   <!-- MASTER CAMERA (SET FRAME RATE) -->
-  <param name="/stereo/lower/spinnaker_camera_nodelet/acquisition_frame_rate" value="5.0" />
-  <param name="/stereo/lower/spinnaker_camera_nodelet/acquisition_frame_rate_enable" value="true" />
-  <param name="/stereo/lower/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
+  <param name="/stereo/primary/spinnaker_camera_nodelet/acquisition_frame_rate" value="5.0" />
+  <param name="/stereo/primary/spinnaker_camera_nodelet/acquisition_frame_rate_enable" value="true" />
+  <param name="/stereo/primary/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
 
   <!-- CAMERA RECTIFICATION / PROJECTION EXAMPLE-->
-<!--   <node ns="stereo/upper" name="image_proc" pkg="image_proc" type="image_proc"> </node> -->
-<!--   <node ns="stereo/lower" name="image_proc" pkg="image_proc" type="image_proc"> </node> -->
+<!--   <node ns="stereo/secondary" name="image_proc" pkg="image_proc" type="image_proc"> </node> -->
+<!--   <node ns="stereo/primary" name="image_proc" pkg="image_proc" type="image_proc"> </node> -->
 
   <!-- STEREO CAMERA DISPARITY EXAMPLE -->
   <!-- COMPUTATIONALLY EXPENSIVE! -->
