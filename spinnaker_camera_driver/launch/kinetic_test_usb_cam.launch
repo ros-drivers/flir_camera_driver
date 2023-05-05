@@ -49,6 +49,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
       <param name="isp_enable"                      value="$(arg isp_enable)" />
       <param name="auto_white_balance"              value="$(arg color_balance)" />
       <param name="image_format_color_coding"       value="$(arg encoding)" />
+    </node>
 
     <!-- RVIZ -->
     <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/cam_test.rviz"/>
