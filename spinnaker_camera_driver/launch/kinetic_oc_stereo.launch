@@ -26,48 +26,46 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 <launch>
   <arg name="camera_name"               default="stereo" />
-  <arg name="camera_serial_left"        default="22241785" />
-  <arg name="camera_serial_right"       default="22072264" /> <!-- MASTER CAMERA -->
+  <arg name="camera_serial_secondary"   default="22073953" />
+  <arg name="camera_serial_primary"     default="22241794" /> <!-- MASTER CAMERA -->
   <arg name="color"                     default="Mono8" />
   <arg name="width"                     default="1920" />
   <arg name="height"                    default="1200" />
-  <arg name="calibrated"                default="true" />
+  <arg name="calibrated"                default="False" />
 
   <group ns="$(arg camera_name)">
-      <group ns="left">
+      <group ns="secondary">
       <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
 
       <!-- Camera nodelet -->
       <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
             args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
 
-        <param name="frame_id"                        value="camera_left" />
-        <param name="serial"                          value="$(arg camera_serial_left)" />
+        <param name="frame_id"                        value="camera_secondary" />
+        <param name="serial"                          value="$(arg camera_serial_secondary)" />
         <param name="image_format_color_coding"       value="$(arg color)" />
         <param name="image_format_roi_width"          value="$(arg width)" />
         <param name="image_format_roi_height"         value="$(arg height)" />
-        <param name="camera_info_url" if="$(arg calibrated)"
-               value="file://$(env HOME)/ros/src/manager/calib/camera_intrinsic/$(arg camera_serial_left).yaml" />
-      </node>
+    </node>
+
     </group>
   </group>
 
   <group ns="$(arg camera_name)">
-      <group ns="right">
+      <group ns="primary">
       <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
 
       <!-- Camera nodelet -->
       <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
             args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
 
-        <param name="frame_id"                        value="camera_right" />
-        <param name="serial"                          value="$(arg camera_serial_right)" />
+        <param name="frame_id"                        value="camera_primary" />
+        <param name="serial"                          value="$(arg camera_serial_primary)" />
         <param name="image_format_color_coding"       value="$(arg color)" />
         <param name="image_format_roi_width"          value="$(arg width)" />
         <param name="image_format_roi_height"         value="$(arg height)" />
-        <param name="camera_info_url" if="$(arg calibrated)"
-               value="file://$(env HOME)/ros/src/manager/calib/camera_intrinsic/$(arg camera_serial_right).yaml" />
-      </node>
+    </node>
+
     </group>
   </group>
 
@@ -75,31 +73,31 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   <node pkg="nodelet" type="nodelet" name="image_proc_debayer" args="load image_proc/debayer camera_nodelet_manager">
   </node>
 
-  <!-- STEREO CAMERA DISPARITY -->
+  <!-- MANUAL HW TRIGGER PARAMS -->
+  <!-- MINION CAMERA (SET TRIGGER MODE TO RECIEVE TRIGGER FROM MASTER) -->
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/trigger_source" value="Line3" />
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/enable_trigger" value="On" />
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
+
+  <!-- MASTER CAMERA (SET FRAME RATE) -->
+  <param name="/stereo/primary/spinnaker_camera_nodelet/acquisition_frame_rate" value="5.0" />
+  <param name="/stereo/primary/spinnaker_camera_nodelet/acquisition_frame_rate_enable" value="true" />
+  <param name="/stereo/primary/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
+
+  <!-- CAMERA RECTIFICATION / PROJECTION EXAMPLE-->
+<!--   <node ns="stereo/secondary" name="image_proc" pkg="image_proc" type="image_proc"> </node> -->
+<!--   <node ns="stereo/primary" name="image_proc" pkg="image_proc" type="image_proc"> </node> -->
+
+  <!-- STEREO CAMERA DISPARITY EXAMPLE -->
   <!-- COMPUTATIONALLY EXPENSIVE! -->
 <!--   <node ns="stereo" name="stereo_image_proc" pkg="stereo_image_proc" type="stereo_image_proc"> 
       <param name="approximate_sync" value="true"/>
   </node> -->
 
-  <!-- STEREO CAMERA DISPARITY PARAMS -->
-  <param name="/stereo/stereo_image_proc/disparity_range" value="256" />
-  <param name="/stereo/stereo_image_proc/speckle_size" value="1000" />
-  <param name="/stereo/stereo_image_proc/texture_threshold" value="1000" />
-
-  <!-- CAMERA RECTIFICATION / PROJECTION -->
-  <node ns="stereo/left" name="image_proc" pkg="image_proc" type="image_proc"> </node>
-  <node ns="stereo/right" name="image_proc" pkg="image_proc" type="image_proc"> </node>
-
-  <!-- MANUAL HW TRIGGER PARAMS -->
-  <!-- MINION CAMERA (SET TRIGGER MODE TO RECIEVE TRIGGER FROM MASTER) -->
-  <param name="/stereo/left/spinnaker_camera_nodelet/trigger_source" value="Line3" />
-  <param name="/stereo/left/spinnaker_camera_nodelet/enable_trigger" value="On" />
-  <param name="/stereo/left/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
-  
-  <!-- MASTER CAMERA (SET FRAME RATE) -->
-  <param name="/stereo/right/spinnaker_camera_nodelet/acquisition_frame_rate" value="5.0" />
-  <param name="/stereo/right/spinnaker_camera_nodelet/acquisition_frame_rate_enable" value="true" />
-  <param name="/stereo/right/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
+  <!-- STEREO CAMERA DISPARITY PARAMS EXAMPLE -->
+<!--   <param name="/stereo/stereo_image_proc/disparity_range" value="256" /> -->
+<!--   <param name="/stereo/stereo_image_proc/speckle_size" value="1000" /> -->
+<!--   <param name="/stereo/stereo_image_proc/texture_threshold" value="1000" /> -->
 
   <!-- RVIZ -->
 <!--   <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/cam_test.rviz"/> -->
