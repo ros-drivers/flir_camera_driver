@@ -77,12 +77,15 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
   <!-- MINION CAMERA (SET TRIGGER MODE TO RECIEVE TRIGGER FROM MASTER) -->
   <param name="/stereo/secondary/spinnaker_camera_nodelet/trigger_source" value="Line3" />
   <param name="/stereo/secondary/spinnaker_camera_nodelet/enable_trigger" value="On" />
-  <param name="/stereo/secondary/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/exposure_auto" value="Off" />
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/exposure_time" value="10000" />
+
 
   <!-- MASTER CAMERA (SET FRAME RATE) -->
   <param name="/stereo/primary/spinnaker_camera_nodelet/acquisition_frame_rate" value="5.0" />
   <param name="/stereo/primary/spinnaker_camera_nodelet/acquisition_frame_rate_enable" value="true" />
-  <param name="/stereo/primary/spinnaker_camera_nodelet/auto_exposure_time_upper_limit" value="50000" />
+  <param name="/stereo/primary/spinnaker_camera_nodelet/exposure_auto" value="Off" />
+  <param name="/stereo/primary/spinnaker_camera_nodelet/exposure_time" value="10000" />
 
   <!-- CAMERA RECTIFICATION / PROJECTION EXAMPLE-->
 <!--   <node ns="stereo/secondary" name="image_proc" pkg="image_proc" type="image_proc"> </node> -->
@@ -100,9 +103,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 <!--   <param name="/stereo/stereo_image_proc/texture_threshold" value="1000" /> -->
 
   <!-- RVIZ -->
-<!--   <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/cam_test.rviz"/> -->
+  <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/cam_test.rviz"/> -->
 
   <!-- RQT RECONFIGURE -->
-<!--   <node name="rqt_reconfigure_image_params" pkg="rqt_reconfigure" type="rqt_reconfigure" output="log"/> -->
+  <!-- <node name="rqt_reconfigure_image_params" pkg="rqt_reconfigure" type="rqt_reconfigure" output="log"/> -->
 
 </launch>
