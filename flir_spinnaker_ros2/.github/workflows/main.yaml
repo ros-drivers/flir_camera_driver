@@ -1,0 +1,56 @@
+#
+# continuous integration workflow
+#
+name: build repo
+
+on:
+ push:
+    branches: [ master]
+ pull_request:
+    branches: [ master]
+ workflow_dispatch:
+    branches: [ master]
+
+jobs:
+  build_focal_galactic:
+    runs-on: ubuntu-20.04
+    container:
+      image: berndpfrommer/focal_noetic_galactic_spinnaker
+    name: build under focal / galactic
+    steps:
+      - name: check out github repo
+        uses: actions/checkout@v3
+        with:
+          path: src/flir_spinnaker_ros2
+          fetch-depth: 0
+      - name: compile from source
+        run: ./src/flir_spinnaker_ros2/.github/scripts/build_ros2.bash
+  
+  build_focal_foxy:
+    runs-on: ubuntu-20.04
+    container:
+      image: berndpfrommer/focal_foxy_spinnaker
+    name: build under focal / foxy
+    steps:
+      - name: check out github repo
+        uses: actions/checkout@v3
+        with:
+          path: src/flir_spinnaker_ros2
+          fetch-depth: 0
+      - name: compile from source
+        run: ./src/flir_spinnaker_ros2/.github/scripts/build_ros2.bash
+  
+  build_jammy_ros2:
+    runs-on: ubuntu-22.04
+    container:
+      image: berndpfrommer/jammy_humble_spinnaker
+    name: build under jammy / humble
+    steps:
+      - name: check out github repo
+        uses: actions/checkout@v3
+        with:
+          path: src/flir_spinnaker_ros2
+          fetch-depth: 0
+      - name: compile from source
+        run: ./src/flir_spinnaker_ros2/.github/scripts/build_ros2.bash
+  

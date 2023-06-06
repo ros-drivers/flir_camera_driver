@@ -1,0 +1,16 @@
+#
+# example config file
+#
+
+spinnaker_node: # must match name of node
+  ros__parameters: # mandatory for ROS2
+    camera_groups: [ "stereo_camera_1", "group2" ]
+    stereo_camera_1:
+      cameras: [ "blackfly_s" ]
+      grasshopper:
+        serial: "17274483"
+      blackfly_s:
+        serial: "20415937"
+
+
+

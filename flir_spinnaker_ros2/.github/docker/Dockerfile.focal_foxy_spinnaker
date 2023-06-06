@@ -1,0 +1,44 @@
+FROM ros:foxy
+LABEL maintainer="bernd.pfrommer@gmail.com"
+LABEL version="1.0"
+LABEL description="focal-foxy custom Docker Image with FLIR Spinnaker"
+ARG DEBIAN_FRONTEND=noninteractive
+ARG ROS2_VERSION=foxy
+#
+# FLIR spinnaker information
+#
+ARG SPINN_VERSION=2.6.0.157
+ARG SPINN_OS=Ubuntu20.04
+ARG SPINN_ARCH=amd64
+RUN apt-get update
+
+# for add-apt-repository and to make debconf happy
+RUN apt-get -y install software-properties-common apt-utils
+
+#
+# some additional ROS2 packages
+#
+RUN apt-get -y install python3-osrf-pycommon python3-catkin-tools ros-${ROS2_VERSION}-image-transport ros-${ROS2_VERSION}-cv-bridge ros-${ROS2_VERSION}-image-geometry ros-${ROS2_VERSION}-camera-info-manager ros-${ROS2_VERSION}-ament-clang-format ros-${ROS2_VERSION}-ament-cmake-clang-format
+
+# wstool and colcon
+RUN apt-get -y install python3-colcon-common-extensions python3-wstool
+
+#
+# some additional ubuntu packages:
+#
+# - git
+# - opencv
+# - libceres (for e.g. multicam-calibration)
+#
+RUN apt-get -y install git libopencv-dev libceres-dev
+
+#
+# install FLIR Spinnaker SDK from local package
+#
+#COPY spinnaker-${SPINN_VERSION}-${SPINN_OS}-${SPINN_ARCH}-pkg.tar.gz /tmp/
+COPY spinnaker-${SPINN_VERSION}-${SPINN_ARCH} /tmp/spinnaker-${SPINN_VERSION}-${SPINN_ARCH}
+# install dependencies
+RUN apt-get -y install iputils-ping wget libavcodec58 libavformat58 libswscale5 libswresample3 libavutil56 libusb-1.0-0 libpcre2-16-0 libdouble-conversion3 libxcb-xinput0 libxcb-xinerama0
+RUN ls /tmp/
+RUN cd /tmp/spinnaker-${SPINN_VERSION}-${SPINN_ARCH} && sh ./install_spinnaker.sh
+RUN rm -rf /tmp/spinnaker-${SPINN_VERSION}-${SPINN_ARCH}

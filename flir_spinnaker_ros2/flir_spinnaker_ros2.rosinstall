@@ -1,0 +1,3 @@
+- git: {local-name: flir_spinnaker_common, uri: 'https://github.com/berndpfrommer/flir_spinnaker_common.git', version: 'master'}
+- git: {local-name: image_meta_msgs_ros2, uri: 'https://github.com/berndpfrommer/image_meta_msgs_ros2.git', version: 'master'}
+- git: {local-name: camera_control_msgs_ros2, uri: 'https://github.com/berndpfrommer/camera_control_msgs_ros2.git', version: 'master'}

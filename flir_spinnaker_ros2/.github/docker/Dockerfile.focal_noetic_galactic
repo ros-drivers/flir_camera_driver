@@ -1,0 +1,19 @@
+FROM ros:noetic
+LABEL maintainer="bernd.pfrommer@gmail.com"
+LABEL version="1.0"
+LABEL description="ros noetic + galactic image"
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+
+# for add-apt-repository and to make debconf happy
+RUN apt-get -y install software-properties-common apt-utils
+
+#
+# install ROS2 galactic
+#
+RUN add-apt-repository universe
+RUN apt-get update && sudo apt-get -y install curl gnupg lsb-release
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+RUN apt-get update
+RUN apt-get -y install ros-galactic-desktop

@@ -1,0 +1,4 @@
+#!/bin/bash
+var=$(find ~/ -type d -path "*/build/flir_spinnaker_common/opt/spinnaker/lib")
+echo "$var"
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"$var"

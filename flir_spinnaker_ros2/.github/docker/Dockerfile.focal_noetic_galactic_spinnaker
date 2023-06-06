@@ -1,0 +1,51 @@
+FROM berndpfrommer/focal_noetic_galactic
+LABEL maintainer="bernd.pfrommer@gmail.com"
+LABEL version="1.0"
+LABEL description="focal custom Docker Image for building ROS and ROS2 packages"
+ARG DEBIAN_FRONTEND=noninteractive
+ARG ROS1_VERSION=noetic
+ARG ROS2_VERSION=galactic
+#
+# FLIR spinnaker information
+#
+ARG SPINN_VERSION=2.6.0.157
+ARG SPINN_OS=Ubuntu20.04
+ARG SPINN_ARCH=amd64
+RUN apt-get update
+
+# for add-apt-repository and to make debconf happy
+RUN apt-get -y install software-properties-common apt-utils
+
+#
+# some additional ROS1 packages
+#
+RUN apt-get -y install python3-osrf-pycommon python3-catkin-tools ros-${ROS1_VERSION}-image-transport ros-${ROS1_VERSION}-cv-bridge ros-${ROS1_VERSION}-sensor-msgs ros-${ROS1_VERSION}-std-msgs ros-${ROS1_VERSION}-rosbag ros-${ROS1_VERSION}-eigen-conversions ros-${ROS1_VERSION}-tf2-ros ros-${ROS1_VERSION}-image-geometry ros-${ROS1_VERSION}-tf2-geometry-msgs ros-${ROS1_VERSION}-message-generation ros-${ROS1_VERSION}-message-runtime ros-${ROS1_VERSION}-dynamic-reconfigure ros-${ROS1_VERSION}-camera-info-manager
+
+
+#
+# some additional ROS2 packages
+#
+RUN apt-get -y install python3-osrf-pycommon python3-catkin-tools ros-${ROS2_VERSION}-image-transport ros-${ROS2_VERSION}-cv-bridge ros-${ROS2_VERSION}-sensor-msgs ros-${ROS2_VERSION}-std-msgs ros-${ROS2_VERSION}-rosbag2* ros-${ROS2_VERSION}-tf2-ros ros-${ROS2_VERSION}-image-geometry ros-${ROS2_VERSION}-tf2-geometry-msgs ros-${ROS2_VERSION}-camera-info-manager ros-${ROS2_VERSION}-ament-clang-format ros-${ROS2_VERSION}-ament-cmake-clang-format
+
+# colcon
+RUN apt-get -y install python3-colcon-common-extensions
+
+#
+# some additional ubuntu packages:
+#
+# - git
+# - opencv
+# - libceres (for e.g. multicam-calibration)
+#
+RUN apt-get -y install git libopencv-dev libceres-dev
+
+#
+# install FLIR Spinnaker SDK from local package
+#
+#COPY spinnaker-${SPINN_VERSION}-${SPINN_OS}-${SPINN_ARCH}-pkg.tar.gz /tmp/
+COPY spinnaker-${SPINN_VERSION}-${SPINN_ARCH} /tmp/spinnaker-${SPINN_VERSION}-${SPINN_ARCH}
+# install dependencies
+RUN apt-get -y install iputils-ping wget libavcodec58 libavformat58 libswscale5 libswresample3 libavutil56 libusb-1.0-0 libpcre2-16-0 libdouble-conversion3 libxcb-xinput0 libxcb-xinerama0
+RUN ls /tmp/
+RUN cd /tmp/spinnaker-${SPINN_VERSION}-${SPINN_ARCH} && sh ./install_spinnaker.sh
+RUN rm -rf /tmp/spinnaker-${SPINN_VERSION}-${SPINN_ARCH}
