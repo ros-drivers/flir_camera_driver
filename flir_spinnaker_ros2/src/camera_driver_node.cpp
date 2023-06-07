@@ -21,8 +21,7 @@
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  auto node =
-    std::make_shared<flir_spinnaker_ros2::CameraDriver>(rclcpp::NodeOptions());
+  auto node = std::make_shared<flir_spinnaker_ros2::CameraDriver>(rclcpp::NodeOptions());
 
   RCLCPP_INFO(node->get_logger(), "camera_driver_node started up!");
   // actually run the node

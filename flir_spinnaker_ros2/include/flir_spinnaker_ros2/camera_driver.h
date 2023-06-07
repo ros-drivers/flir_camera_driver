@@ -72,15 +72,13 @@ private:
 
   rcl_interfaces::msg::SetParametersResult parameterChanged(
     const std::vector<rclcpp::Parameter> & params);
-  void controlCallback(
-    const camera_control_msgs_ros2::msg::CameraControl::UniquePtr msg);
+  void controlCallback(const camera_control_msgs_ros2::msg::CameraControl::UniquePtr msg);
   void printStatus();
   void doPublish(const ImageConstPtr & im);
   // ----- variables --
   std::shared_ptr<rclcpp::Node> node_;
   image_transport::CameraPublisher pub_;
-  rclcpp::Publisher<image_meta_msgs_ros2::msg::ImageMetaData>::SharedPtr
-    metaPub_;
+  rclcpp::Publisher<image_meta_msgs_ros2::msg::ImageMetaData>::SharedPtr metaPub_;
   std::string serial_;
   std::string cameraInfoURL_;
   std::string frameId_;
@@ -102,8 +100,7 @@ private:
   sensor_msgs::msg::Image imageMsg_;
   sensor_msgs::msg::CameraInfo cameraInfoMsg_;
   image_meta_msgs_ros2::msg::ImageMetaData metaMsg_;
-  rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr
-    callbackHandle_;  // keep alive callbacks
+  rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr callbackHandle_;  // keep alive callbacks
   rclcpp::TimerBase::SharedPtr statusTimer_;
   bool cameraRunning_{false};
   std::mutex mutex_;
@@ -114,8 +111,7 @@ private:
   bool keepRunning_{true};
   std::map<std::string, NodeInfo> parameterMap_;
   std::vector<std::string> parameterList_;  // remember original ordering
-  rclcpp::Subscription<camera_control_msgs_ros2::msg::CameraControl>::SharedPtr
-    controlSub_;
+  rclcpp::Subscription<camera_control_msgs_ros2::msg::CameraControl>::SharedPtr controlSub_;
   uint32_t publishedCount_{0};
   uint32_t droppedCount_{0};
   uint32_t queuedCount_{0};

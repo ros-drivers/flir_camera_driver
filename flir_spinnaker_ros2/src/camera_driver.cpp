@@ -52,15 +52,13 @@ struct DescSetter<T, decltype((void)T::dynamic_typing, true)>
   static void set_dynamic_typing(T * desc) { desc->dynamic_typing = true; }
 };
 
-static rcl_interfaces::msg::ParameterDescriptor make_desc(
-  const std::string name, int type)
+static rcl_interfaces::msg::ParameterDescriptor make_desc(const std::string name, int type)
 {
   rcl_interfaces::msg::ParameterDescriptor desc;
   desc.name = name;
   desc.type = type;
   desc.description = name;
-  DescSetter<rcl_interfaces::msg::ParameterDescriptor>::set_dynamic_typing(
-    &desc);
+  DescSetter<rcl_interfaces::msg::ParameterDescriptor>::set_dynamic_typing(&desc);
   return (desc);
 }
 
@@ -92,9 +90,7 @@ static std::pair<bool, bool> get_bool_int_param(const rclcpp::Parameter & p)
   return (bb);
 }
 
-CameraDriver::NodeInfo::NodeInfo(
-  const std::string & n, const std::string & nodeType)
-: name(n)
+CameraDriver::NodeInfo::NodeInfo(const std::string & n, const std::string & nodeType) : name(n)
 {
   if (nodeType == "float") {
     type = FLOAT;
@@ -111,13 +107,11 @@ CameraDriver::NodeInfo::NodeInfo(
   }
 }
 
-CameraDriver::CameraDriver(const rclcpp::NodeOptions & options)
-: Node("cam_sync", options)
+CameraDriver::CameraDriver(const rclcpp::NodeOptions & options) : Node("cam_sync", options)
 {
   lastStatusTime_ = now();
   statusTimer_ = rclcpp::create_timer(
-    this, get_clock(), rclcpp::Duration(5, 0),
-    std::bind(&CameraDriver::printStatus, this));
+    this, get_clock(), rclcpp::Duration(5, 0), std::bind(&CameraDriver::printStatus, this));
   bool status = start();
   if (!status) {
     LOG_ERROR("startup failed!");
@@ -160,10 +154,9 @@ bool CameraDriver::stopCamera()
 void CameraDriver::printStatus()
 {
   if (driver_) {
-    const double dropRate = (queuedCount_ > 0)
-                              ? (static_cast<double>(droppedCount_) /
-                                 static_cast<double>(queuedCount_))
-                              : 0;
+    const double dropRate =
+      (queuedCount_ > 0) ? (static_cast<double>(droppedCount_) / static_cast<double>(queuedCount_))
+                         : 0;
     const rclcpp::Time t = now();
     const rclcpp::Duration dt = t - lastStatusTime_;
     double dtns = std::max(dt.nanoseconds(), (int64_t)1);
@@ -182,12 +175,10 @@ void CameraDriver::printStatus()
 
 void CameraDriver::readParameters()
 {
-  serial_ = this->declare_parameter<std::string>(
-    "serial_number", "missing_serial_number");
+  serial_ = this->declare_parameter<std::string>("serial_number", "missing_serial_number");
   try {
     debug_ = this->declare_parameter(
-      "debug", false,
-      make_desc("debug", rclcpp::ParameterType::PARAMETER_BOOL));
+      "debug", false, make_desc("debug", rclcpp::ParameterType::PARAMETER_BOOL));
   } catch (const rclcpp::exceptions::InvalidParameterTypeException & e) {
     LOG_WARN("bad debug param type: " << e.what());
     debug_ = false;
@@ -200,14 +191,10 @@ void CameraDriver::readParameters()
   frameId_ = this->declare_parameter<std::string>("frame_id", get_name());
   dumpNodeMap_ = this->declare_parameter<bool>("dump_node_map", false);
   qosDepth_ = this->declare_parameter<int>("image_queue_size", 4);
-  maxBufferQueueSize_ =
-    static_cast<size_t>(this->declare_parameter<int>("buffer_queue_size", 4));
-  computeBrightness_ =
-    this->declare_parameter<bool>("compute_brightness", false);
-  acquisitionTimeout_ =
-    this->declare_parameter<double>("acquisition_timeout", 3.0);
-  parameterFile_ =
-    this->declare_parameter<std::string>("parameter_file", "parameters.cfg");
+  maxBufferQueueSize_ = static_cast<size_t>(this->declare_parameter<int>("buffer_queue_size", 4));
+  computeBrightness_ = this->declare_parameter<bool>("compute_brightness", false);
+  acquisitionTimeout_ = this->declare_parameter<double>("acquisition_timeout", 3.0);
+  parameterFile_ = this->declare_parameter<std::string>("parameter_file", "parameters.cfg");
   LOG_INFO("looking for serial number: " << serial_);
   callbackHandle_ = this->add_on_set_parameters_callback(
     std::bind(&CameraDriver::parameterChanged, this, std::placeholders::_1));
@@ -251,13 +238,10 @@ void CameraDriver::createCameraParameters()
     if (it != parameterMap_.end()) {
       const auto & ni = it->second;  // should always succeed
       try {
-        this->declare_parameter(
-          name, rclcpp::ParameterValue(), ni.descriptor, false);
+        this->declare_parameter(name, rclcpp::ParameterValue(), ni.descriptor, false);
       } catch (rclcpp::exceptions::InvalidParameterTypeException & e) {
-        LOG_WARN(
-          "overwriting bad param with default: " + std::string(e.what()));
-        this->declare_parameter(
-          name, rclcpp::ParameterValue(), ni.descriptor, true);
+        LOG_WARN("overwriting bad param with default: " + std::string(e.what()));
+        this->declare_parameter(name, rclcpp::ParameterValue(), ni.descriptor, true);
       }
     }
   }
@@ -331,8 +315,7 @@ bool CameraDriver::setBool(const std::string & nodeName, bool v)
   return (status);
 }
 
-void CameraDriver::setParameter(
-  const NodeInfo & ni, const rclcpp::Parameter & p)
+void CameraDriver::setParameter(const NodeInfo & ni, const rclcpp::Parameter & p)
 {
   switch (ni.type) {
     case NodeInfo::ENUM: {
@@ -524,8 +507,7 @@ static const std::unordered_map<flir_fmt, std::string> flir_2_ros{
 static std::string flir_to_ros_encoding(const flir_fmt & pf, bool * canEncode)
 {
   auto it = flir_2_ros.find(pf);
-  *canEncode = (it != flir_2_ros.end() && it->second != "INV") &&
-               (pf != flir_fmt::INVALID);
+  *canEncode = (it != flir_2_ros.end() && it->second != "INV") && (pf != flir_fmt::INVALID);
   return (*canEncode ? it->second : "INV");
 }
 
@@ -538,47 +520,40 @@ rclcpp::Time CameraDriver::getAdjustedTimeStamp(uint64_t t, int64_t sensorTime)
     baseTimeOffset_ = static_cast<int64_t>(t) - sensorTime;
     averageTimeDifference_ = 0;
   }
-  const double dt =
-    (static_cast<int64_t>(t) - baseTimeOffset_ - sensorTime) * 1e-9;
+  const double dt = (static_cast<int64_t>(t) - baseTimeOffset_ - sensorTime) * 1e-9;
 
   // compute exponential moving average
   constexpr double alpha = 0.01;  // average over rougly 100 samples
   averageTimeDifference_ = averageTimeDifference_ * (1.0 - alpha) + alpha * dt;
 
   // adjust sensor time by average difference to ROS time
-  const rclcpp::Time adjustedTime =
-    rclcpp::Time(sensorTime + baseTimeOffset_, RCL_SYSTEM_TIME) +
-    rclcpp::Duration::from_seconds(averageTimeDifference_);
+  const rclcpp::Time adjustedTime = rclcpp::Time(sensorTime + baseTimeOffset_, RCL_SYSTEM_TIME) +
+                                    rclcpp::Duration::from_seconds(averageTimeDifference_);
   return (adjustedTime);
 }
 
 void CameraDriver::doPublish(const ImageConstPtr & im)
 {
-  const auto t = adjustTimeStamp_
-                   ? getAdjustedTimeStamp(im->time_, im->imageTime_)
-                   : rclcpp::Time(im->time_);
+  const auto t =
+    adjustTimeStamp_ ? getAdjustedTimeStamp(im->time_, im->imageTime_) : rclcpp::Time(im->time_);
   imageMsg_.header.stamp = t;
   cameraInfoMsg_.header.stamp = t;
 
   bool canEncode{false};
-  const std::string encoding =
-    flir_to_ros_encoding(im->pixelFormat_, &canEncode);
+  const std::string encoding = flir_to_ros_encoding(im->pixelFormat_, &canEncode);
   if (!canEncode) {
     RCLCPP_WARN_STREAM(
-      get_logger(),
-      "no ROS encoding for pixel format "
-        << flir_spinnaker_common::pixel_format::to_string(im->pixelFormat_));
+      get_logger(), "no ROS encoding for pixel format "
+                      << flir_spinnaker_common::pixel_format::to_string(im->pixelFormat_));
     return;
   }
-  
+
   if (pub_.getNumSubscribers() > 0) {
-    sensor_msgs::msg::CameraInfo::UniquePtr cinfo(
-      new sensor_msgs::msg::CameraInfo(cameraInfoMsg_));
+    sensor_msgs::msg::CameraInfo::UniquePtr cinfo(new sensor_msgs::msg::CameraInfo(cameraInfoMsg_));
     // will make deep copy. Do we need to? Probably...
-    sensor_msgs::msg::Image::UniquePtr img(
-      new sensor_msgs::msg::Image(imageMsg_));
-    bool ret = sensor_msgs::fillImage(
-      *img, encoding, im->height_, im->width_, im->stride_, im->data_);
+    sensor_msgs::msg::Image::UniquePtr img(new sensor_msgs::msg::Image(imageMsg_));
+    bool ret =
+      sensor_msgs::fillImage(*img, encoding, im->height_, im->width_, im->stride_, im->data_);
     if (!ret) {
       LOG_ERROR("fill image failed!");
     } else {
@@ -627,14 +602,11 @@ bool CameraDriver::start()
   if (!readParameterFile()) {
     return (false);
   }
-  infoManager_ = std::make_shared<camera_info_manager::CameraInfoManager>(
-    this, get_name(), cameraInfoURL_);
-  controlSub_ =
-    this->create_subscription<camera_control_msgs_ros2::msg::CameraControl>(
-      "~/control", 10,
-      std::bind(&CameraDriver::controlCallback, this, std::placeholders::_1));
-  metaPub_ =
-    create_publisher<image_meta_msgs_ros2::msg::ImageMetaData>("~/meta", 1);
+  infoManager_ =
+    std::make_shared<camera_info_manager::CameraInfoManager>(this, get_name(), cameraInfoURL_);
+  controlSub_ = this->create_subscription<camera_control_msgs_ros2::msg::CameraControl>(
+    "~/control", 10, std::bind(&CameraDriver::controlCallback, this, std::placeholders::_1));
+  metaPub_ = create_publisher<image_meta_msgs_ros2::msg::ImageMetaData>("~/meta", 1);
 
   cameraInfoMsg_ = infoManager_->getCameraInfo();
   imageMsg_.header.frame_id = frameId_;
@@ -650,9 +622,8 @@ bool CameraDriver::start()
 
   // qosProf.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
   // qosProf.durability = RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT;
-  qosProf.durability =
-    RMW_QOS_POLICY_DURABILITY_VOLATILE;  // sender does not have to store
-  qosProf.deadline.sec = 5;              // max expect time between msgs pub
+  qosProf.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;  // sender does not have to store
+  qosProf.deadline.sec = 5;                                 // max expect time between msgs pub
   qosProf.deadline.nsec = 0;
 
   qosProf.lifespan.sec = 1;  // how long until msg are considered expired
@@ -666,15 +637,14 @@ bool CameraDriver::start()
   driver_->setDebug(debug_);
   driver_->setComputeBrightness(computeBrightness_);
   driver_->setAcquisitionTimeout(acquisitionTimeout_);
-  
+
   LOG_INFO("using spinnaker lib version: " + driver_->getLibraryVersion());
   bool foundCamera = false;
   for (int retry = 1; retry < 6; retry++) {
     driver_->refreshCameraList();
     const auto camList = driver_->getSerialNumbers();
     if (std::find(camList.begin(), camList.end(), serial_) == camList.end()) {
-      LOG_WARN(
-        "no camera found with serial: " << serial_ << " on try # " << retry);
+      LOG_WARN("no camera found with serial: " << serial_ << " on try # " << retry);
       for (const auto & cam : camList) {
         LOG_WARN("found cameras: " << cam);
       }
