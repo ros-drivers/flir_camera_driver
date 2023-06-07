@@ -37,8 +37,7 @@ namespace genicam_utils
 template <class T>
 static bool is_readable(T ptr)
 {
-  return (
-    Spinnaker::GenApi::IsAvailable(ptr) && Spinnaker::GenApi::IsReadable(ptr));
+  return (Spinnaker::GenApi::IsAvailable(ptr) && Spinnaker::GenApi::IsReadable(ptr));
 }
 
 void get_nodemap_as_string(std::stringstream & ss, Spinnaker::CameraPtr cam)
@@ -53,8 +52,7 @@ static CNodePtr find_node(const std::string & path, CNodePtr & node, bool debug)
   auto pos = path.find("/");
   const std::string token = path.substr(0, pos);  // first part of it
   if (node->GetPrincipalInterfaceType() != intfICategory) {
-    std::cerr << "no category node: " << node->GetName() << " vs " << path
-              << std::endl;
+    std::cerr << "no category node: " << node->GetName() << " vs " << path << std::endl;
     return (NULL);
   }
 
@@ -64,14 +62,12 @@ static CNodePtr find_node(const std::string & path, CNodePtr & node, bool debug)
   FeatureList_t features;
   catNode->GetFeatures(features);
   if (debug) {
-    std::cout << "parsing: " << name << " with features: " << features.size()
-              << std::endl;
+    std::cout << "parsing: " << name << " with features: " << features.size() << std::endl;
   }
   for (auto it = features.begin(); it != features.end(); ++it) {
     CNodePtr childNode = *it;
     if (debug) {
-      std::cout << "checking child: " << childNode->GetName() << " vs " << token
-                << std::endl;
+      std::cout << "checking child: " << childNode->GetName() << " vs " << token << std::endl;
     }
     if (std::string(childNode->GetName().c_str()) == token) {
       if (is_readable(childNode)) {
@@ -90,8 +86,7 @@ static CNodePtr find_node(const std::string & path, CNodePtr & node, bool debug)
   return (CNodePtr(NULL));
 }
 
-CNodePtr find_node(
-  const std::string & path, Spinnaker::CameraPtr cam, bool debug)
+CNodePtr find_node(const std::string & path, Spinnaker::CameraPtr cam, bool debug)
 {
   INodeMap & appLayerNodeMap = cam->GetNodeMap();
   CNodePtr rootNode = appLayerNodeMap.GetNode("Root");

@@ -24,10 +24,7 @@ namespace flir_spinnaker_common
 {
 Driver::Driver() { driverImpl_.reset(new DriverImpl()); }
 
-std::string Driver::getLibraryVersion() const
-{
-  return driverImpl_->getLibraryVersion();
-}
+std::string Driver::getLibraryVersion() const { return driverImpl_->getLibraryVersion(); }
 
 void Driver::refreshCameraList() { driverImpl_->refreshCameraList(); }
 
@@ -43,26 +40,14 @@ bool Driver::initCamera(const std::string & serialNumber)
 
 bool Driver::deInitCamera() { return driverImpl_->deInitCamera(); }
 
-bool Driver::startCamera(const Callback & cb)
-{
-  return driverImpl_->startCamera(cb);
-}
+bool Driver::startCamera(const Callback & cb) { return driverImpl_->startCamera(cb); }
 
 bool Driver::stopCamera() { return driverImpl_->stopCamera(); }
 
-std::string Driver::getPixelFormat() const
-{
-  return driverImpl_->getPixelFormat();
-}
-double Driver::getReceiveFrameRate() const
-{
-  return (driverImpl_->getReceiveFrameRate());
-}
+std::string Driver::getPixelFormat() const { return driverImpl_->getPixelFormat(); }
+double Driver::getReceiveFrameRate() const { return (driverImpl_->getReceiveFrameRate()); }
 
-std::string Driver::getNodeMapAsString()
-{
-  return (driverImpl_->getNodeMapAsString());
-}
+std::string Driver::getNodeMapAsString() { return (driverImpl_->getNodeMapAsString()); }
 
 std::string Driver::setEnum(
   const std::string & nodeName, const std::string & val, std::string * retVal)
@@ -74,8 +59,7 @@ std::string Driver::setEnum(
   }
 }
 
-std::string Driver::setDouble(
-  const std::string & nodeName, double val, double * retVal)
+std::string Driver::setDouble(const std::string & nodeName, double val, double * retVal)
 {
   try {
     return (driverImpl_->setDouble(nodeName, val, retVal));
@@ -84,8 +68,7 @@ std::string Driver::setDouble(
   }
 }
 
-std::string Driver::setBool(
-  const std::string & nodeName, bool val, bool * retVal)
+std::string Driver::setBool(const std::string & nodeName, bool val, bool * retVal)
 {
   try {
     return (driverImpl_->setBool(nodeName, val, retVal));
@@ -103,15 +86,9 @@ std::string Driver::setInt(const std::string & nodeName, int val, int * retVal)
   }
 }
 
-void Driver::setComputeBrightness(bool b)
-{
-  driverImpl_->setComputeBrightness(b);
-}
+void Driver::setComputeBrightness(bool b) { driverImpl_->setComputeBrightness(b); }
 
-void Driver::setAcquisitionTimeout(double t)
-{
-  driverImpl_->setAcquisitionTimeout(t);
-}
+void Driver::setAcquisitionTimeout(double t) { driverImpl_->setAcquisitionTimeout(t); }
 
 void Driver::setDebug(bool b) { driverImpl_->setDebug(b); }
 

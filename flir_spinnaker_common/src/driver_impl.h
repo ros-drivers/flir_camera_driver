@@ -53,19 +53,13 @@ public:
   double getReceiveFrameRate() const;
   std::string getNodeMapAsString();
   // methods for setting camera params
-  std::string setEnum(
-    const std::string & nodeName, const std::string & val,
-    std::string * retVal);
-  std::string setDouble(
-    const std::string & nodeName, double val, double * retVal);
+  std::string setEnum(const std::string & nodeName, const std::string & val, std::string * retVal);
+  std::string setDouble(const std::string & nodeName, double val, double * retVal);
   std::string setInt(const std::string & nodeName, int val, int * retVal);
   std::string setBool(const std::string & nodeName, bool val, bool * retVal);
   void setDebug(bool b) { debug_ = b; }
   void setComputeBrightness(bool b) { computeBrightness_ = b; }
-  void setAcquisitionTimeout(double t)
-  {
-    acquisitionTimeout_ = static_cast<uint64_t>(t * 1e9);
-  }
+  void setAcquisitionTimeout(double t) { acquisitionTimeout_ = static_cast<uint64_t>(t * 1e9); }
 
 private:
   void setPixelFormat(const std::string & pixFmt);

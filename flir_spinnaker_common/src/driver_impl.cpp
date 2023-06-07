@@ -68,26 +68,21 @@ static bool common_checks(
 static std::string get_serial(Spinnaker::CameraPtr cam)
 {
   const auto & nodeMap = cam->GetTLDeviceNodeMap();
-  const Spinnaker::GenApi::CStringPtr psn =
-    nodeMap.GetNode("DeviceSerialNumber");
+  const Spinnaker::GenApi::CStringPtr psn = nodeMap.GetNode("DeviceSerialNumber");
   return is_readable(psn) ? std::string(psn->GetValue()) : "";
 }
 
 static bool set_acquisition_mode_continuous(GenApi::INodeMap & nodeMap)
 {
-  Spinnaker::GenApi::CEnumerationPtr ptrAcquisitionMode =
-    nodeMap.GetNode("AcquisitionMode");
-  if (
-    GenApi::IsAvailable(ptrAcquisitionMode) &&
-    GenApi::IsWritable(ptrAcquisitionMode)) {
+  Spinnaker::GenApi::CEnumerationPtr ptrAcquisitionMode = nodeMap.GetNode("AcquisitionMode");
+  if (GenApi::IsAvailable(ptrAcquisitionMode) && GenApi::IsWritable(ptrAcquisitionMode)) {
     GenApi::CEnumEntryPtr ptrAcquisitionModeContinuous =
       ptrAcquisitionMode->GetEntryByName("Continuous");
     if (
       GenApi::IsAvailable(ptrAcquisitionModeContinuous) &&
       GenApi::IsReadable(ptrAcquisitionModeContinuous)) {
       // Retrieve integer value from entry node
-      const int64_t acquisitionModeContinuous =
-        ptrAcquisitionModeContinuous->GetValue();
+      const int64_t acquisitionModeContinuous = ptrAcquisitionModeContinuous->GetValue();
       // Set integer value from entry node as new value of enumeration node
       ptrAcquisitionMode->SetIntValue(acquisitionModeContinuous);
       return true;
@@ -130,8 +125,7 @@ std::string DriverImpl::getLibraryVersion() const
 {
   const Spinnaker::LibraryVersion lv = system_->GetLibraryVersion();
   char buf[256];
-  snprintf(
-    buf, sizeof(buf), "%d.%d.%d.%d", lv.major, lv.minor, lv.type, lv.build);
+  snprintf(buf, sizeof(buf), "%d.%d.%d.%d", lv.major, lv.minor, lv.type, lv.build);
   return std::string(buf);
 }
 
@@ -209,8 +203,7 @@ int set_invalid()
 
 template <class T1, class T2>
 static std::string set_parameter(
-  const std::string & nodeName, T2 val, T2 * retVal,
-  const Spinnaker::CameraPtr & cam, bool debug)
+  const std::string & nodeName, T2 val, T2 * retVal, const Spinnaker::CameraPtr & cam, bool debug)
 {
   *retVal = set_invalid<T2>();
   GenApi::CNodePtr np = genicam_utils::find_node(nodeName, cam, debug);
@@ -227,26 +220,22 @@ static std::string set_parameter(
   return ("OK");
 }
 
-std::string DriverImpl::setDouble(
-  const std::string & nn, double val, double * retVal)
+std::string DriverImpl::setDouble(const std::string & nn, double val, double * retVal)
 {
   *retVal = std::nan("");
-  return (
-    set_parameter<GenApi::CFloatPtr, double>(nn, val, retVal, camera_, debug_));
+  return (set_parameter<GenApi::CFloatPtr, double>(nn, val, retVal, camera_, debug_));
 }
 
 std::string DriverImpl::setBool(const std::string & nn, bool val, bool * retVal)
 {
   *retVal = !val;
-  return (
-    set_parameter<GenApi::CBooleanPtr, bool>(nn, val, retVal, camera_, debug_));
+  return (set_parameter<GenApi::CBooleanPtr, bool>(nn, val, retVal, camera_, debug_));
 }
 
 std::string DriverImpl::setInt(const std::string & nn, int val, int * retVal)
 {
   *retVal = -1;
-  return (
-    set_parameter<GenApi::CIntegerPtr, int>(nn, val, retVal, camera_, debug_));
+  return (set_parameter<GenApi::CIntegerPtr, int>(nn, val, retVal, camera_, debug_));
 }
 
 double DriverImpl::getReceiveFrameRate() const
@@ -261,8 +250,7 @@ static int int_ceil(size_t x, int y)
 }
 
 static int16_t compute_brightness(
-  pixel_format::PixelFormat pf, const uint8_t * data, size_t w, size_t h,
-  size_t stride, int skip)
+  pixel_format::PixelFormat pf, const uint8_t * data, size_t w, size_t h, size_t stride, int skip)
 {
   if (pf != pixel_format::BayerRG8) {
     return (0);
@@ -283,8 +271,7 @@ void DriverImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
 {
   // update frame rate
   auto now = chrono::high_resolution_clock::now();
-  uint64_t t =
-    chrono::duration_cast<chrono::nanoseconds>(now.time_since_epoch()).count();
+  uint64_t t = chrono::duration_cast<chrono::nanoseconds>(now.time_since_epoch()).count();
   if (avgTimeInterval_ == 0) {
     if (lastTime_ != 0) {
       avgTimeInterval_ = (t - lastTime_) * 1e-9;
@@ -302,16 +289,14 @@ void DriverImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
   if (imgPtr->IsIncomplete()) {
     // Retrieve and print the image status description
     std::cout << "Image incomplete: "
-              << Spinnaker::Image::GetImageStatusDescription(
-                   imgPtr->GetImageStatus())
-              << std::endl;
+              << Spinnaker::Image::GetImageStatusDescription(imgPtr->GetImageStatus()) << std::endl;
   } else {
     const Spinnaker::ChunkData & chunk = imgPtr->GetChunkData();
     const float expTime = chunk.GetExposureTime();
     const float gain = chunk.GetGain();
     const int64_t stamp = chunk.GetTimestamp();
-    const uint32_t maxExpTime = static_cast<uint32_t>(
-      is_readable(exposureTimeNode_) ? exposureTimeNode_->GetMax() : 0);
+    const uint32_t maxExpTime =
+      static_cast<uint32_t>(is_readable(exposureTimeNode_) ? exposureTimeNode_->GetMax() : 0);
 
 #if 0
     std::cout << "got image: " << imgPtr->GetWidth() << "x"
@@ -333,15 +318,14 @@ void DriverImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
     const int16_t brightness =
       computeBrightness_
         ? compute_brightness(
-            pixelFormat_, static_cast<const uint8_t *>(imgPtr->GetData()),
-            imgPtr->GetWidth(), imgPtr->GetHeight(), imgPtr->GetStride(),
-            brightnessSkipPixels_)
+            pixelFormat_, static_cast<const uint8_t *>(imgPtr->GetData()), imgPtr->GetWidth(),
+            imgPtr->GetHeight(), imgPtr->GetStride(), brightnessSkipPixels_)
         : -1;
     ImagePtr img(new Image(
       t, brightness, expTime, maxExpTime, gain, stamp, imgPtr->GetImageSize(),
-      imgPtr->GetImageStatus(), imgPtr->GetData(), imgPtr->GetWidth(),
-      imgPtr->GetHeight(), imgPtr->GetStride(), imgPtr->GetBitsPerPixel(),
-      imgPtr->GetNumChannels(), imgPtr->GetFrameID(), pixelFormat_));
+      imgPtr->GetImageStatus(), imgPtr->GetData(), imgPtr->GetWidth(), imgPtr->GetHeight(),
+      imgPtr->GetStride(), imgPtr->GetBitsPerPixel(), imgPtr->GetNumChannels(),
+      imgPtr->GetFrameID(), pixelFormat_));
     callback_(img);
   }
 }  // namespace flir_spinnaker_common
@@ -424,10 +408,7 @@ void DriverImpl::setPixelFormat(const std::string & pixFmt)
   pixelFormat_ = pixel_format::from_nodemap_string(pixFmt);
 }
 
-std::string DriverImpl::getPixelFormat() const
-{
-  return (pixel_format::to_string(pixelFormat_));
-}
+std::string DriverImpl::getPixelFormat() const { return (pixel_format::to_string(pixelFormat_)); }
 
 std::string DriverImpl::getNodeMapAsString()
 {
@@ -446,9 +427,7 @@ void DriverImpl::monitorStatus()
       lastTime = lastTime_;
     }
     auto now = chrono::high_resolution_clock::now();
-    uint64_t t =
-      chrono::duration_cast<chrono::nanoseconds>(now.time_since_epoch())
-        .count();
+    uint64_t t = chrono::duration_cast<chrono::nanoseconds>(now.time_since_epoch()).count();
     if (t - lastTime > acquisitionTimeout_ && camera_) {
       std::cout << "WARNING: acquisition timeout, restarting!" << std::endl;
       // Mucking with the camera in this thread without proper

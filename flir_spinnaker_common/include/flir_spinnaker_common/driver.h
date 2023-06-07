@@ -54,11 +54,8 @@ public:
   std::string getPixelFormat() const;
   double getReceiveFrameRate() const;
   std::string getNodeMapAsString();
-  std::string setEnum(
-    const std::string & nodeName, const std::string & val,
-    std::string * retVal);
-  std::string setDouble(
-    const std::string & nodeName, double val, double * retVal);
+  std::string setEnum(const std::string & nodeName, const std::string & val, std::string * retVal);
+  std::string setDouble(const std::string & nodeName, double val, double * retVal);
   std::string setBool(const std::string & nodeName, bool val, bool * retVal);
   std::string setInt(const std::string & nodeName, int val, int * retVal);
 
