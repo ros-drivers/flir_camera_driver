@@ -2,6 +2,7 @@
 
 Simple ROS2 driver for the FLIR cameras using the [Spinnaker
 SDK](http://softwareservices.flir.com/Spinnaker/latest/index.htmlspinnaker).
+
 Based on Bernd Pfrommer's [Spinnaker ROS2 Driver](https://github.com/berndpfrommer/flir_spinnaker_ros2)
 
 NOTE: This driver is not written or supported by FLIR.
