@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>flir_camera_description</name>
+  <version>0.2.5</version>
+  <description>URDF descriptions for Flir cameras</description>
+
+  <maintainer email="lcamero@clearpathrobotics.com">Luis Camero</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>urdf</exec_depend>
+  <exec_depend>xacro</exec_depend>
+</package>

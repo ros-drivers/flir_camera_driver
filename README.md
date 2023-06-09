@@ -2,32 +2,24 @@
 
 Simple ROS2 driver for the FLIR cameras using the [Spinnaker
 SDK](http://softwareservices.flir.com/Spinnaker/latest/index.htmlspinnaker).
+Based on Bernd Pfrommer's [Spinnaker ROS2 Driver](https://github.com/berndpfrommer/flir_spinnaker_ros2)
 
 NOTE: This driver is not written or supported by FLIR.
 
 ## Tested cameras:
 
-The following cameras have been used with this driver:
+The following camera have been used with this driver:
 
 - Blackfly S (USB3, GigE)
-- Blackfly (GigE)
-- Grashopper (USB3)
-- Chameleon (USB3) tested on firmware v1.13.3.00
-
-Note: if you get other cameras to work, *please report back*, ideally
-submit a pull request with the camera config file you have created.
 
 ## Supported platforms
 
 Software:
 
-- Ubuntu 20.04 LTS
-- ROS2 Galactic and Foxy
-- Spinnaker 2.6.0.157 (other versions may work as well but this is
-  what the continuous integration builds are using)
+- Ubuntu 22.04 LTS
+- ROS2 Humble
+- Spinnaker 3.1.0.79 
 
-The code compiles under Ubuntu 22.04 / Humble but has not been tested
-yet with real hardware.
 
 ## Features
 
@@ -66,21 +58,15 @@ SpinView program. The driver has following parameters,
 2) Prepare the ROS2 driver build:
 Make sure you have your ROS2 environment sourced:
 ```
-source /opt/ros/galactic/setup.bash
+source /opt/ros/humble/setup.bash
 ```
 
-Create a workspace (``flir_spinnaker_ros2_ws``), clone this repo, and use ``wstool``
-to pull in the remaining dependencies:
-
+Create a workspace (``flir_spinnaker_ros2_ws``), and clone this repo
 ```
 mkdir -p ~/flir_spinnaker_ros2_ws/src
 cd ~/flir_spinnaker_ros2_ws
-git clone https://github.com/berndpfrommer/flir_spinnaker_ros2 src/flir_spinnaker_ros2
-wstool init src src/flir_spinnaker_ros2/flir_spinnaker_ros2.rosinstall
+git clone https://github.com/fazzrazz/flir_ros2_camera_driver 
 
-# or to update an existing space
-# wstool merge -t src src/flir_spinnaker_ros2/flir_spinnaker_ros2.rosinstall
-# wstool update -t src
 ```
 
 To automatically install all packages that the ``flir_spinnaker_ros2``
