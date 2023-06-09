@@ -1,0 +1,26 @@
+name: Setup ROS2 Environment
+run-name: ${{ github.actor }} is setting up ROS 2
+on: 
+  push:
+  workflow_dispatch:
+
+jobs:
+  flir_driver_humble_ci:
+    name: Humble
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup ROS
+        uses: ros-tooling/setup-ros@v0.6
+        with:
+          required-ros-distributions: humble
+      - uses: ros-tooling/action-ros-ci@v0.3
+        id: action_ros_ci_step
+        with:
+          target-ros2-distro: humble
+          import-token: ${{ secrets.GITHUB_TOKEN }}
+          package-name: flir_spinnaker_ros2
+          vcs-repo-file-url: depends.repos
+          skip-tests: true
+
