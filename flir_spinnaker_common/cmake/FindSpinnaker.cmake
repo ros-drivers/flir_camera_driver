@@ -42,7 +42,7 @@ find_path(Spinnaker_INCLUDE_DIRS
   /opt/spinnaker/include
   /usr/include/spinnaker
   /usr/local/include/spinnaker
-  /__w/flir_ros2_camera_driver/flir_ros2_camera_driver/ros_ws/build/flir_spinnaker_common/opt/spinnaker/include/
+  /__w/flir_ros2_camera_driver/flir_ros2_camera_driver/ros_ws/build/flir_spinnaker_common/opt/spinnaker/include
 )
 
 find_library(Spinnaker_LIBRARIES
