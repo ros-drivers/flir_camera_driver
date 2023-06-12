@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>flir_camera_driver</name>
+  <version>0.2.5</version>
+  <description>A set of drivers for Flir cameras based on the Spinnaker SDK.</description>
+
+  <maintainer email="mhosmar@clearpathrobotics.com">Michael Hosmar</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>spinnaker_camera_driver</exec_depend>
+  <exec_depend>flir_camera_description</exec_depend>
+
+  <export>
+  <metapackage/>
+  </export>
+</package>

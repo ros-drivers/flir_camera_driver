@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<!--
+Software License Agreement (BSD)
+
+\file      camera.launch
+\authors   Michael Hosmar <mhosmar@clearpathrobotics.com>
+\copyright Copyright (c) 2018, Clearpath Robotics, Inc., All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+   following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the 
+   following disclaimer in the documentation and/or other materials provided with the distribution.
+ * Neither the name of Clearpath Robotics nor the names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WAR-
+RANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, IN-
+DIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+<launch>
+   <!-- Determine this using rosrun spinnaker_camera_driver list_cameras.
+       If not specified, defaults to first camera found. -->
+  <arg name="camera_name"               default="camera" />
+  <arg name="camera_serial"             default="0" />
+  <arg name="calibrated"                default="0" />
+  <arg name="device_type"               default="USB3" /> <!-- USB3 or GigE -->
+
+  <!-- When unspecified, the driver will use the default framerate as given by the
+      camera itself. Use the parameter 'control_frame_rate' to enable manual frame 
+      rate control, and 'frame_rate' to set the frame rate value. -->
+  <arg name="control_frame_rate"        default="True" />
+  <arg name="frame_rate"                default="30" />
+
+  <!-- Disabling ISP will dramatically increase frame-rate. However, it can only be 
+      disabled when using Bayer encoding (e.g. BayerRG8)-->
+  <arg name="isp_enable"                default="False" /> 
+  <arg name="encoding"                  default="BayerRG8" />
+  <arg name="color_balance"             default="Continuous" /> <!-- Off, Once, or Continuous -->
+  <!-- Available Encodings:
+        Mono:              YUV:              YCbCr:          Other:
+        - Mono8            - YUV411Packed    - YCbCr8        - BGR8
+        - Mono16           - YUV422Packed    - YCbCr422_8    - BGRa8
+        - Mono12p          - YUV444Packed    - YCbCr411_8    - RGB8Packed
+        - Mono12Packed
+
+        Bayer:
+        - BayerGR8         - BayerGR12p
+        - BayerRG8         - BayerRG12p
+        - BayerGB8         - BayerGB12p
+        - BayerBG8         - BayerBG12p
+        - BayerGR16        - BayerGR12Packed
+        - BayerRG16        - BayerRG12Packed
+        - BayerGB16        - BayerGB12Packed
+        - BayerBG16        - BayerBG12Packed
+  -->
+
+  <group ns="$(arg camera_name)">
+    <!-- Nodelet manager -->
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
+->
+    <!-- Camera nodelet -->
+    <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
+          args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
+
+      <param name="frame_id"                        value="$(arg camera_name)" />
+      <param name="serial"                          value="$(arg camera_serial)" />
+      <param name="device_type"                     value="$(arg device_type)" />
+
+      <!-- Frame rate -->
+      <param name="acquisition_frame_rate_enable"   value="$(arg control_frame_rate)" />
+      <param name="acquisition_frame_rate"          value="$(arg frame_rate)" />
+
+      <!-- Image Processing -->
+      <param name="isp_enable"                      value="$(arg isp_enable)" />
+      <param name="auto_white_balance"              value="$(arg color_balance)" />
+      <param name="image_format_color_coding"       value="$(arg encoding)" />
+
+      <!-- Image Resolution -->
+      <!-- Height and width pixel size cannot be set directly. Instead use the 
+          binning, offset, and region of interest options. 
+          - RoI: range of pixels to select from original image
+                (Note: RoI is defined from image pixel origin (i.e. top left))
+          - Binning: reduces resolution by a factor of 1, 2, 4, or 8
+          - Offset: moves the pixel origin
+                x-offset = max_width/x_binning - roi_width/2
+                y-offset = max_height/y_binning - roi_height/2
+      -->
+      <!--
+      <param name="image_format_x_binning" value="2" />
+      <param name="image_format_y_binning" value="2" />
+      <param name="image_format_x_offset" value="128" />
+      <param name="image_format_y_offset" value="122" />
+      <param name="image_format_roi_width" value="1280" />
+      <param name="image_format_roi_height" value="720" />
+      -->
+
+      <!-- Use the camera_calibration package to create this file -->
+      <param name="camera_info_url" if="$(arg calibrated)"
+             value="file://$(env HOME)/.ros/camera_info/$(arg camera_serial).yaml" />
+    </node>
+
+    <!-- Debayering nodelet -->
+    <node pkg="nodelet" type="nodelet" name="image_proc_debayer"
+          args="load image_proc/debayer camera_nodelet_manager">
+    </node>
+  </group>
+</launch>

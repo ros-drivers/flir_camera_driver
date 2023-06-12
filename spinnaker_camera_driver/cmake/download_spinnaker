@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+#
+# Software License Agreement (BSD)
+#
+# @author    Mike Purvis <mpurvis@clearpathrobotics.com>
+# @author    Chris Iverach-Brereton <civerachb@clearpathrobotics.com>
+# @copyright (c) 2014, Clearpath Robotics, Inc., All rights reserved.
+# @usage     download_spinnaker {arch} {dir} {os-code-name}
+#            e.g. download_spinnaker x86_64 /path/to/somewhere xenial
+#
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+# the following conditions are met:
+# * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+#   following disclaimer.
+# * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
+#   following disclaimer in the documentation and/or other materials provided with the distribution.
+# * Neither the name of Clearpath Robotics nor the names of its contributors may be used to endorse or
+#   promote products derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+# TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+import http.cookiejar
+import io
+import logging
+import shutil
+import subprocess
+import sys
+import tarfile
+import urllib
+import os
+import glob
+
+logging.basicConfig(level=logging.INFO)
+
+URL_TEMPLATE = URL_TEMPLATES = {
+    'deb': 'https://packages.clearpathrobotics.com/stable/flir/Spinnaker/Ubuntu{version}/spinnaker-2.2.0.48-Ubuntu{version}-{arch}-pkg.tar.gz',
+    'src': None         # if we ever have non-deb archives that require manual extraction, those package URLS will go here.
+}
+
+ARCHS = {
+    'x86_64': {
+        'linux_arch': 'amd64',
+        'current': '20.04',
+        'type': 'deb',
+        'folder_name': 'spinnaker-2.2.0.48-amd64',
+        'shared_library': 'opt/spinnaker/lib/',
+        'debs':[
+            'libgentl_2.2.0.48_amd64.deb',
+            'libspinnaker_2.2.0.48_amd64.deb',
+            'libspinnaker-c_2.2.0.48_amd64.deb',
+            'libspinnaker-c-dev_2.2.0.48_amd64.deb',
+            'libspinnaker-dev_2.2.0.48_amd64.deb',
+            'libspinvideo_2.2.0.48_amd64.deb',
+            'libspinvideo-c_2.2.0.48_amd64.deb',
+            'libspinvideo-c-dev_2.2.0.48_amd64.deb',
+            'libspinvideo-dev_2.2.0.48_amd64.deb',
+            'spinnaker_2.2.0.48_amd64.deb',
+            'spinnaker-doc_2.2.0.48_amd64.deb',
+            'spinupdate_2.2.0.48_amd64.deb',
+            'spinupdate-dev_2.2.0.48_amd64.deb',
+            'spinview-qt_2.2.0.48_amd64.deb',
+            'spinview-qt-dev_2.2.0.48_amd64.deb'
+        ]
+    },
+    'armv8':  {
+        'linux_arch': 'arm64',
+        'current': '20.04',
+        'type': 'deb',
+        'shared_library': 'opt/spinnaker/lib/',
+        'folder_name': 'spinnaker-2.2.0.48-arm64',
+        'debs': [
+            'libgentl_2.2.0.48_arm64.deb',
+            'libspinnaker_2.2.0.48_arm64.deb',
+            'libspinnaker-c_2.2.0.48_arm64.deb',
+            'libspinnaker-c-dev_2.2.0.48_arm64.deb',
+            'libspinnaker-dev_2.2.0.48_arm64.deb',
+            'libspinvideo_2.2.0.48_arm64.deb',
+            'libspinvideo-c_2.2.0.48_arm64.deb',
+            'libspinvideo-c-dev_2.2.0.48_arm64.deb',
+            'libspinvideo-dev_2.2.0.48_arm64.deb',
+            'spinnaker_2.2.0.48_arm64.deb',
+            'spinnaker-doc_2.2.0.48_arm64.deb',
+            'spinupdate_2.2.0.48_arm64.deb',
+            'spinupdate-dev_2.2.0.48_arm64.deb',
+            'spinview-qt_2.2.0.48_arm64.deb',
+            'spinview-qt-dev_2.2.0.48_arm64.deb'
+        ]
+    }
+}
+
+
+OS_LIBRARY_VERSION = {
+  'focal': 'current'
+}
+
+arch = sys.argv[1]
+destination_folder = sys.argv[2]
+os_code_name = sys.argv[3]
+
+os_version = OS_LIBRARY_VERSION[os_code_name]
+archive_url = URL_TEMPLATES[ARCHS[arch]['type']].format(
+    arch=ARCHS[arch]['linux_arch'],
+    version=ARCHS[arch][os_version])
+folder_name = ARCHS[arch]['folder_name']
+shared_library = ARCHS[arch]['shared_library']
+
+
+logging.info("CPU architecture is %s", arch)
+logging.info("OS code name is %s", os_code_name)
+logging.info("Destination folder is %s", destination_folder)
+
+if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
+    cj = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+    opener.addheaders = [
+        ('User-agent', 'Mozilla/5.0'),
+        ('Referer', 'https://www.ptgrey.com')]
+
+    logging.info("Downloading SDK archive from {0}...".format(archive_url))
+    resp = opener.open(archive_url)
+
+    logging.info("Unpacking tarball.")
+    with tarfile.open(mode="r:gz", fileobj=io.BytesIO(resp.read())) as tar:
+        tar.extractall()
+
+    logging.info("Unpacking debs.")
+    debs = glob.glob(os.path.join(os.getcwd(), folder_name, "*.deb"))
+    unpack_dir = os.path.join(os.getcwd())
+    if not os.path.exists(unpack_dir):
+        os.makedirs(unpack_dir)
+    for deb in debs:
+        logging.info('Extracting {0}'.format(deb))
+        subprocess.call(['dpkg', '--extract', deb, unpack_dir])
+
+    # Copy the shared libraries into the output folder
+    logging.info('Copying libraries to {0}'.format(destination_folder))
+    if not os.path.exists(destination_folder):
+        os.makedirs(destination_folder)
+    libs = glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "libSpinnaker*.so*"))
+    libs += glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "libG*.so*"))
+    libs += glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "lib*Parser*.so*"))
+    libs += glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "libLog*.so*"))
+    libs += glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "libNodeMapData*.so*"))
+    for lib in libs:
+      logging.info('Copying: {}'.format(os.path.basename(lib)))
+      shutil.copyfile(lib, os.path.join(destination_folder, os.path.basename(lib)))
+else:
+    logging.info("Previous installation found, skipping...")
