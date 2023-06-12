@@ -33,7 +33,6 @@ endif()
 
 cmake_path(SET PATH2 "${CMAKE_CURRENT_BINARY_DIR}")
 cmake_path(GET PATH2 PARENT_PATH PARENTDIR )
-#message(WARNING "CURRENT CMAKE BINARY DIR: " ${PARENTDIR})
 
 find_path(Spinnaker_INCLUDE_DIRS
   NAMES Spinnaker.h

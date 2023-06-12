@@ -29,19 +29,19 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 set(Spinnaker_FOUND 0)
-message(WARNING "Found variable: " ${Spinnaker_FOUND})
+message(STATUS "Found variable: " ${Spinnaker_FOUND})
 find_package(Spinnaker QUIET)
-message(WARNING "Found variable: " ${Spinnaker_FOUND} " at " ${Spinnaker_LIBRARIES} " and "${Spinnaker_INCLUDE_DIRS} )
+message(STATUS "Found variable: " ${Spinnaker_FOUND} " at " ${Spinnaker_LIBRARIES} " and "${Spinnaker_INCLUDE_DIRS} )
 
 if(NOT Spinnaker_FOUND)
-  message(WARNING "spinnaker not found")
+  message(STATUS "spinnaker not found")
   message(STATUS "libSpinnaker not found in system library path")
   include(cmake/DownloadSpinnaker.cmake)
   download_spinnaker(Spinnaker_LIBRARIES Spinnaker_INCLUDE_DIRS)
 endif()
 
-message(WARNING "libSpinnaker library: ${Spinnaker_LIBRARIES}")
-message(WARNING "libSpinnaker include: ${Spinnaker_INCLUDE_DIRS}")
+message(STATUS "libSpinnaker library: ${Spinnaker_LIBRARIES}")
+message(STATUS "libSpinnaker include: ${Spinnaker_INCLUDE_DIRS}")
 
 find_package(Spinnaker REQUIRED)
 include_directories(SYSTEM
