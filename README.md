@@ -1,6 +1,6 @@
 # flir_camera_driver
 
-This repository contains packages for FlirImaging's line of cameras. This repositories intent is to make use of Flir's newly developed SDK: Spinnaker. The camera driver is an evolution of pointgrey_camera_driver. It has been updated to use the new methods provided by the SDK.
+This repository contains ROS packages for cameras made by FLIR Imaging (formerly known as PointGrey).
 
 ## Packages
 
@@ -13,10 +13,10 @@ Spinnaker SDK. See the
 This software is issued under the Apache License Version 2.0 and BSD
 
 ### flir_camera_msgs
-Meta messages with image exposure and control messages. These are used
-by the [spinnaker_camera_driver](spinnaker_camera_driver/README.md).
+Package with with [image exposure and control messages](flir_camera_msgs/README.md).
+These are used by the [spinnaker_camera_driver](spinnaker_camera_driver/README.md).
 This software is issued under the Apache License Version 2.0.
 
 ### flir_camera_description
-Package with meshesMeta messages with image exposure and control messages. These are used
-by the [spinnaker_camera_driver](spinnaker_camera_driver/README.md). This software is released under a BSD license.
+Package with [meshes and urdf](flir_camera_description/README.md) files.
+This software is released under a BSD license.
