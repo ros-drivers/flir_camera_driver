@@ -1,7 +1,8 @@
 # flir_camera_description
 
-This package contains urdf files and meshes for FLIR cameras.
 ![banner image](images/blackfly_s_description.png)
+
+This package contains urdf files and meshes for FLIR cameras.
 
 ## How to use
 Install this package like any other ROS package, then launch the demo:
