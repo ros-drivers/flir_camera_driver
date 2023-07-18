@@ -14,4 +14,5 @@ In rviz, add a "RobotModel" and set the topic to "robot_description".
 
 ## License:
 Licensed under BSD License.
-
+Copyright (c) 2012, Carnegie Mellon University. All rights reserved.
+Copyright (c) 2018, Clearpath Robotics, Inc., All rights reserved.
