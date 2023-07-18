@@ -1,10 +1,20 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.5)
 project(flir_camera_description)
 
-find_package(catkin REQUIRED)
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(urdf REQUIRED)
+find_package(xacro REQUIRED)
+find_package(robot_state_publisher REQUIRED)
 
-catkin_package()
-
-install(DIRECTORY meshes urdf
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+install(
+  DIRECTORY launch meshes urdf
+  DESTINATION share/${PROJECT_NAME}
 )
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()

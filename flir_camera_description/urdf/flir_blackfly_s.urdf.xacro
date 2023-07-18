@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
-    <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="flir_blackflys">
+    <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="flir_blackfly_s">
     <!-- 
         camera_{x,y,z,mass} are physical properties of camera collision model
         lens_{r, h, mass} are physical properties of the camera lens
         hfov, fps, width, height, format, near, and far are simulation
     -->
-    <xacro:macro name="flir_blackflys"
+    <xacro:macro name="flir_blackfly_s"
         params="frame:=camera name:=camera camera_x:=0.047758 camera_y:=0.029 camera_z:=0.029 camera_mass:=0.03
                 lens_r:=0.016 lens_h:=0.04 lens_mass:= 0.05 
                 hfov:=1.0471975512 fps:=30 width:=720 height:=540 format:=R8G8B8 near:=0.5 far:=300">
@@ -18,7 +18,7 @@
         <visual>
             <origin xyz="0 0 0.01425" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://flir_camera_description/meshes/flir_blackflys.stl"/>
+                <mesh filename="package://flir_camera_description/meshes/flir_blackfly_s.stl"/>
             </geometry>
             <material name="dark_grey" />
         </visual>

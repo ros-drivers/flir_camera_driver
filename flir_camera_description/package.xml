@@ -1,15 +1,22 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>flir_camera_description</name>
-  <version>0.2.5</version>
-  <description>URDF descriptions for Flir cameras</description>
-
+  <version>1.0.0</version>
+  <description>FLIR camera Description package</description>
   <maintainer email="lcamero@clearpathrobotics.com">Luis Camero</maintainer>
-
   <license>BSD</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <exec_depend>robot_state_publisher</exec_depend>
-  <exec_depend>urdf</exec_depend>
-  <exec_depend>xacro</exec_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>urdf</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>xacro</depend>
+  
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

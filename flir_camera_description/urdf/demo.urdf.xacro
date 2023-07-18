@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="$(arg model)">
+
+  <!-- define the material color -->
+  <material name="dark_grey">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+
+  <!-- this include provides the macro definition used below -->
+ <xacro:include filename="$(find flir_camera_description)/urdf/$(arg model).urdf.xacro"/>
+
+ <xacro:property name="model" value="$(arg model)"/>
+
+ <!-- if more models are defined, add them here -->
+ <xacro:if value="${model =='flir_blackfly_s'}">
+   <xacro:flir_blackfly_s name="$(arg model)" frame="camera_frame">
+   </xacro:flir_blackfly_s>
+ </xacro:if>
+
+</robot>
