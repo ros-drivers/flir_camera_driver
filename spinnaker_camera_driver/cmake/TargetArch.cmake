@@ -1,10 +1,10 @@
 # Source: https://raw.github.com/petroules/solar-cmake/master/TargetArch.cmake
-
-# Copyright (c) 2012 Petroules Corporation. All rights reserved.
-# 
+#
+#  Copyright 2012, Petroules Corporation, All rights reserved.
+#
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided
 # that the following conditions are met:
-# 
+#
 # Redistributions of source code must retain the above copyright notice, this list of conditions and the
 # following disclaimer. Redistributions in binary form must reproduce the above copyright notice, this list
 # of conditions and the following disclaimer in the documentation and/or other materials provided with the
@@ -146,7 +146,7 @@ function(target_architecture output_var)
         # If we are compiling with an unknown architecture this variable should
         # already be set to "unknown" but in the case that it's empty (i.e. due
         # to a typo in the code), then set it to unknown
-        if (NOT ARCH)
+        if(NOT ARCH)
             set(ARCH unknown)
         endif()
     endif()

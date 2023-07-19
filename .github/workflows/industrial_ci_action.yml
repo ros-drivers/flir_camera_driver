@@ -1,26 +1,24 @@
-# This is a basic workflow to help you get started with Actions
 
 name: CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the noetic-devel branch
   push:
-    branches: [ noetic-devel ]
+    branches: [ humble-devel ]
   pull_request:
-    branches: [ noetic-devel ]
+    branches: [ humble-devel ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+
 jobs:
   industrial_ci:
     name: ROS ${{ matrix.ROS_DISTRO }} (${{ matrix.ROS_REPO }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ROS_DISTRO: [noetic]
+        ROS_DISTRO: [humble]
         ROS_REP: [testing, main]
     env:
       CCACHE_DIR: "${{ github.workspace }}/.ccache" # directory for ccache (and how we enable ccache in industrial_ci)

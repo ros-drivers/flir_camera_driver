@@ -40,64 +40,64 @@ import glob
 logging.basicConfig(level=logging.INFO)
 
 URL_TEMPLATE = URL_TEMPLATES = {
-    'deb': 'https://packages.clearpathrobotics.com/stable/flir/Spinnaker/Ubuntu{version}/spinnaker-2.2.0.48-Ubuntu{version}-{arch}-pkg.tar.gz',
+    'deb': 'https://packages.clearpathrobotics.com/stable/flir/Spinnaker/Ubuntu{version}/spinnaker-3.1.0.79-{arch}-pkg.tar.gz',
     'src': None         # if we ever have non-deb archives that require manual extraction, those package URLS will go here.
 }
 
 ARCHS = {
     'x86_64': {
         'linux_arch': 'amd64',
-        'current': '20.04',
+        'current': '22.04',
         'type': 'deb',
-        'folder_name': 'spinnaker-2.2.0.48-amd64',
+        'folder_name': 'spinnaker-3.1.0.79-amd64',
         'shared_library': 'opt/spinnaker/lib/',
         'debs':[
-            'libgentl_2.2.0.48_amd64.deb',
-            'libspinnaker_2.2.0.48_amd64.deb',
-            'libspinnaker-c_2.2.0.48_amd64.deb',
-            'libspinnaker-c-dev_2.2.0.48_amd64.deb',
-            'libspinnaker-dev_2.2.0.48_amd64.deb',
-            'libspinvideo_2.2.0.48_amd64.deb',
-            'libspinvideo-c_2.2.0.48_amd64.deb',
-            'libspinvideo-c-dev_2.2.0.48_amd64.deb',
-            'libspinvideo-dev_2.2.0.48_amd64.deb',
-            'spinnaker_2.2.0.48_amd64.deb',
-            'spinnaker-doc_2.2.0.48_amd64.deb',
-            'spinupdate_2.2.0.48_amd64.deb',
-            'spinupdate-dev_2.2.0.48_amd64.deb',
-            'spinview-qt_2.2.0.48_amd64.deb',
-            'spinview-qt-dev_2.2.0.48_amd64.deb'
+            'libgentl_3.1.0.79_amd64.deb',
+            'libspinnaker_3.1.0.79_amd64.deb',
+            'libspinnaker-c_3.1.0.79_amd64.deb',
+            'libspinnaker-c-dev_3.1.0.79_amd64.deb',
+            'libspinnaker-dev_3.1.0.79_amd64.deb',
+            'libspinvideo_3.1.0.79_amd64.deb',
+            'libspinvideo-c_3.1.0.79_amd64.deb',
+            'libspinvideo-c-dev_3.1.0.79_amd64.deb',
+            'libspinvideo-dev_3.1.0.79_amd64.deb',
+            'spinnaker_3.1.0.79_amd64.deb',
+            'spinnaker-doc_3.1.0.79_amd64.deb',
+            'spinupdate_3.1.0.79_amd64.deb',
+            'spinupdate-dev_3.1.0.79_amd64.deb',
+            'spinview-qt_3.1.0.79_amd64.deb',
+            'spinview-qt-dev_3.1.0.79_amd64.deb'
         ]
     },
     'armv8':  {
         'linux_arch': 'arm64',
-        'current': '20.04',
+        'current': '22.04',
         'type': 'deb',
         'shared_library': 'opt/spinnaker/lib/',
-        'folder_name': 'spinnaker-2.2.0.48-arm64',
+        'folder_name': 'spinnaker-3.1.0.79-arm64',
         'debs': [
-            'libgentl_2.2.0.48_arm64.deb',
-            'libspinnaker_2.2.0.48_arm64.deb',
-            'libspinnaker-c_2.2.0.48_arm64.deb',
-            'libspinnaker-c-dev_2.2.0.48_arm64.deb',
-            'libspinnaker-dev_2.2.0.48_arm64.deb',
-            'libspinvideo_2.2.0.48_arm64.deb',
-            'libspinvideo-c_2.2.0.48_arm64.deb',
-            'libspinvideo-c-dev_2.2.0.48_arm64.deb',
-            'libspinvideo-dev_2.2.0.48_arm64.deb',
-            'spinnaker_2.2.0.48_arm64.deb',
-            'spinnaker-doc_2.2.0.48_arm64.deb',
-            'spinupdate_2.2.0.48_arm64.deb',
-            'spinupdate-dev_2.2.0.48_arm64.deb',
-            'spinview-qt_2.2.0.48_arm64.deb',
-            'spinview-qt-dev_2.2.0.48_arm64.deb'
+            'libgentl_3.1.0.79_arm64.deb',
+            'libspinnaker_3.1.0.79_arm64.deb',
+            'libspinnaker-c_3.1.0.79_arm64.deb',
+            'libspinnaker-c-dev_3.1.0.79_arm64.deb',
+            'libspinnaker-dev_3.1.0.79_arm64.deb',
+            'libspinvideo_3.1.0.79_arm64.deb',
+            'libspinvideo-c_3.1.0.79_arm64.deb',
+            'libspinvideo-c-dev_3.1.0.79_arm64.deb',
+            'libspinvideo-dev_3.1.0.79_arm64.deb',
+            'spinnaker_3.1.0.79_arm64.deb',
+            'spinnaker-doc_3.1.0.79_arm64.deb',
+            'spinupdate_3.1.0.79_arm64.deb',
+            'spinupdate-dev_3.1.0.79_arm64.deb',
+            'spinview-qt_3.1.0.79_arm64.deb',
+            'spinview-qt-dev_3.1.0.79_arm64.deb'
         ]
     }
 }
 
 
 OS_LIBRARY_VERSION = {
-  'focal': 'current'
+  'jammy': 'current'
 }
 
 arch = sys.argv[1]
@@ -112,9 +112,9 @@ folder_name = ARCHS[arch]['folder_name']
 shared_library = ARCHS[arch]['shared_library']
 
 
-logging.info("CPU architecture is %s", arch)
-logging.info("OS code name is %s", os_code_name)
-logging.info("Destination folder is %s", destination_folder)
+print("CPU architecture is %s", arch)
+print("OS code name is %s", os_code_name)
+print("Destination folder is %s", destination_folder)
 
 if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
     cj = http.cookiejar.CookieJar()
@@ -123,24 +123,24 @@ if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
         ('User-agent', 'Mozilla/5.0'),
         ('Referer', 'https://www.ptgrey.com')]
 
-    logging.info("Downloading SDK archive from {0}...".format(archive_url))
+    print("Downloading SDK archive from {0}...".format(archive_url))
     resp = opener.open(archive_url)
 
-    logging.info("Unpacking tarball.")
+    print("Unpacking tarball.")
     with tarfile.open(mode="r:gz", fileobj=io.BytesIO(resp.read())) as tar:
         tar.extractall()
 
-    logging.info("Unpacking debs.")
+    print("Unpacking debs.")
     debs = glob.glob(os.path.join(os.getcwd(), folder_name, "*.deb"))
     unpack_dir = os.path.join(os.getcwd())
     if not os.path.exists(unpack_dir):
         os.makedirs(unpack_dir)
     for deb in debs:
-        logging.info('Extracting {0}'.format(deb))
+        print('Extracting {0}'.format(deb))
         subprocess.call(['dpkg', '--extract', deb, unpack_dir])
 
     # Copy the shared libraries into the output folder
-    logging.info('Copying libraries to {0}'.format(destination_folder))
+    print('Copying libraries to {0}'.format(destination_folder))
     if not os.path.exists(destination_folder):
         os.makedirs(destination_folder)
     libs = glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "libSpinnaker*.so*"))
@@ -149,7 +149,7 @@ if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
     libs += glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "libLog*.so*"))
     libs += glob.glob(os.path.join(os.getcwd(), 'opt/spinnaker/lib', "libNodeMapData*.so*"))
     for lib in libs:
-      logging.info('Copying: {}'.format(os.path.basename(lib)))
+      print('Copying: {}'.format(os.path.basename(lib)))
       shutil.copyfile(lib, os.path.join(destination_folder, os.path.basename(lib)))
 else:
-    logging.info("Previous installation found, skipping...")
+    print("Previous installation found, skipping...")
