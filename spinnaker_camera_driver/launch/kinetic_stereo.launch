@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+
+<!--
+Software License Agreement (BSD)
+
+\authors   Michael Hosmar <mhosmar@clearpathrobotics.com>
+\copyright Copyright (c) 2018, Clearpath Robotics, Inc., All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this list of conditions and the
+   following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the 
+   following disclaimer in the documentation and/or other materials provided with the distribution.
+ * Neither the name of Clearpath Robotics nor the names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WAR-
+RANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, IN-
+DIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<launch>
+  <!-- We will use the systems installation to look up system-specific info like camera serial numbers -->
+  <arg name="system_install_path" default="/etc/opt/kinetic/config"/>
+  <arg name="platform_config_path"
+       default="$(eval system_install_path + '/' + open('%s/system-name.txt' % system_install_path, 'r').readline().strip() + '/platform_config.yaml')"
+  />
+
+
+  <arg name="camera_name" default="stereo" />
+  <!-- This fanciness runs everything after 'eval' as python code -->
+  <!-- We use a super simple yaml "parser" and look for the first value after the `serial` tag -->
+  <arg name="camera_serial_primary"
+       default="$(eval open(platform_config_path).read().split('camera_primary:')[1].split('serial:')[1].split()[0].strip())"
+  /> <!-- MASTER CAMERA -->
+  <!-- This fanciness runs everything after 'eval' as python code -->
+  <arg name="camera_serial_secondary"
+       default="$(eval open(platform_config_path).read().split('camera_secondary:')[1].split('serial:')[1].split()[0].strip())"
+  />
+  <arg name="color"       default="Mono8" />
+  <arg name="width"       default="1920" />
+  <arg name="height"      default="1200" />
+  <arg name="calibrated"  default="False" />
+
+  <group ns="$(arg camera_name)">
+      <group ns="secondary">
+      <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
+
+      <!-- Camera nodelet -->
+      <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
+            args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
+
+        <param name="frame_id"                        value="camera_secondary" />
+        <param name="serial"                          value="$(arg camera_serial_secondary)" />
+        <param name="image_format_color_coding"       value="$(arg color)" />
+        <param name="image_format_roi_width"          value="$(arg width)" />
+        <param name="image_format_roi_height"         value="$(arg height)" />
+    </node>
+
+    </group>
+  </group>
+
+  <group ns="$(arg camera_name)">
+      <group ns="primary">
+      <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" cwd="node" output="screen"/>
+
+      <!-- Camera nodelet -->
+      <node pkg="nodelet" type="nodelet" name="spinnaker_camera_nodelet"
+            args="load spinnaker_camera_driver/SpinnakerCameraNodelet camera_nodelet_manager" >
+
+        <param name="frame_id"                        value="camera_primary" />
+        <param name="serial"                          value="$(arg camera_serial_primary)" />
+        <param name="image_format_color_coding"       value="$(arg color)" />
+        <param name="image_format_roi_width"          value="$(arg width)" />
+        <param name="image_format_roi_height"         value="$(arg height)" />
+    </node>
+
+    </group>
+  </group>
+
+  <!-- DEBAYER NODELET -->
+  <node pkg="nodelet" type="nodelet" name="image_proc_debayer" args="load image_proc/debayer camera_nodelet_manager">
+  </node>
+
+  <!-- MANUAL HW TRIGGER PARAMS -->
+  <!-- MINION CAMERA (SET TRIGGER MODE TO RECIEVE TRIGGER FROM MASTER) -->
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/trigger_source" value="Line3" />
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/enable_trigger" value="On" />
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/exposure_auto" value="Off" />
+  <param name="/stereo/secondary/spinnaker_camera_nodelet/exposure_time" value="10000" />
+
+
+  <!-- MASTER CAMERA (SET FRAME RATE) -->
+  <param name="/stereo/primary/spinnaker_camera_nodelet/acquisition_frame_rate" value="5.0" />
+  <param name="/stereo/primary/spinnaker_camera_nodelet/acquisition_frame_rate_enable" value="true" />
+  <param name="/stereo/primary/spinnaker_camera_nodelet/exposure_auto" value="Off" />
+  <param name="/stereo/primary/spinnaker_camera_nodelet/exposure_time" value="10000" />
+
+  <!-- CAMERA RECTIFICATION / PROJECTION EXAMPLE-->
+<!--   <node ns="stereo/secondary" name="image_proc" pkg="image_proc" type="image_proc"> </node> -->
+<!--   <node ns="stereo/primary" name="image_proc" pkg="image_proc" type="image_proc"> </node> -->
+
+  <!-- STEREO CAMERA DISPARITY EXAMPLE -->
+  <!-- COMPUTATIONALLY EXPENSIVE! -->
+<!--   <node ns="stereo" name="stereo_image_proc" pkg="stereo_image_proc" type="stereo_image_proc"> 
+      <param name="approximate_sync" value="true"/>
+  </node> -->
+
+  <!-- STEREO CAMERA DISPARITY PARAMS EXAMPLE -->
+<!--   <param name="/stereo/stereo_image_proc/disparity_range" value="256" /> -->
+<!--   <param name="/stereo/stereo_image_proc/speckle_size" value="1000" /> -->
+<!--   <param name="/stereo/stereo_image_proc/texture_threshold" value="1000" /> -->
+
+  <!-- RVIZ -->
+  <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find spinnaker_camera_driver)/rviz/cam_test.rviz"/> -->
+
+  <!-- RQT RECONFIGURE -->
+  <!-- <node name="rqt_reconfigure_image_params" pkg="rqt_reconfigure" type="rqt_reconfigure" output="log"/> -->
+
+</launch>
