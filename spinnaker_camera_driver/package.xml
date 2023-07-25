@@ -9,7 +9,7 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <build_depend>lsb-release</build_depend>  <!-- to find OS release info -->
+  <build_depend>python3-distro</build_depend>  <!-- to get lsb_release for downloading Spinnaker -->
   <build_depend>curl</build_depend>  <!-- to get ca-certificates for downloading Spinnaker -->
   <build_depend>dpkg</build_depend>  <!-- for unpacking Spinnaker debs  -->
   
