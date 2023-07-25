@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.1 (2023-07-24)
+------------------
 * use cmake find_program to detect lsb_release
 * Contributors: Bernd Pfrommer
 
