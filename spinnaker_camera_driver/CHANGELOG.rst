@@ -2,6 +2,12 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* replace lsb-release with python3-distro
+* add dependencies for spinnaker download
+* Contributors: Bernd Pfrommer
+
 2.0.1 (2023-07-24)
 ------------------
 * use cmake find_program to detect lsb_release

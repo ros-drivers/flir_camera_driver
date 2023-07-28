@@ -2,6 +2,9 @@
 Changelog for package flir_camera_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 2.0.1 (2023-07-24)
 ------------------
 
