@@ -17,9 +17,8 @@ function(download_spinnaker FLIR_LIB_VAR FLIR_INCLUDE_DIR_VAR)
     message(FATAL_ERROR "Downloading libSpinnaker for non-linux systems not supported")
   endif()
 
-  find_program(LSB_RELEASE_EXEC lsb_release REQUIRED)
   execute_process(
-    COMMAND ${LSB_RELEASE_EXEC} -cs
+    COMMAND bash -c cat /etc/os-release | grep VERSION_CODENAME | sed -e "s/^VERSION_CODENAME=//" -e "s///"
     OUTPUT_VARIABLE OS_CODE_NAME
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
