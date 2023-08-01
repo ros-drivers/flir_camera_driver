@@ -17,9 +17,10 @@ function(download_spinnaker FLIR_LIB_VAR FLIR_INCLUDE_DIR_VAR)
     message(FATAL_ERROR "Downloading libSpinnaker for non-linux systems not supported")
   endif()
 
-  find_program(LSB_RELEASE_EXEC lsb_release REQUIRED)
+  #find_program(LSB_RELEASE_EXEC lsb_release REQUIRED)
   execute_process(
-    COMMAND ${LSB_RELEASE_EXEC} -cs
+    #COMMAND ${LSB_RELEASE_EXEC} -cs
+    COMMAND /usr/bin/echo jammy
     OUTPUT_VARIABLE OS_CODE_NAME
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
