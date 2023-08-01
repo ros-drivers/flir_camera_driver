@@ -2,6 +2,11 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Hardcoding OS to jammy since it is the only one currently supported.
+* Contributors: Tony Baltovski
+
 2.0.2 (2023-07-28)
 ------------------
 * replace lsb-release with python3-distro
