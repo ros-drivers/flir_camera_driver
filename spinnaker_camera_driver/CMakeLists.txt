@@ -43,11 +43,13 @@ find_package(SPINNAKER QUIET)
 message(STATUS
   "Found variable: ${SPINNAKER_FOUND} at ${SPINNAKER_LIBRARIES} and ${SPINNAKER_INCLUDE_DIRS}")
 
+set(SPINNAKER_WAS_DOWNLOADED FALSE)
 if(NOT SPINNAKER_FOUND)
   message(STATUS "spinnaker not found")
   message(STATUS "libSpinnaker not found in system library path")
   include(cmake/DownloadSpinnaker.cmake)
   download_spinnaker(SPINNAKER_LIBRARIES SPINNAKER_INCLUDE_DIRS)
+  set(SPINNAKER_WAS_DOWNLOADED TRUE)
 endif()
 
 message(STATUS "libSpinnaker library location: ${SPINNAKER_LIBRARIES}")
@@ -116,7 +118,6 @@ target_include_directories(camera_driver_node
 
 target_include_directories(camera_driver PRIVATE include)
 
-
 # the node must go into the project specific lib directory or else
 # the launch file will not find it
 
@@ -141,6 +142,13 @@ install(DIRECTORY
   launch
   DESTINATION share/${PROJECT_NAME}/
 )
+
+if(SPINNAKER_WAS_DOWNLOADED)
+  set(SPINNAKER_BUILD_SUBDIR "opt/spinnaker/lib")
+  set(SPINNAKER_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/${SPINNAKER_BUILD_SUBDIR}")
+  message(STATUS "installing spinnaker libraries from ${SPINNAKER_BUILD_DIR}")
+  install(DIRECTORY  "${SPINNAKER_BUILD_DIR}" DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()
 
 if(BUILD_TESTING)
   find_package(ament_cmake REQUIRED)
