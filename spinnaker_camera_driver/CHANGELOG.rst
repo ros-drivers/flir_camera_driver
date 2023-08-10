@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.4 (2023-08-10)
+------------------
 * install spinnaker libraries in spinnaker_camera_driver dir
 * Contributors: Bernd Pfrommer
 
