@@ -1,0 +1,113 @@
+#
+# config file for Grasshopper cameras (tested for USB3)
+#
+#
+# This file maps the ros parameters to the corresponding Spinnaker "nodes" in the camera.
+# For more details on how to modify this file, see the README on camera configuration files.
+
+parameters:
+  #
+  # -------- analog control
+  #
+  - name: gain_auto
+    type: enum
+    # valid values: Continuous and Off
+    node: AnalogControl/GainAuto
+  - name: gain
+    type: float
+    node: AnalogControl/Gain
+  #
+  # -------- digital IO control
+  #
+  - name: line0_selector  # NOT TESTED: probably black wire: opto-isolated input
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line1_selector  # NOT TESTED: probably white wire: opto-isolated output
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line2_selector  # NOT TESTED: probably red wire: non-isolated input/output
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line2_linemode
+    type: bool
+    node: DigitalIOControl/LineMode
+  - name: line3_selector  # NOT TESTED probably green wire: non-isolated input/output
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line3_linemode  # valid values: "Input", "Output"
+    type: enum
+    node: DigitalIOControl/LineMode
+  #
+  # -------- acquisition control
+  #
+  - name: exposure_auto
+    type: enum
+    # valid values: Continuous and Off
+    node: AcquisitionControl/ExposureAuto
+  - name: exposure_time
+    type: float
+    node: AcquisitionControl/ExposureTime
+  - name: frame_rate_auto
+    type: enum
+    # enum values: Continuous and Off
+    node: AcquisitionControl/AcquisitionFrameRateAuto
+  - name: frame_rate
+    type: float
+    node: AcquisitionControl/AcquisitionFrameRate
+  - name: frame_rate_enable
+    type: bool
+    # NOTE: ..Enabled vs ..Enable on the blackfly_s
+    node: AcquisitionControl/AcquisitionFrameRateEnabled
+  - name: trigger_selector  # NOT TESTED!
+    type: enum
+    # valid values are e.g. "FrameStart", "ExposureActive"
+    node: AcquisitionControl/TriggerSelector
+  - name: trigger_mode  # NOT TESTED!
+    type: enum
+    # valid values are "On" and "Off"
+    node: AcquisitionControl/TriggerMode
+  - name: trigger_source  # NOT TESTED!
+    type: enum
+    # valid values are "Software", "Line<0,2,3>"
+    node: AcquisitionControl/TriggerSource
+  - name: trigger_delay  # NOT TESTED!
+    type: float
+    node: AcquisitionControl/TriggerDelay
+  - name: trigger_overlap  # NOT TESTED!
+    type: enum
+    # valid values: "Off" and "ReadOut"
+    node: AcquisitionControl/TriggerOverlap
+  #
+  # --------- chunk control
+  #
+  - name: chunk_mode_active
+    type: bool
+    node: ChunkDataControl/ChunkModeActive
+  - name: chunk_selector_frame_counter
+    type: enum
+    # valid values: "FrameCounter"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_frame_counter
+    type: bool
+    node: ChunkDataControl/ChunkEnable
+  - name: chunk_selector_exposure_time
+    type: enum
+    # valid values: "ExposureTime"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_exposure_time
+    type: bool
+    node: ChunkDataControl/ChunkEnable
+  - name: chunk_selector_gain
+    type: enum
+    # valid values: "Gain"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_gain
+    type: bool
+    node: ChunkDataControl/ChunkEnable
+  - name: chunk_selector_timestamp
+    type: enum
+    # valid values: "Timestamp"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_timestamp
+    type: bool
+    node: ChunkDataControl/ChunkEnable

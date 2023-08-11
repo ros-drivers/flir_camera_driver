@@ -79,7 +79,7 @@ find_package(ament_cmake_ros REQUIRED)
 foreach(pkg ${ROS_DEPENDENCIES})
   find_package(${pkg} REQUIRED)
 endforeach()
-
+find_package(yaml-cpp REQUIRED)
 
 #
 # shared library for composable node
@@ -95,7 +95,7 @@ add_library(camera_driver SHARED
 )
 
 ament_target_dependencies(camera_driver PUBLIC ${ROS_DEPENDENCIES})
-target_link_libraries(camera_driver PUBLIC Spinnaker::Spinnaker)
+target_link_libraries(camera_driver PUBLIC Spinnaker::Spinnaker PRIVATE yaml-cpp)
 
 target_include_directories(camera_driver
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
