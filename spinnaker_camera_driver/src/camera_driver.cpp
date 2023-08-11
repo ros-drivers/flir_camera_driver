@@ -204,7 +204,8 @@ bool CameraDriver::readParameterDefinitionFile()
   RCLCPP_INFO_STREAM(get_logger(), "parameter definitions file: " << parameterFile_);
   YAML::Node yamlFile = YAML::LoadFile(parameterFile_);
   if (yamlFile.IsNull()) {
-    throw YAML::BadFile(parameterFile_);
+    RCLCPP_ERROR_STREAM(get_logger(), "cannot open file: " << parameterFile_);
+    return (false);
   }
   if (!yamlFile["parameters"].IsSequence()) {
     RCLCPP_ERROR_STREAM(get_logger(), "parameter definitions lists no parameters!");
