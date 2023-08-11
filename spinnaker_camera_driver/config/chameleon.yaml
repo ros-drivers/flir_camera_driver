@@ -1,0 +1,133 @@
+#
+# config file for Chameleon cameras (tested for USB3)
+#
+# This file maps the ros parameters to the corresponding Spinnaker "nodes" in the camera.
+# For more details on how to modify this file, see the README on camera configuration files.
+
+parameters:
+  #
+  # --------- image format control
+  #
+  - name: offset_x
+    type: int
+    node: ImageFormatControl/OffsetX
+  - name: offset_y
+    type: int
+    node: ImageFormatControl/OffsetY
+  - name: image_width
+    type: int
+    node: ImageFormatControl/Width
+  - name: image_height
+    type: int
+    node: ImageFormatControl/Height
+  - name: pixel_format
+    type: enum
+    # Check available values with SpinView. Not all are supported by ROS!
+    # Some formats are e.g. "Mono8", "BayerRG8", "BGR8", "BayerRG16"
+    # default is "BayerRG8"
+    node: ImageFormatControl/PixelFormat
+  #
+  # -------- analog control
+  #
+  - name: gain_auto
+    type: enum
+    # enum values: Continuous and Off
+    node: AnalogControl/GainAuto
+  - name: gain
+    type: float
+    node: AnalogControl/Gain
+  #
+  # -------- digital IO control
+  #
+  - name: line0_selector # NOT TESTED: probably yellow wire: opto-isolated input
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line1_selector # NOT TESTED: probably orange wire: opto-isolated output
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line2_selector # NOT TESTED: probably purple wire: non-isolated input/output
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line2_linemode # NOT TESTED
+    type: bool
+    node: DigitalIOControl/LineMode
+  - name: line3_selector # NOT TESTED probably green wire: non-isolated input/output
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line3_linemode # NOT TESTED
+    type: enum
+    # valid values: "Input", "Output"
+    node: DigitalIOControl/LineMode
+  #
+  # -------- acquisition control
+  #
+  - name: exposure_auto
+    type: enum
+    # valid values: "Continuous" and "Off"
+    node: AcquisitionControl/ExposureAuto
+  - name: exposure_time
+    type: float
+    node: AcquisitionControl/ExposureTime
+  - name: trigger_mode
+    type: enum
+    # valid values are "On" and "Off"
+    node: AcquisitionControl/TriggerMode
+  - name: acquisition_mode
+    type: enum
+    # valid values are "Continuous", "SingleFrame", "MultiFrame"
+    node: AcquisitionControl/AcquisitionMode
+  - name: frame_rate_continuous
+    type: bool
+    node: AcquisitionControl/AcquisitionFrameRateContinuous
+  - name: frame_rate
+    type: float
+    node: AcquisitionControl/AcquisitionFrameRate
+  - name: trigger_selector  # NOT TESTED
+    type: enum
+    # valid values are e.g. "FrameStart", "ExposureActive"
+    node: AcquisitionControl/TriggerSelector
+  - name: trigger_source  # NOT TESTED
+    type: enum
+    # valid values are "Software", "Line<0,2,3>"
+    node: AcquisitionControl/TriggerSource
+  - name: trigger_delay  # NOT TESTED
+    type: float
+    node: AcquisitionControl/TriggerDelay
+  - name: trigger_overlap  # NOT TESTED
+    type: enum
+    # valid values: "Off" and "ReadOut"
+    node: AcquisitionControl/TriggerOverlap
+  #
+  # --------- chunk control
+  #
+  - name: chunk_mode_active
+    type: bool
+    node: ChunkDataControl/ChunkModeActive
+  - name: chunk_selector_frame_counter
+    type: enum
+    # valid values: "FrameCounter"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_frame_counter
+    type: bool
+    node: ChunkDataControl/ChunkEnable
+  - name: chunk_selector_exposure_time
+    type: enum
+    # valid values: "ExposureTime"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_exposure_time
+    type: bool
+    node: ChunkDataControl/ChunkEnable
+  - name: chunk_selector_gain
+    type: enum
+    # valid values: "Gain"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_gain
+    type: bool
+    node: ChunkDataControl/ChunkEnable
+  - name: chunk_selector_timestamp
+    type: enum
+    # valid values: "Timestamp"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_timestamp
+    type: bool
+    node: ChunkDataControl/ChunkEnable

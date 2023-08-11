@@ -26,42 +26,32 @@ Software:
 - Spinnaker 3.1.0.79 (other versions may work as well but this is
   what the continuous integration builds are using)
 
+## How to install
 
-## Features
+This driver can be used with or without installing the Spinnaker SDK,
+but installing the Spinnaker SDK is recommended because during its
+installation the USB kernel configuration is modified as needed and
+suitable access permissions are granted (udev rules).
+If you choose to *not* use the Spinnaker SDK, you must perform the
+[required setup steps manually](docs/linux_setup_flir.md).
+Without these setup steps, *the ROS driver will not detect the
+camera*.
+So you must either install the Spinnaker SDK (which also gives you the
+useful ``spinview`` tool), or follow the manual setup steps mentioned earlier.
 
-Basic features are supported like setting exposure, gain, and external
-triggering. It is straight forward to support new camera types and features by
-editing the camera definition (.cfg) files. Unless you need new pixel
-formats you may not have to modify any source code. The code is meant
-to be a thin wrapper for setting the features available in FLIR's
-SpinView program. The driver has the following parameters,
-*in addition to the parameters defined in the .cfg files*:
+### Installing from packages
+For some architectures and ros distributions you can simply install an apt package:
+```
+sudo apt install ros-${ROS_DISTRO}-spinnaker-camera-driver
+```
+The package will bring its own set of Spinnaker SDK libraries, so you don't
+necessarily have to install the SDK, but it's recommended, see above
 
-- ``serial_number``: must have the serial number of the camera. If you
-  don't know it, put in anything you like and
-  the driver will croak with an error message, telling you what
-  cameras serial numbers are available
-- ``frame_id``: the ROS frame id to put in the header of the published
-  image messages.
-- ``camerainfo_url``: where to find the camera calibration yaml file.
-- ``parameter_file``: location of the .cfg file defining the camera
-  (blackfly_s.cfg etc)
-- ``compute_brightness``: if true, compute image brightness and
-  publish it in meta data message. This is useful for external
-  exposure control but incurs extra CPU load. Default: false.
-- ``buffer_queue_size``: max number of images to queue internally
-  before shoving them into the ROS output queue. Decouples the
-  Spinnaker SDK thread from the ROS publishing thread. Default: 4.
-- ``image_queue_size``: ROS output queue size (number of frames). Default: 4
-- ``dump_node_map``: set this to true to get a dump of the node map. This
-  feature is helpful when developing a new config file. Default: false.
-  
-
-## How to build
+### Building from source
 
 1) Install the FLIR spinnaker driver. If you skip this part, the
 driver will attempt to download the Spinnaker SDK automatically to
-obtain the header files and libraries
+obtain the header files and libraries.
 2) Prepare the ROS2 driver build:
 Make sure you have your ROS2 environment sourced:
 ```
@@ -69,7 +59,6 @@ source /opt/ros/<my_ros_distro>/setup.bash
 ```
 
 Create a workspace (``~/ws``), clone this repo:
-
 ```
 mkdir -p ~/ws/src
 cd ~/ws/src
@@ -91,10 +80,62 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo -D
 
 ## Example usage
 
-How to launch the example file:
+### Single node launch
+The driver comes with an example launch file (``driver_node.launch.py``)
+that you can customize as needed.
 ```
-ros2 launch spinnaker_camera_driver blackfly_s.launch.py camera_name:=blackfly_0 serial:="'20435008'"
+# launch with --show-args to print out all available launch arguments
+ros2 launch spinnaker_camera_driver driver_node.launch.py camera_type:=blackfly_s serial:="'20435008'"
 ```
+
+### Stereo camera with synchronization
+
+The launch file ``stereo_synced.launch.py`` provides a working example for launching
+drivers for two hardware synchronized Blackfly S cameras. It requires two more packages
+to be installed, 
+[cam_sync_ros2](https://github.com/berndpfrommer/cam_sync_ros2)(for
+time stamp syncing) and
+[exposure_control_ros2](https://github.com/berndpfrommer/exposure_control_ros2)
+(for external exposure control).
+The launch file also demonstrates how to use the driver as a composable node.
+
+## Features
+
+The ROS driver itself has no notion of the camera type (Blackfly,
+Grasshopper etc), nor does it explicitly support any of the many
+features that the FLIR cameras have. Rather, all camera features
+(called Spinnaker Nodes) are mapped to ROS parameters via a yaml file
+that is specific to the camera. On startup the driver reads this
+parameter definition file. In the ``config`` directory there are some
+parameter definition files for popular cameras (blackfly_s.yaml etc)
+that expose some of the more frequently used features like frame rate,
+gain, etc. You can add more features by providing your own
+parameter definition file. The ROS driver code is just a thin wrapper
+around the Spinnaker SDK, and should allow you to access all features available in FLIR's
+spinview program. *In addition to the parameters defined in the .yaml
+files*, the driver has the following ROS parameters:
+
+- ``serial_number``: must have the serial number of the camera. If you
+  don't know it, put in anything you like and
+  the driver will croak with an error message, telling you what
+  cameras serial numbers are available
+- ``frame_id``: the ROS frame id to put in the header of the published
+  image messages.
+- ``camerainfo_url``: where to find the camera calibration yaml file.
+- ``parameter_file``: location of the .yaml file defining the camera
+  (blackfly_s.yaml etc)
+- ``compute_brightness``: if true, compute image brightness and
+  publish it in meta data message. This is useful for external
+  exposure control but incurs extra CPU load. Default: false.
+- ``buffer_queue_size``: max number of images to queue internally
+  before shoving them into the ROS output queue. Decouples the
+  Spinnaker SDK thread from the ROS publishing thread. Default: 4.
+- ``image_queue_size``: ROS output queue size (number of frames). Default: 4
+- ``dump_node_map``: set this to true to get a dump of the node map. This
+  feature is helpful when developing a new config file. Default: false.
+- ``adjust_timestamp``: see below for more documentation
+- ``acquisition_timeout``: timeout for expecting frames (in seconds).
+  If no frame is received for this time, the driver restarts. Default is 3s.
 
 ## Setting up GigE cameras
 
@@ -115,7 +156,7 @@ that you can then set in your ROS2 launch file:
  "gev_scps_packet_size": 9000
 ```
 As far as setting up the camera's IP address: you can set up DHCP on
-your network or configure a static persistent IP using SpinView 
+your network or configure a static persistent IP using spinview 
 in "Transport Layer Control">"GigE Vision". Check the box for "Current
 IP Configuration Persistent IP" first to enable it, then set your
 desired addresses under "Persistent IP Address", "Persistent Subnet
@@ -125,9 +166,9 @@ IP address/mask. By hand/calculator: convert the IP octets from
 decimal to hex, then combine them and convert to a 32-bit integer, ex:
 192.168.0.1 -> 0xC0A80001 -> 3232235521.
 
-The "Transport Layer Control">"GigE Vision" section of SpinView is
+The "Transport Layer Control">"GigE Vision" section of spinview is
 also where you'll find that "SCPS Packet Size" setting, which you can
-change when not capturing frames, and verify it works in SpinView and
+change when not capturing frames, and verify it works in spinview and
 without needing to spin up a custom launch file to get started, though
 it helps, and you'll probably want one anyway to specify your camera's
 serial number.
@@ -136,16 +177,6 @@ For more tips on GigE setup look at FLIR's support pages
 [here](https://www.flir.com/support-center/iis/machine-vision/knowledge-base/lost-ethernet-data-packets-on-linux-systems/)
 and
 [here](https://www.flir.com/support-center/iis/machine-vision/application-note/troubleshooting-image-consistency-errors/).
-
-## Camera synchronization
-
-In the ``launch`` folder you can find a working example for launching
-drivers for two hardware synchronized Blackfly S cameras. The launch
-file requires two more packages to be installed,
-[cam_sync_ros2](https://github.com/berndpfrommer/cam_sync_ros2)(for
-time stamp syncing) and
-[exposure_control_ros2](https://github.com/berndpfrommer/exposure_control_ros2)
-(for external exposure control). See below for more details on those packages.
 
 ### Time stamps
 
@@ -160,7 +191,6 @@ moving average. For the adjustment to work
 ``adjust_timestamp`` flag must be set to true, and the relevant field
 in the "chunk" must be populated by the camera. For the Blackfly S
 the parameters look like this:
-
 ```
     'adjust_timestamp': True,
     'chunk_mode_active': True,
@@ -177,7 +207,6 @@ images as being hardware synchronized. You can use the
 to force the time stamps to be aligned. In this scenario it is
 mandatory to configure the driver to adjust the ROS time stamps as
 described above.
-
 
 ### Automatic exposure
 
@@ -196,34 +225,10 @@ subscribes to
 messages](https://github.com/ros-drivers/flir_camera_driver/flir_camera_msgs). See
 the launch file directory for examples.
 
+## How to add new features and develop your own camera configuration file
 
-## How to add new features
-
-For lack of a more systematic way to discover the camera configuration node
-names the following procedure is recommended for adding new features:
-
-- fire up FLIR's ``spinview`` application and find the parameter you want to add
-  to the config.
-
-- start with an existing config file in the ``config`` directory, make a copy
-  and give the feature a name that follows the established convention of
-  other parameters (all lower case, separate by underscores), for example
-  ```
-    device_link_throughput_limit int "DeviceControl/DeviceLinkThroughputLimit"
-  ```
-  The parameter name is followed by the parameter type (in this example ``int``),
-  which you have to somewhat guess. If ``spinview`` shows a multiple choice drop-down box,
-  the parameter is of type ``enum``, a check box translates to ``bool``,
-  otherwise it's ``float`` or ``int`` (check what input ``spinview``) accepts.
-
-- the hard part is the node name which is the last parameter of the line, in this
-  example ``"DeviceControl/DeviceLinkThroughputLimit"``. It usually follows by
-  removing spaces from the ``spinview`` names. If that doesn't work,
-  launch the driver with the ``dump_node_map`` parameter set to "True"
-  and look at the output for inspiration.
-
-Once you have modified the config file, now just set the newly created
-parameter in the launch file, done.
+[Check out this section](docs/camera_configuration_files.md) for more information on
+how to add features.
 
 ## Known issues
 
@@ -234,12 +239,14 @@ currently implemented: if image delivery stops for more than
 ``acquisition_timeout`` seconds, the acquisition is restarted. This
 operation may not be thread safe so the driver already running could
 possibly crash. This issue can be avoided by running all drivers in
-the same address space with a composable node.
+the same address space with a composable node (see stereo launch file for
+example).
 
 ## How to contribute
 Please provide feedback if you cannot get your camera working or if
 the code does not compile for you. Feedback is crucial for the
-software development process.
+software development process. However, before opening issues on github first
+verify that the problem is not present when using spinview.
 
 Bug fixes and config files for new cameras are greatly
 appreciated. Before submitting a pull request, run this to see if your

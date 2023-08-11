@@ -15,12 +15,14 @@
 #
 #
 
-import launch
 from launch_ros.actions import ComposableNodeContainer
+from launch_ros.substitutions import FindPackageShare
 from launch_ros.descriptions import ComposableNode
 from launch.substitutions import LaunchConfiguration as LaunchConfig
+from launch.substitutions import PathJoinSubstitution
 from launch.actions import DeclareLaunchArgument as LaunchArg
-from ament_index_python.packages import get_package_share_directory
+from launch.actions import OpaqueFunction
+from launch import LaunchDescription
 
 camera_params = {
     'debug': False,
@@ -52,37 +54,45 @@ camera_params = {
     }
 
 
-def generate_launch_description():
+def make_camera_node(name, camera_type, serial):
+    parameter_file = PathJoinSubstitution(
+        [FindPackageShare('spinnaker_camera_driver'), 'config',
+         camera_type + '.yaml'])
+
+    node = ComposableNode(
+        package='spinnaker_camera_driver',
+        plugin='spinnaker_camera_driver::CameraDriver',
+        name=name,
+        parameters=[camera_params,
+                    {'parameter_file': parameter_file,
+                     'serial_number': '20435008'}],
+        remappings=[('~/control', '/exposure_control/control'), ],
+        extra_arguments=[{'use_intra_process_comms': True}])
+    return node
+
+
+def launch_setup(context, *args, **kwargs):
     """Create synchronized stereo camera."""
-    flir_dir = get_package_share_directory('spinnaker_camera_driver')
-    config_dir = flir_dir + '/config/'
     container = ComposableNodeContainer(
             name='stereo_camera_container',
             namespace='',
             package='rclcpp_components',
             executable='component_container',
             composable_node_descriptions=[
-                ComposableNode(
-                    package='spinnaker_camera_driver',
-                    plugin='spinnaker_camera_driver::CameraDriver',
-                    name=LaunchConfig('cam_0_name'),
-                    parameters=[camera_params,
-                                {'parameter_file': config_dir + 'blackfly_s.cfg',
-                                 'serial_number': '20435008'}],
-                    remappings=[('~/control', '/exposure_control/control'), ],
-                    extra_arguments=[{'use_intra_process_comms': True}],
-                ),
-                ComposableNode(
-                    package='spinnaker_camera_driver',
-                    plugin='spinnaker_camera_driver::CameraDriver',
-                    name=LaunchConfig('cam_1_name'),
-                    parameters=[camera_params,
-                                {'parameter_file':
-                                 config_dir + 'blackfly_s.cfg',
-                                 'serial_number': '20415937'}],
-                    remappings=[('~/control', '/exposure_control/control'), ],
-                    extra_arguments=[{'use_intra_process_comms': True}],
-                ),
+                #
+                # These two camera nodes run independently from each other,
+                # but in the same address space
+                #
+                make_camera_node(LaunchConfig('cam_0_name'),
+                                 LaunchConfig('cam_0_type').perform(context),
+                                 LaunchConfig('cam_0_serial')),
+                make_camera_node(LaunchConfig('cam_1_name'),
+                                 LaunchConfig('cam_1_type').perform(context),
+                                 LaunchConfig('cam_1_serial')),
+                #
+                # This node forces the ros header stamps to be identical
+                # across the two cameras. Remove if you don't need it.
+                #
                 ComposableNode(
                     package='cam_sync_ros2',
                     plugin='cam_sync_ros2::CamSync',
@@ -90,6 +100,10 @@ def generate_launch_description():
                     parameters=[],
                     extra_arguments=[{'use_intra_process_comms': True}],
                 ),
+                #
+                # This node is for external exposure control. Remove
+                # if you don't need it, and switch on auto exposure.
+                #
                 ComposableNode(
                     package='exposure_control_ros2',
                     plugin='exposure_control_ros2::ExposureControl',
@@ -106,9 +120,24 @@ def generate_launch_description():
                 ),
             ],
             output='screen',
-    )
-    name_0_arg = LaunchArg('cam_0_name', default_value=['cam_0'],
-                           description='name of camera 0')
-    name_1_arg = LaunchArg('cam_1_name', default_value=['cam_1'],
-                           description='name of camera 1')
-    return launch.LaunchDescription([name_0_arg, name_1_arg, container])
+    )  # end of container
+    return [container]
+
+
+def generate_launch_description():
+    """Create composable node by calling opaque function."""
+    return LaunchDescription([
+        LaunchArg('cam_0_name', default_value=['cam_0'],
+                  description='camera name (ros node name) of camera 0'),
+        LaunchArg('cam_1_name', default_value=['cam_1'],
+                  description='camera name (ros node name) of camera 1'),
+        LaunchArg('cam_0_type', default_value='blackfly_s',
+                  description='type of camera 0'),
+        LaunchArg('cam_1_type', default_value='blackfly_s',
+                  description='type of camera 1'),
+        LaunchArg('cam_0_serial', default_value="'20435008'",
+                  description='FLIR serial number of camera 0 (in quotes!!)'),
+        LaunchArg('cam_1_serial', default_value="'20415937'",
+                  description='FLIR serial number of camera 1 (in quotes!!)'),
+        OpaqueFunction(function=launch_setup)
+        ])

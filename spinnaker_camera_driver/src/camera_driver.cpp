@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <yaml-cpp/yaml.h>
+
 #include <chrono>
 #include <cmath>
 #include <fstream>
@@ -197,34 +199,36 @@ void CameraDriver::readParameters()
     std::bind(&CameraDriver::parameterChanged, this, std::placeholders::_1));
 }
 
-bool CameraDriver::readParameterFile()
+bool CameraDriver::readParameterDefinitionFile()
 {
-  std::ifstream f(parameterFile_);
-  if (!f.is_open()) {
-    RCLCPP_ERROR_STREAM(get_logger(), "cannot read parameter definition file: " << parameterFile_);
+  RCLCPP_INFO_STREAM(get_logger(), "parameter definitions file: " << parameterFile_);
+  YAML::Node yamlFile = YAML::LoadFile(parameterFile_);
+  if (yamlFile.IsNull()) {
+    throw YAML::BadFile(parameterFile_);
+  }
+  if (!yamlFile["parameters"].IsSequence()) {
+    RCLCPP_ERROR_STREAM(get_logger(), "parameter definitions lists no parameters!");
     return (false);
   }
-  std::string l;
-  while (getline(f, l)) {
-    std::istringstream iss(l);
-    std::string s;
-    std::vector<std::string> tokens;
-    while (iss >> std::quoted(s)) {
-      tokens.push_back(s);
+  YAML::Node params = yamlFile["parameters"];
+  for (const auto & p : params) {
+    if (!p["name"]) {
+      RCLCPP_WARN_STREAM(get_logger(), "ignoring parameter missing name: " << p);
+      continue;
     }
-    if (!tokens.empty()) {
-      if (!tokens[0].empty() && tokens[0][0] == '#') {
-        continue;
-      }
-      if (tokens.size() != 3) {
-        RCLCPP_WARN_STREAM(get_logger(), "skipping bad camera param line: " << l);
-        continue;
-      }
-      parameterMap_.insert({tokens[0], NodeInfo(tokens[2], tokens[1])});
-      parameterList_.push_back(tokens[0]);
+    if (!p["type"]) {
+      RCLCPP_WARN_STREAM(get_logger(), "ignoring parameter missing type: " << p);
+      continue;
     }
+    if (!p["node"]) {
+      RCLCPP_WARN_STREAM(get_logger(), "ignoring parameter missing node: " << p);
+      continue;
+    }
+    const std::string pname = p["name"].as<std::string>();
+    parameterMap_.insert(
+      {pname, NodeInfo(p["node"].as<std::string>(), p["type"].as<std::string>())});
+    parameterList_.push_back(pname);
   }
-  f.close();
   return (true);
 }
 
@@ -601,9 +605,15 @@ void CameraDriver::startCamera()
 bool CameraDriver::start()
 {
   readParameters();
-  if (!readParameterFile()) {
+  try {
+    if (!readParameterDefinitionFile()) {
+      return (false);
+    }
+  } catch (const YAML::Exception & e) {
+    RCLCPP_ERROR_STREAM(get_logger(), "error reading parameter definitions: " << e.what());
     return (false);
   }
+
   infoManager_ =
     std::make_shared<camera_info_manager::CameraInfoManager>(this, get_name(), cameraInfoURL_);
   controlSub_ = this->create_subscription<flir_camera_msgs::msg::CameraControl>(
