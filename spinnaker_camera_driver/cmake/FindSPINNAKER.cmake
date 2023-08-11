@@ -32,9 +32,6 @@ if( EXISTS "$ENV{SPINNAKER_ROOT_DIR}" )
   set( SPINNAKER_ROOT_DIR "${SPINNAKER_ROOT_DIR}" CACHE PATH "Prefix for Spinnaker installation." )
 endif()
 
-cmake_path(SET PATH2 "${CMAKE_CURRENT_BINARY_DIR}")
-cmake_path(GET PATH2 PARENT_PATH PARENTDIR)
-
 find_path(SPINNAKER_INCLUDE_DIRS
   NAMES Spinnaker.h
   HINTS
@@ -46,7 +43,7 @@ find_path(SPINNAKER_INCLUDE_DIRS
 )
 
 find_library(SPINNAKER_LIBRARIES
-  NAMES SPINNAKER
+  NAMES Spinnaker
   HINTS
   ${SPINNAKER_ROOT_DIR}/lib
   /opt/spinnaker/lib
