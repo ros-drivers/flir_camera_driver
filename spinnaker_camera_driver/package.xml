@@ -15,7 +15,7 @@
 
   <depend>libusb-1.0-dev</depend> <!-- spinnaker dependency -->
 
-  <depend>libyaml-cpp</depend> <!-- parameter definition file parsing -->
+  <depend>yaml-cpp</depend> <!-- parameter definition file parsing -->
 
   <depend>camera_info_manager</depend>
   <depend>flir_camera_msgs</depend>
