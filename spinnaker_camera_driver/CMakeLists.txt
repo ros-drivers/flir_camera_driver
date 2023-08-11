@@ -38,7 +38,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # the Point Grey EULA prohibits redistributing the headers or the packages which
 # contains them. We work around this by downloading the archive directly from
 # their website during this step in the build process.
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+
+# Spinnaker does not provide a cmake discovery mechanism so we
+# provide a find script in the cmake path
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(SPINNAKER QUIET)
 message(STATUS
   "Found variable: ${SPINNAKER_FOUND} at ${SPINNAKER_LIBRARIES} and ${SPINNAKER_INCLUDE_DIRS}")
@@ -50,6 +53,8 @@ if(NOT SPINNAKER_FOUND)
   include(cmake/DownloadSpinnaker.cmake)
   download_spinnaker(SPINNAKER_LIBRARIES SPINNAKER_INCLUDE_DIRS)
   set(SPINNAKER_WAS_DOWNLOADED TRUE)
+else()
+  message(STATUS "spinnaker SDK found installed")
 endif()
 
 message(STATUS "libSpinnaker library location: ${SPINNAKER_LIBRARIES}")
