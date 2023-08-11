@@ -34,8 +34,8 @@ installation the USB kernel configuration is modified as needed and
 suitable access permissions are granted (udev rules).
 If you choose to *not* use the Spinnaker SDK, you must perform the
 [required setup steps manually](docs/linux_setup_flir.md).
-Without these setup steps, *the ROS driver will not detect the
-camera*.
+Without these setup steps,
+*the ROS driver will not detect the camera*.
 So you must either install the Spinnaker SDK (which also gives you the
 useful ``spinview`` tool), or follow the manual setup steps mentioned earlier.
 
@@ -62,7 +62,7 @@ Create a workspace (``~/ws``), clone this repo:
 ```
 mkdir -p ~/ws/src
 cd ~/ws/src
-git clone https://github.com/ros-drivers/flir_camera_driver
+git clone --branch humble-devel https://github.com/ros-drivers/flir_camera_driver
 cd ..
 ```
 
