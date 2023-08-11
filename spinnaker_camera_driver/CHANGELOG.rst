@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.5 (2023-08-11)
+------------------
 * add ffmpeg dependency to fix build failures on ROS farm
 * switch from custom config files to standard yaml format
 * Contributors: Bernd Pfrommer
