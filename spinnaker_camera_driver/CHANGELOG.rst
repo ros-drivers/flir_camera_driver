@@ -2,6 +2,13 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix arm64 build: use correct file name when downloading spinnaker from clearpath
+* fix broken build when the Spinnaker SDK is present
+* allow building with older version (0.6) of yaml library
+* Contributors: Bernd Pfrommer
+
 2.0.5 (2023-08-11)
 ------------------
 * add ffmpeg dependency to fix build failures on ROS farm
