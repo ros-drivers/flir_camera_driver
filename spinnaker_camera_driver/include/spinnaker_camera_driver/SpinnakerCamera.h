@@ -130,6 +130,8 @@ public:
   */
   void stop();
 
+  void trigger();
+
   /*!
   * \brief Loads the raw data from the cameras buffer.
   *
@@ -166,6 +168,8 @@ public:
   int getWidthMax();
   bool readableProperty(const Spinnaker::GenICam::gcstring property_name);
   Spinnaker::GenApi::CNodePtr readProperty(const Spinnaker::GenICam::gcstring property_name);
+
+  void configureTrigger(bool enable, bool software);
 
   uint32_t getSerial()
   {
