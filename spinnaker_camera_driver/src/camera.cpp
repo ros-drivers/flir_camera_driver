@@ -42,10 +42,8 @@ void Camera::init()
     throw std::runtime_error("[Camera::init] Unable to read WidthMax");
   }
   width_max_ = width_max_ptr->GetValue();
-  // Set Throughput to maximum
-  //=====================================
-  setMaxInt(node_map_, "DeviceLinkThroughputLimit");
 }
+
 void Camera::setFrameRate(const float frame_rate)
 {
   // This enables the "AcquisitionFrameRateEnabled"
@@ -72,9 +70,12 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
     if (level >= LEVEL_RECONFIGURE_STOP)
       setImageControlFormats(config);
 
-    setFrameRate(static_cast<float>(config.acquisition_frame_rate));
-    // Set enable after frame rate encase its false
-    setProperty(node_map_, "AcquisitionFrameRateEnable", config.acquisition_frame_rate_enable);
+    if (config.acquisition_frame_rate_enable)
+    {
+      setFrameRate(static_cast<float>(config.acquisition_frame_rate));
+      // Set enable after frame rate encase its false
+      setProperty(node_map_, "AcquisitionFrameRateEnable", config.acquisition_frame_rate_enable);
+    }
 
     // Set Trigger and Strobe Settings
     // NOTE: The trigger must be disabled (i.e. TriggerMode = "Off") in order to configure whether the source is
@@ -176,6 +177,14 @@ void Camera::setNewConfiguration(const SpinnakerConfig& config, const uint32_t& 
     {
       setProperty(node_map_, "AutoExposureLightingMode", config.auto_exposure_lighting_mode);
     }
+
+    Spinnaker::GenApi::CEnumerationPtr device_type_ptr = node_map_->GetNode("DeviceType");
+    if (config.gige_parameter_enable)
+    {
+      // setDeviceLinkThroughput(config.device_link_throughput_limit);
+      setProperty(node_map_, "DeviceLinkThroughputLimit", config.device_link_throughput_limit);
+      setGigEPacketSize(config.camera_packet_size);
+    }
   }
   catch (const Spinnaker::Exception& e)
   {
@@ -240,6 +249,18 @@ void Camera::setGain(const float& gain)
 {
   setProperty(node_map_, "GainAuto", "Off");
   setProperty(node_map_, "Gain", static_cast<float>(gain));
+}
+
+void Camera::setGigEPacketSize(const int size)
+{
+  if (size < packet_size_max_)
+  {
+    setProperty(node_map_, "GevSCPSPacketSize", size);
+  }
+  else
+  {
+    setProperty(node_map_, "GevSCPSPacketSize", static_cast<int>(packet_size_max_));
+  }
 }
 
 /*
