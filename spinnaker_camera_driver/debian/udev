@@ -1,0 +1,2 @@
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1e10", MODE="0660", GROUP="flirimaging"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1724", MODE="0660", GROUP="flirimaging"
