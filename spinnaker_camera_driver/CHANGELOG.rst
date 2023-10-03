@@ -2,6 +2,13 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Restricted the device permissions
+* Added Teledyne to udev as requested
+* Added udev rule
+* Contributors: Hilary Luo
+
 2.0.6 (2023-08-12)
 ------------------
 * fix arm64 build: use correct file name when downloading spinnaker from clearpath
