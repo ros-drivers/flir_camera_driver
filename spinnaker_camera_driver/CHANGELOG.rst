@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.7 (2023-10-03)
+------------------
 * Restricted the device permissions
 * Added Teledyne to udev as requested
 * Added udev rule
