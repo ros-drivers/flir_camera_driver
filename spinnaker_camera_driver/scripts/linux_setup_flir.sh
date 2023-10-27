@@ -4,8 +4,31 @@ echo ""
 echo -e "\e[32mStarting spinnaker_camera_driver setup script\e[0m"
 echo ""
 
-sudo addgroup flirimaging
-sudo usermod -a -G flirimaging ${USER}
+while true; do
+read -p "Add the flirimaging group? (y/n)? " yn
+case $yn in
+  [yY] )
+    if [ $(getent group flirimaging) ];
+    then
+      echo "flirimaging group already exists";
+    else
+      echo "Adding flirimaging group";
+      sudo addgroup flirimaging;
+    fi
+    if id -nGz "$USER" | grep -qzxF "flirimaging";
+    then
+      echo "User:${USER} is already in flirimaging group";
+    else
+      echo "Adding user:${USER} to flirimaging group";
+      sudo usermod -a -G flirimaging ${USER};
+    fi
+    break;;
+  [nN] )
+    break;;
+  *)
+    echo "invalid response";;
+esac
+done
 
 val=$(< /sys/module/usbcore/parameters/usbfs_memory_mb)
 if [ "$val" -lt "1000" ]; then
