@@ -1,4 +1,3 @@
-# -----------------------------------------------------------------------------
 # Copyright 2022 Bernd Pfrommer <bernd.pfrommer@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,40 +23,77 @@ from launch.actions import DeclareLaunchArgument as LaunchArg
 from launch.actions import OpaqueFunction
 from launch import LaunchDescription
 
-camera_params = {
+# primary camera
+camera_params1 = {
+    #'pixel_format': "BGR8",
+    #'frame_rate_enable': True,
+    #'frame_rate': 20,
+    'image_width': 2048,
+    'image_height': 1536,
     'debug': False,
     'compute_brightness': True,
     'dump_node_map': False,
-    'adjust_timestamp': True,
     'gain_auto': 'Off',
     'gain': 0,
     'exposure_auto': 'Off',
     'exposure_time': 9000,
+    'line1_selector': 'Line1',
+    'line1_linemode': 'Output',
     'line2_selector': 'Line2',
-    'line2_v33enable': False,
-    'line3_selector': 'Line3',
-    'line3_linemode': 'Input',
-    'trigger_selector': 'FrameStart',
-    'trigger_mode': 'On',
-    'trigger_source': 'Line3',
-    'trigger_delay': 9,
-    'trigger_overlap': 'ReadOut',
-    'chunk_mode_active': True,
+    'line2_v33enable': True,
+    'trigger_mode': 'Off',
     'chunk_selector_frame_id': 'FrameID',
     'chunk_enable_frame_id': True,
     'chunk_selector_exposure_time': 'ExposureTime',
     'chunk_enable_exposure_time': True,
     'chunk_selector_gain': 'Gain',
     'chunk_enable_gain': True,
+    'adjust_timestamp': True,
+    'chunk_mode_active': True,
     'chunk_selector_timestamp': 'Timestamp',
     'chunk_enable_timestamp': True,
     }
 
+# secondary camera
+camera_params2 = {
+    #'pixel_format': "BGR8",
+    #'frame_rate_enable': True,
+    #'frame_rate': 20,
+    'image_width': 2048,
+    'image_height': 1536,
+    'debug': False,
+    #'compute_brightness': True,
+    'dump_node_map': False,
+    'gain_auto': 'Off',
+    'gain': 0,
+    'exposure_auto': 'Off',
+    'exposure_time': 9000,
+    'trigger_selector': 'FrameStart',
+    'trigger_mode': 'On',
+    'trigger_source': 'Line3',
+    'trigger_overlap': 'ReadOut',
+    'chunk_selector_frame_id': 'FrameID',
+    'chunk_enable_frame_id': True,
+    'chunk_selector_exposure_time': 'ExposureTime',
+    'chunk_enable_exposure_time': True,
+    'chunk_selector_gain': 'Gain',
+    'chunk_enable_gain': True,
+    'adjust_timestamp': True,
+    'chunk_mode_active': True,
+    'chunk_selector_timestamp': 'Timestamp',
+    'chunk_enable_timestamp': True,
+    }
 
-def make_camera_node(name, camera_type, serial):
+def make_camera_node(name, camera_type, serial, arch_type):
     parameter_file = PathJoinSubstitution(
         [FindPackageShare('spinnaker_camera_driver'), 'config',
          camera_type + '.yaml'])
+
+    camera_params = camera_params1
+    if arch_type == "master":
+        camera_params = camera_params1
+    else:
+        camera_params = camera_params2
 
     node = ComposableNode(
         package='spinnaker_camera_driver',
@@ -85,21 +121,10 @@ def launch_setup(context, *args, **kwargs):
                 #
                 make_camera_node(LaunchConfig('cam_0_name'),
                                  LaunchConfig('cam_0_type').perform(context),
-                                 LaunchConfig('cam_0_serial')),
+                                 LaunchConfig('cam_0_serial'), "master"),
                 make_camera_node(LaunchConfig('cam_1_name'),
                                  LaunchConfig('cam_1_type').perform(context),
-                                 LaunchConfig('cam_1_serial')),
-                #
-                # This node forces the ros header stamps to be identical
-                # across the two cameras. Remove if you don't need it.
-                #
-                ComposableNode(
-                    package='cam_sync_ros2',
-                    plugin='cam_sync_ros2::CamSync',
-                    name='sync',
-                    parameters=[],
-                    extra_arguments=[{'use_intra_process_comms': True}],
-                ),
+                                 LaunchConfig('cam_1_serial'), "slave"),
                 #
                 # This node is for external exposure control. Remove
                 # if you don't need it, and switch on auto exposure.
@@ -135,9 +160,9 @@ def generate_launch_description():
                   description='type of camera 0'),
         LaunchArg('cam_1_type', default_value='blackfly_s',
                   description='type of camera 1'),
-        LaunchArg('cam_0_serial', default_value="'20435008'",
+        LaunchArg('cam_0_serial', default_value="'21143313'",
                   description='FLIR serial number of camera 0 (in quotes!!)'),
-        LaunchArg('cam_1_serial', default_value="'20415937'",
+        LaunchArg('cam_1_serial', default_value="'21143314'",
                   description='FLIR serial number of camera 1 (in quotes!!)'),
         OpaqueFunction(function=launch_setup)
         ])
