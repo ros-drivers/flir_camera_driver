@@ -149,7 +149,7 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
-  scripts/linux_setup_flir.sh
+  scripts/linux_setup_flir
   DESTINATION lib/${PROJECT_NAME}
 )
 
