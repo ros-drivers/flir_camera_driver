@@ -63,6 +63,7 @@ case $yn in
 esac
 done
 
+echo ""
 echo -e "\e[32mDone: spinnaker_camera_driver setup script\e[0m"
 echo "Please reboot the device to ensure changes have taken full effect"
 echo ""
