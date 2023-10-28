@@ -30,24 +30,38 @@ case $yn in
 esac
 done
 
-val=$(< /sys/module/usbcore/parameters/usbfs_memory_mb)
-if [ "$val" -lt "1000" ]; then
-  if [ -e /etc/default/grub ]; then
-    if [ $(grep -c "usbcore.usbfs_memory_mb=1000" /etc/default/grub) -eq 0 ]; then
-      sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="[^"]*/& usbcore.usbfs_memory_mb=1000/' /etc/default/grub
-      echo "Increased the usbfs memory limits in the default grub configuration. Updating grub"
-      sudo update-grub
-    else
-      echo -e "\e[33mWarn: usbfs memory limit is already set in /etc/default/grub. No changes made, try rebooting the computer\e[0m"
-    fi
+while true; do
+read -p "Increase the usbfs memory limits in the default grub configuration (y/n)? " yn
+case $yn in
+  [yY] )
+    val=$(< /sys/module/usbcore/parameters/usbfs_memory_mb)
+    if [ "$val" -lt "1000" ]; then
+      if [ -e /etc/default/grub ]; then
+        if [ $(grep -c "usbcore.usbfs_memory_mb=" /etc/default/grub) -eq 0 ]; then # Memory Limit has not already been set
+          sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="[^"]*/& usbcore.usbfs_memory_mb=1000/' /etc/default/grub
+          echo "Increased the usbfs memory limits in the default grub configuration. Updating grub"
+          sudo update-grub
+        else
+          echo -e "\e[33mWarn: usbfs memory limit is already set in /etc/default/grub in the following line:\e[0m"
+          echo "$(grep "usbcore.usbfs_memory_mb" /etc/default/grub)"
+          echo -e "\e[33mNo changes made, verify that usbfs_memory_mb is set to a minimum of 1000 and then try rebooting the computer\e[0m"
+        fi
 
-  else
-    echo -e "\e[33mWarn: /etc/default/grub configuration file not found, no changes made. usbfs_memory_mb must be set manually. See docs/linux_setup_flir.md for instructions\e[0m"
-    exit 0
-  fi
-else
-  echo "usbfs_memory_mb is already set to $val, no changes necessary."
-fi
+      else
+        echo -e "\e[33mWarn: /etc/default/grub configuration file not found, no changes made. usbfs_memory_mb must be set manually.\e[0m"
+        echo -e "\e[33mSee https://github.com/ros-drivers/flir_camera_driver/blob/humble-devel/spinnaker_camera_driver/docs/linux_setup_flir.md for instructions\e[0m"
+        exit 0
+      fi
+    else
+      echo "usbfs_memory_mb is already set to $val, no changes necessary."
+    fi
+    break;;
+  [nN] )
+    break;;
+  *)
+    echo "invalid response";;
+esac
+done
 
 echo -e "\e[32mDone: spinnaker_camera_driver setup script\e[0m"
 echo "Please reboot the device to ensure changes have taken full effect"
