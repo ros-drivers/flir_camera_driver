@@ -32,8 +32,9 @@ This driver can be used with or without installing the Spinnaker SDK,
 but installing the Spinnaker SDK is recommended because during its
 installation the USB kernel configuration is modified as needed and
 suitable access permissions are granted (udev rules).
-If you choose to *not* use the Spinnaker SDK, you must perform the
-[required setup steps manually](docs/linux_setup_flir.md).
+If you choose to *not* use the Spinnaker SDK, you must either run the
+[linux setup script](scripts/linux_setup_flir) by running `ros2 run spinnaker_camera_driver linux_setup_flir`
+or perform the [required setup steps manually](docs/linux_setup_flir.md).
 Without these setup steps,
 *the ROS driver will not detect the camera*.
 So you must either install the Spinnaker SDK (which also gives you the
