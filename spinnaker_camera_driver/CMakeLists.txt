@@ -166,7 +166,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_clang_format REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
 
-  ament_copyright(EXCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/TargetArch.cmake)
+  ament_copyright()
   ament_cppcheck(LANGUAGE c++)
   ament_cpplint(FILTERS "-build/include,-runtime/indentation_namespace")
   ament_flake8()
