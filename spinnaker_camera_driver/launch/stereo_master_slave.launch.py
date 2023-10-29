@@ -25,11 +25,6 @@ from launch import LaunchDescription
 
 # primary camera
 camera_params1 = {
-    #'pixel_format': "BGR8",
-    #'frame_rate_enable': True,
-    #'frame_rate': 20,
-    'image_width': 2048,
-    'image_height': 1536,
     'debug': False,
     'compute_brightness': True,
     'dump_node_map': False,
@@ -56,33 +51,20 @@ camera_params1 = {
 
 # secondary camera
 camera_params2 = {
-    #'pixel_format': "BGR8",
-    #'frame_rate_enable': True,
-    #'frame_rate': 20,
-    'image_width': 2048,
-    'image_height': 1536,
     'debug': False,
-    #'compute_brightness': True,
     'dump_node_map': False,
-    'gain_auto': 'Off',
-    'gain': 0,
-    'exposure_auto': 'Off',
-    'exposure_time': 9000,
     'trigger_selector': 'FrameStart',
     'trigger_mode': 'On',
     'trigger_source': 'Line3',
     'trigger_overlap': 'ReadOut',
     'chunk_selector_frame_id': 'FrameID',
     'chunk_enable_frame_id': True,
-    'chunk_selector_exposure_time': 'ExposureTime',
-    'chunk_enable_exposure_time': True,
-    'chunk_selector_gain': 'Gain',
-    'chunk_enable_gain': True,
     'adjust_timestamp': True,
     'chunk_mode_active': True,
     'chunk_selector_timestamp': 'Timestamp',
     'chunk_enable_timestamp': True,
     }
+
 
 def make_camera_node(name, camera_type, serial, arch_type):
     parameter_file = PathJoinSubstitution(
