@@ -545,7 +545,6 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
               << " pixel color filter is " << color_filter_str);
 
 
-
       // if(isColor_ && bayer_format != NONE)
       if (color_filter_ptr->GetCurrentEntry() != color_filter_ptr->GetEntryByName("None"))
       {
