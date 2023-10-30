@@ -303,7 +303,7 @@ private:
     pnh.param<bool>("auto_packet_size", auto_packet_size_, true);
     pnh.param<int>("packet_delay", packet_delay_, 4000);
     pnh.param<int>("throughput_limit", throughput_limit_, 125000000);
-    pnh.param<bool>("trigger", trigger_, false);
+    pnh.param<bool>("en_trigger", trigger_, false);
     pnh.param<bool>("sw_trigger", sw_trigger_, false);
     pnh.param<double>("max_trigger_delay", max_trigger_delay_, 0.2);
 
@@ -542,9 +542,11 @@ private:
               NODELET_DEBUG_ONCE("Setting timeout to: %f.", timeout);
               spinnaker_.setTimeout(timeout);
 
+#if 0
               NODELET_DEBUG_ONCE("Configuring trigger: %s %s", trigger_?"enabled":"disabled",
                       sw_trigger_?"software":"hardware");
               spinnaker_.configureTrigger(trigger_,sw_trigger_);
+#endif
 
             }
             catch (const std::runtime_error& e)
