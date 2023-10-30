@@ -542,9 +542,11 @@ private:
               NODELET_DEBUG_ONCE("Setting timeout to: %f.", timeout);
               spinnaker_.setTimeout(timeout);
 
+#if 0
               NODELET_DEBUG_ONCE("Configuring trigger: %s %s", trigger_?"enabled":"disabled",
                       sw_trigger_?"software":"hardware");
               spinnaker_.configureTrigger(trigger_,sw_trigger_);
+#endif
 
             }
             catch (const std::runtime_error& e)
