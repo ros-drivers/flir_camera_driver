@@ -2,6 +2,18 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added linux_setup_flir script instructions to Readme
+* Add newline echo before Done
+* Rename script to remove extension
+* Ask permission for usb change and don't limit detection to 1000
+* Ask about usergroup and give feedback
+* Added linux pc setup script
+* fix python formatting to satisfy linter
+* fix formatting of BSD license to satisfy linter
+* Contributors: Bernd Pfrommer, Hilary Luo
+
 2.0.7 (2023-10-03)
 ------------------
 * Restricted the device permissions

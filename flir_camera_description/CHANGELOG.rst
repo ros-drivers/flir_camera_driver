@@ -2,6 +2,11 @@
 Changelog for package flir_camera_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix python formatting to satisfy linter
+* Contributors: Bernd Pfrommer
+
 2.0.7 (2023-10-03)
 ------------------
 
