@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.8 (2023-11-14)
+------------------
 * Added linux_setup_flir script instructions to Readme
 * Add newline echo before Done
 * Rename script to remove extension
