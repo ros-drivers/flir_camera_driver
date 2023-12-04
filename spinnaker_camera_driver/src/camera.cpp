@@ -242,6 +242,12 @@ void Camera::setGain(const float& gain)
   setProperty(node_map_, "Gain", static_cast<float>(gain));
 }
 
+void Camera::setThroughputLimit(const int& limit)
+{
+  setProperty(node_map_, "DeviceLinkThroughputLimit", limit);
+}
+
+
 /*
 void Camera::setGigEParameters(bool auto_packet_size, unsigned int packet_size, unsigned int packet_delay)
 {

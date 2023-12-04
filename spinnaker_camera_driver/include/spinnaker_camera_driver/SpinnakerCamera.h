@@ -130,6 +130,8 @@ public:
   */
   void stop();
 
+  void trigger();
+
   /*!
   * \brief Loads the raw data from the cameras buffer.
   *
@@ -159,12 +161,15 @@ public:
   * \param id serial number for the camera.  Should be something like 10491081.
   */
   void setDesiredCamera(const uint32_t& id);
+  void setThroughputLimit(const uint32_t& limit);
 
   void setGain(const float& gain);
   int getHeightMax();
   int getWidthMax();
   bool readableProperty(const Spinnaker::GenICam::gcstring property_name);
   Spinnaker::GenApi::CNodePtr readProperty(const Spinnaker::GenICam::gcstring property_name);
+
+  void configureTrigger(bool enable, bool software);
 
   uint32_t getSerial()
   {
@@ -198,6 +203,8 @@ private:
   unsigned int packet_size_;
   /// GigE packet delay:
   unsigned int packet_delay_;
+  /// GigE throughput limit:
+  unsigned int throughput_limit_;
 
   uint64_t timeout_;
 

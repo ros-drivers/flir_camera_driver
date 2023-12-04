@@ -96,6 +96,12 @@ void SpinnakerCamera::setNewConfiguration(const spinnaker_camera_driver::Spinnak
   }
 }  // end setNewConfiguration
 
+void SpinnakerCamera::setThroughputLimit(const uint32_t& limit)
+{
+  if (camera_)
+    camera_->setThroughputLimit(limit);
+}
+
 void SpinnakerCamera::setGain(const float& gain)
 {
   if (camera_)
@@ -297,6 +303,32 @@ void SpinnakerCamera::disconnect()
   }
 }
 
+void SpinnakerCamera::trigger()
+{
+  try
+  {
+    // Check if camera is connected
+    if (pCam_ && captureRunning_)
+    {
+        // Execute software trigger
+        Spinnaker::GenApi::CCommandPtr ptrSoftwareTriggerCommand = node_map_->GetNode("TriggerSoftware");
+        if (!Spinnaker::GenApi::IsAvailable(ptrSoftwareTriggerCommand) || 
+                !Spinnaker::GenApi::IsWritable(ptrSoftwareTriggerCommand))
+        {
+            throw std::runtime_error("[SpinnakerCamera::trigger] Unable to execute trigger ");
+        }
+
+        ptrSoftwareTriggerCommand->Execute();
+
+
+    }
+  }
+  catch (const Spinnaker::Exception& e)
+  {
+    throw std::runtime_error("[SpinnakerCamera::trigger] capture is not running ");
+  }
+}
+
 void SpinnakerCamera::start()
 {
   try
@@ -331,6 +363,138 @@ void SpinnakerCamera::stop()
     }
   }
 }
+
+// This function configures the camera to use a trigger. First, trigger mode is
+// set to off in order to select the trigger source. Once the trigger source
+// has been selected, trigger mode is then enabled, which has the camera
+// capture only a single image upon the execution of the chosen trigger.
+void SpinnakerCamera::configureTrigger(bool enable, bool software)
+{
+    try
+    {
+        //
+        // Ensure trigger mode off
+        //
+        // *** NOTES ***
+        // The trigger must be disabled in order to configure whether the source
+        // is software or hardware.
+        //
+        Spinnaker::GenApi::CEnumerationPtr ptrTriggerMode = node_map_->GetNode("TriggerMode");
+        if (!Spinnaker::GenApi::IsAvailable(ptrTriggerMode) || 
+                !Spinnaker::GenApi::IsReadable(ptrTriggerMode))
+        {
+            throw std::runtime_error("[SpinnakerCamera::configureTrigger] Unable to disable trigger mode (node retrieval)");
+        }
+
+        Spinnaker::GenApi::CEnumEntryPtr ptrTriggerModeOff = ptrTriggerMode->GetEntryByName("Off");
+        if (!Spinnaker::GenApi::IsAvailable(ptrTriggerModeOff) || 
+                !Spinnaker::GenApi::IsReadable(ptrTriggerModeOff))
+        {
+            throw std::runtime_error("[SpinnakerCamera::configureTrigger] Unable to disable trigger mode (enum entry retrieval)");
+        }
+
+        ptrTriggerMode->SetIntValue(ptrTriggerModeOff->GetValue());
+
+        if (!enable) {
+            ROS_INFO("Trigger mode disabled");
+            return;
+        }
+        ROS_INFO("Trigger mode disabled for configuration...");
+
+        //
+        // Set TriggerSelector to FrameStart
+        //
+        // *** NOTES ***
+        // For this example, the trigger selector should be set to frame start.
+        // This is the default for most cameras.
+        //
+        Spinnaker::GenApi::CEnumerationPtr ptrTriggerSelector = node_map_->GetNode("TriggerSelector");
+        if (!Spinnaker::GenApi::IsAvailable(ptrTriggerSelector) || 
+                !Spinnaker::GenApi::IsWritable(ptrTriggerSelector))
+        {
+            throw std::runtime_error("[SpinnakerCamera::configureTrigger] Unable to set trigger selector (node retrieval)");
+        }
+
+        Spinnaker::GenApi::CEnumEntryPtr ptrTriggerSelectorFrameStart = ptrTriggerSelector->GetEntryByName("FrameStart");
+        if (!Spinnaker::GenApi::IsAvailable(ptrTriggerSelectorFrameStart) || 
+                !Spinnaker::GenApi::IsReadable(ptrTriggerSelectorFrameStart))
+        {
+            throw std::runtime_error("[SpinnakerCamera::configureTrigger] Unable to set trigger selector (enum entry retrieval)");
+        }
+
+        ptrTriggerSelector->SetIntValue(ptrTriggerSelectorFrameStart->GetValue());
+
+        ROS_INFO("Trigger selector set to frame start...");
+
+        //
+        // Select trigger source
+        //
+        // *** NOTES ***
+        // The trigger source must be set to hardware or software while trigger
+        // mode is off.
+        //
+        Spinnaker::GenApi::CEnumerationPtr ptrTriggerSource = node_map_->GetNode("TriggerSource");
+        if (!Spinnaker::GenApi::IsAvailable(ptrTriggerSource) || 
+                !Spinnaker::GenApi::IsWritable(ptrTriggerSource))
+        {
+            throw std::runtime_error("[SpinnakerCamera::configureTrigger] Unable to set trigger mode (node retrieval)");
+        }
+
+        if (software) {
+            // Set trigger mode to software
+            Spinnaker::GenApi::CEnumEntryPtr ptrTriggerSourceSoftware = ptrTriggerSource->GetEntryByName("Software");
+            if (!Spinnaker::GenApi::IsAvailable(ptrTriggerSourceSoftware) || 
+                    !Spinnaker::GenApi::IsReadable(ptrTriggerSourceSoftware))
+            {
+                throw std::runtime_error("[SpinnakerCamera::configureTrigger] Unable to set trigger mode (enum entry retrieval)");
+            }
+
+            ptrTriggerSource->SetIntValue(ptrTriggerSourceSoftware->GetValue());
+
+            ROS_INFO("Trigger source set to software.");
+        } else {
+            // Set trigger mode to hardware ('Line0')
+            Spinnaker::GenApi::CEnumEntryPtr ptrTriggerSourceHardware = ptrTriggerSource->GetEntryByName("Line0");
+            if (!Spinnaker::GenApi::IsAvailable(ptrTriggerSourceHardware) || 
+                    !Spinnaker::GenApi::IsReadable(ptrTriggerSourceHardware))
+            {
+                throw std::runtime_error("[SpinnakerCamera::configureTrigger] Unable to set trigger mode (enum entry retrieval)");
+            }
+
+            ptrTriggerSource->SetIntValue(ptrTriggerSourceHardware->GetValue());
+
+            ROS_INFO("Trigger source set to hardware.");
+        }
+
+        //
+        // Turn trigger mode on
+        //
+        // *** LATER ***
+        // Once the appropriate trigger source has been set, turn trigger mode
+        // on in order to retrieve images using the trigger.
+        //
+
+        Spinnaker::GenApi::CEnumEntryPtr ptrTriggerModeOn = ptrTriggerMode->GetEntryByName("On");
+        if (!Spinnaker::GenApi::IsAvailable(ptrTriggerModeOn) || 
+                !Spinnaker::GenApi::IsReadable(ptrTriggerModeOn))
+        {
+            throw std::runtime_error("[SpinnakerCamera::configureTrigger] Unable to enable trigger mode (enum entry retrieval)");
+        }
+
+        ptrTriggerMode->SetIntValue(ptrTriggerModeOn->GetValue());
+
+        // NOTE: Blackfly and Flea3 GEV cameras need 1 second delay after trigger mode is turned on
+
+        ROS_INFO("Trigger mode turned back on...");
+    }
+    catch (Spinnaker::Exception& e)
+    {
+        throw std::runtime_error(std::string("[SpinnakerCamera::configureTrigger] ") + e.what());
+    }
+
+}
+
+
 
 void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& frame_id)
 {
@@ -376,6 +540,10 @@ void SpinnakerCamera::grabImage(sensor_msgs::Image* image, const std::string& fr
       Spinnaker::GenICam::gcstring bayer_gr_str = "BayerGR";
       Spinnaker::GenICam::gcstring bayer_gb_str = "BayerGB";
       Spinnaker::GenICam::gcstring bayer_bg_str = "BayerBG";
+      ROS_WARN_STREAM_ONCE("[SpinnakerCamera::grabImage] camera "
+              << std::to_string(serial_)
+              << " pixel color filter is " << color_filter_str);
+
 
       // if(isColor_ && bayer_format != NONE)
       if (color_filter_ptr->GetCurrentEntry() != color_filter_ptr->GetEntryByName("None"))
@@ -474,6 +642,7 @@ void SpinnakerCamera::setTimeout(const double& timeout)
 {
   timeout_ = static_cast<uint64_t>(std::round(timeout * 1000));
 }
+
 void SpinnakerCamera::setDesiredCamera(const uint32_t& id)
 {
   serial_ = id;

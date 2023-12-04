@@ -302,6 +302,10 @@ private:
     pnh.param<int>("packet_size", packet_size_, 1400);
     pnh.param<bool>("auto_packet_size", auto_packet_size_, true);
     pnh.param<int>("packet_delay", packet_delay_, 4000);
+    pnh.param<int>("throughput_limit", throughput_limit_, 125000000);
+    pnh.param<bool>("en_trigger", trigger_, false);
+    pnh.param<bool>("sw_trigger", sw_trigger_, false);
+    pnh.param<double>("max_trigger_delay", max_trigger_delay_, 0.2);
 
     // TODO(mhosmar):  Set GigE parameters:
     // spinnaker_.setGigEParameters(auto_packet_size_, packet_size_, packet_delay_);
@@ -355,6 +359,13 @@ private:
     pnh.param<double>("min_acceptable_delay", min_acceptable, 0.0);
     double max_acceptable;  // The maximum publishing delay (in seconds) before warning.
     pnh.param<double>("max_acceptable_delay", max_acceptable, 0.2);
+    
+    if (trigger_) {
+        trig_sub_ = pnh.subscribe("trigger", 1,
+                &spinnaker_camera_driver::SpinnakerCameraNodelet::triggerCallback, this);
+    }
+
+
     ros::SubscriberStatusCallback cb2 = boost::bind(&SpinnakerCameraNodelet::connectCb, this);
     pub_.reset(new diagnostic_updater::DiagnosedPublisher<wfov_camera_msgs::WFOVImage>(
         nh.advertise<wfov_camera_msgs::WFOVImage>("image", queue_size, cb2, cb2),
@@ -518,6 +529,8 @@ private:
             NODELET_DEBUG("Connected to camera.");
 
             // Set last configuration, forcing the reconfigure level to stop
+            ROS_INFO("Nodelet: throughput limit to %d",throughput_limit_);
+            spinnaker_.setThroughputLimit(throughput_limit_);
             spinnaker_.setNewConfiguration(config_, SpinnakerCamera::LEVEL_RECONFIGURE_STOP);
 
             // Set the timeout for grabbing images.
@@ -528,6 +541,13 @@ private:
 
               NODELET_DEBUG_ONCE("Setting timeout to: %f.", timeout);
               spinnaker_.setTimeout(timeout);
+
+#if 0
+              NODELET_DEBUG_ONCE("Configuring trigger: %s %s", trigger_?"enabled":"disabled",
+                      sw_trigger_?"software":"hardware");
+              spinnaker_.configureTrigger(trigger_,sw_trigger_);
+#endif
+
             }
             catch (const std::runtime_error& e)
             {
@@ -537,8 +557,7 @@ private:
             // Subscribe to gain and white balance changes
             {
               std::lock_guard<std::mutex> scopedLock(connect_mutex_);
-              sub_ =
-                  getMTNodeHandle().subscribe("image_exposure_sequence", 10,
+              sub_ = getMTNodeHandle().subscribe("image_exposure_sequence", 10,
                                               &spinnaker_camera_driver::SpinnakerCameraNodelet::gainWBCallback, this);
             }
             state = CONNECTED;
@@ -584,6 +603,20 @@ private:
             NODELET_DEBUG_ONCE("Starting a new grab from camera with serial {%d}.", spinnaker_.getSerial());
             spinnaker_.grabImage(&wfov_image->image, frame_id_);
 
+            ros::Time time = ros::Time::now() + ros::Duration(config_.time_offset);
+            wfov_image->header.stamp = time;
+            wfov_image->image.header.stamp = time;
+            if (trigger_) {
+                double trigger_delay = (wfov_image->header.stamp - trigger_header_.stamp).toSec();
+                if (trigger_delay > max_trigger_delay_) {
+                    NODELET_ERROR("Rejecting image not attached to trigger (age %.3fs max %.3f)",trigger_delay,max_trigger_delay_);
+                    break;
+                }
+                // replacing timestamp with trigger stamp
+                wfov_image->header.stamp = trigger_header_.stamp;
+                wfov_image->image.header.stamp = trigger_header_.stamp;
+            }
+
             // Set other values
             wfov_image->header.frame_id = frame_id_;
 
@@ -593,9 +626,6 @@ private:
 
             // wfov_image->temperature = spinnaker_.getCameraTemperature();
 
-            ros::Time time = ros::Time::now() + ros::Duration(config_.time_offset);
-            wfov_image->header.stamp = time;
-            wfov_image->image.header.stamp = time;
 
             // Set the CameraInfo message
             ci_.reset(new sensor_msgs::CameraInfo(cinfo_->getCameraInfo()));
@@ -612,8 +642,11 @@ private:
 
             wfov_image->info = *ci_;
 
-            // Publish the full message
-            pub_->publish(wfov_image);
+            if (pub_->getPublisher().getNumSubscribers() > 0) 
+            {
+                // Publish the full message
+                pub_->publish(wfov_image);
+            }
 
             // Publish the message using standard image transport
             if (it_pub_.getNumSubscribers() > 0)
@@ -665,6 +698,14 @@ private:
     }
   }
 
+  void triggerCallback(const std_msgs::Header& msg)
+  {
+      trigger_header_ = msg;
+      if (sw_trigger_) {
+          spinnaker_.trigger();
+      } // else we just store the timestamp and assume the camera is hardware triggered
+  }
+
   /* Class Fields */
   std::shared_ptr<dynamic_reconfigure::Server<spinnaker_camera_driver::SpinnakerConfig> > srv_;  ///< Needed to
                                                                                                  ///  initialize
@@ -683,6 +724,7 @@ private:
   /// constructor
   /// requirements
   ros::Subscriber sub_;  ///< Subscriber for gain and white balance changes.
+  ros::Subscriber trig_sub_;  ///< Subscriber for gain and white balance changes.
 
   std::mutex connect_mutex_;
 
@@ -719,6 +761,14 @@ private:
   int packet_size_;
   /// GigE packet delay:
   int packet_delay_;
+  /// GigE throughput limit:
+  int throughput_limit_;
+
+  // Data for software trigger management
+  std_msgs::Header trigger_header_;
+  bool trigger_;
+  bool sw_trigger_;
+  double max_trigger_delay_;
 
   /// Configuration:
   spinnaker_camera_driver::SpinnakerConfig config_;
