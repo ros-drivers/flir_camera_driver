@@ -67,7 +67,7 @@ def make_camera_node(name, camera_type, serial):
         name=name,
         parameters=[camera_params,
                     {'parameter_file': parameter_file,
-                     'serial_number': '20435008'}],
+                     'serial_number': serial}],
         remappings=[('~/control', '/exposure_control/control'), ],
         extra_arguments=[{'use_intra_process_comms': True}])
     return node
