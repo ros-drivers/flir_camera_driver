@@ -17,6 +17,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(spinnaker_camera_driver)
 
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -92,6 +95,7 @@ find_package(yaml-cpp REQUIRED)
 
 add_library(camera_driver SHARED
   src/camera_driver.cpp
+  src/camera.cpp
   src/spinnaker_wrapper.cpp
   src/spinnaker_wrapper_impl.cpp
   src/image.cpp
@@ -99,8 +103,17 @@ add_library(camera_driver SHARED
   src/genicam_utils.cpp
 )
 
-ament_target_dependencies(camera_driver PUBLIC ${ROS_DEPENDENCIES})
-target_link_libraries(camera_driver PUBLIC Spinnaker::Spinnaker PRIVATE yaml-cpp)
+# ament_target_dependencies(camera_driver PUBLIC ${ROS_DEPENDENCIES})
+target_link_libraries(camera_driver
+  PUBLIC
+  Spinnaker::Spinnaker yaml-cpp
+  rclcpp::rclcpp
+  rclcpp_components::component
+  camera_info_manager::camera_info_manager
+  image_transport::image_transport
+  ${flir_camera_msgs_TARGETS}
+  ${sensor_msgs_TARGETS}
+  ${std_msgs_TARGETS})
 
 target_include_directories(camera_driver
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -135,8 +148,34 @@ install(TARGETS
 
 install(TARGETS
   camera_driver
-  DESTINATION lib
+  EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  INCLUDES DESTINATION include
 )
+
+# generate the ConfigVersion.cmake file that will be included by Config.cmake
+write_basic_package_version_file(
+  ${PROJECT_NAME}ConfigVersion.cmake
+  VERSION ${PACKAGE_VERSION}
+  COMPATIBILITY AnyNewerVersion)
+
+# generate the *Config.cmake file
+configure_file(cmake/${PROJECT_NAME}Config.cmake.in ${PROJECT_NAME}Config.cmake @ONLY)
+
+# generate Targets.cmake file from exports learned during the installation
+install(EXPORT ${PROJECT_NAME}Targets
+  FILE ${PROJECT_NAME}Targets.cmake
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
+# install the generated version and config files
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+              "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
+
+install(DIRECTORY include/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(DIRECTORY
   config
