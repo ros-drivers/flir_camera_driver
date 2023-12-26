@@ -59,7 +59,7 @@ static bool common_checks(
     return (false);
   }
   if (!is_writable(np)) {
-    *msg = "node " + nodeName + " not available!";
+    *msg = "node " + nodeName + " not writable!";
     return (false);
   }
   return (true);
@@ -291,13 +291,21 @@ void SpinnakerWrapperImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
     std::cout << "Image incomplete: "
               << Spinnaker::Image::GetImageStatusDescription(imgPtr->GetImageStatus()) << std::endl;
   } else {
-    const Spinnaker::ChunkData & chunk = imgPtr->GetChunkData();
-    const float expTime = chunk.GetExposureTime();
-    const float gain = chunk.GetGain();
-    const int64_t stamp = chunk.GetTimestamp();
+    float expTime = 0;
+    float gain = 0;
+    int64_t stamp = 0;
+
+    try {
+      const Spinnaker::ChunkData & chunk = imgPtr->GetChunkData();
+      expTime = chunk.GetExposureTime();
+      gain = chunk.GetGain();
+      stamp = chunk.GetTimestamp();
+    } catch (const Spinnaker::Exception & e) {
+      // Without chunk data enabled there is no way to get e.g. the time stamps. Bad!
+      // Spinnaker: Image does not contain chunk data. [-1001]
+    }
     const uint32_t maxExpTime =
       static_cast<uint32_t>(is_readable(exposureTimeNode_) ? exposureTimeNode_->GetMax() : 0);
-
 #if 0
     std::cout << "got image: " << imgPtr->GetWidth() << "x"
               << imgPtr->GetHeight() << " stride: " << imgPtr->GetStride()
