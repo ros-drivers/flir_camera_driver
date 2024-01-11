@@ -39,7 +39,6 @@ find_path(SPINNAKER_INCLUDE_DIRS
   /opt/spinnaker/include
   /usr/include/spinnaker
   /usr/local/include/spinnaker
-  /__w/flir_ros2_camera_driver/flir_ros2_camera_driver/ros_ws/build/flir_spinnaker_common/opt/spinnaker/include
 )
 
 find_library(SPINNAKER_LIBRARIES
@@ -49,7 +48,6 @@ find_library(SPINNAKER_LIBRARIES
   /opt/spinnaker/lib
   /usr/lib/
   /usr/local/lib
-  /__w/flir_ros2_camera_driver/flir_ros2_camera_driver/ros_ws/build/flir_spinnaker_common/usr/lib
   PATH_SUFFIXES Release Debug
 )
 
