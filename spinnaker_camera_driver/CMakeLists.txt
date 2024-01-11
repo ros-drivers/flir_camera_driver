@@ -106,14 +106,15 @@ add_library(camera_driver SHARED
 # ament_target_dependencies(camera_driver PUBLIC ${ROS_DEPENDENCIES})
 target_link_libraries(camera_driver
   PUBLIC
-  Spinnaker::Spinnaker yaml-cpp
   rclcpp::rclcpp
   rclcpp_components::component
   camera_info_manager::camera_info_manager
   image_transport::image_transport
   ${flir_camera_msgs_TARGETS}
   ${sensor_msgs_TARGETS}
-  ${std_msgs_TARGETS})
+  ${std_msgs_TARGETS}
+  yaml-cpp
+  Spinnaker::Spinnaker)
 
 target_include_directories(camera_driver
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -135,6 +136,13 @@ target_include_directories(camera_driver_node
 )
 
 target_include_directories(camera_driver PRIVATE include)
+
+if(SPINNAKER_WAS_DOWNLOADED)
+  set(SPINNAKER_BUILD_SUBDIR "opt/spinnaker/lib")
+  set(SPINNAKER_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/${SPINNAKER_BUILD_SUBDIR}")
+  message(STATUS "installing spinnaker libraries from ${SPINNAKER_BUILD_DIR}")
+  install(DIRECTORY  "${SPINNAKER_BUILD_DIR}" DESTINATION ".")
+endif()
 
 # the node must go into the project specific lib directory or else
 # the launch file will not find it
@@ -192,12 +200,6 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-if(SPINNAKER_WAS_DOWNLOADED)
-  set(SPINNAKER_BUILD_SUBDIR "opt/spinnaker/lib")
-  set(SPINNAKER_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/${SPINNAKER_BUILD_SUBDIR}")
-  message(STATUS "installing spinnaker libraries from ${SPINNAKER_BUILD_DIR}")
-  install(DIRECTORY  "${SPINNAKER_BUILD_DIR}" DESTINATION ${CMAKE_INSTALL_PREFIX})
-endif()
 
 if(BUILD_TESTING)
   find_package(ament_cmake REQUIRED)
