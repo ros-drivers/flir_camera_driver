@@ -43,6 +43,8 @@ example_parameters = {
         # 'image_height': 1080,
         # 'offset_x': 16,
         # 'offset_y': 0,
+        # 'binning_x': 1,
+        # 'binning_y': 1,
         'frame_rate_auto': 'Off',
         'frame_rate': 40.0,
         'frame_rate_enable': True,
