@@ -175,6 +175,21 @@ void Camera::printStatus()
   }
 }
 
+void Camera::checkSubscriptions()
+{
+  if (connectWhileSubscribed_) {
+    if (pub_.getNumSubscribers() > 0 || metaPub_->get_subscription_count() != 0) {
+      if (!cameraRunning_) {
+        startCamera();
+      }
+    } else {
+      if (cameraRunning_) {
+        stopCamera();
+      }
+    }
+  }
+}
+
 void Camera::readParameters()
 {
   serial_ = safe_declare<std::string>(prefix_ + "serial_number", "missing_serial_number");
@@ -191,6 +206,7 @@ void Camera::readParameters()
   computeBrightness_ = safe_declare<bool>(prefix_ + "compute_brightness", false);
   acquisitionTimeout_ = safe_declare<double>(prefix_ + "acquisition_timeout", 3.0);
   parameterFile_ = safe_declare<std::string>(prefix_ + "parameter_file", "parameters.yaml");
+  connectWhileSubscribed_ = safe_declare<bool>(prefix_ + "connect_while_subscribed", false);
   callbackHandle_ = node_->add_on_set_parameters_callback(
     std::bind(&Camera::parameterChanged, this, std::placeholders::_1));
 }
@@ -664,7 +680,13 @@ bool Camera::start()
     // Some parameters (like blackfly s chunk control) cannot be set once
     // the camera is running.
     createCameraParameters();
-    startCamera();
+    if (!connectWhileSubscribed_) {
+      startCamera();
+    } else {
+      checkSubscriptionsTimer_ = rclcpp::create_timer(
+        node_, node_->get_clock(), rclcpp::Duration(1, 0),
+        std::bind(&Camera::checkSubscriptions, this));
+    }
   } else {
     LOG_ERROR("init camera failed for cam: " << serial_);
   }
