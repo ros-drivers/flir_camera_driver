@@ -77,6 +77,7 @@ private:
     const std::vector<rclcpp::Parameter> & params);
   void controlCallback(const flir_camera_msgs::msg::CameraControl::UniquePtr msg);
   void printStatus();
+  void checkSubscriptions();
   void doPublish(const ImageConstPtr & im);
   rclcpp::Logger get_logger()
   {
@@ -129,6 +130,7 @@ private:
   bool computeBrightness_{false};
   double acquisitionTimeout_{3.0};
   bool adjustTimeStamp_{false};
+  bool connectWhileSubscribed_{false};  // if true, connects to SDK when subscription happens
   uint32_t currentExposureTime_{0};
   double averageTimeDifference_{std::numeric_limits<double>::quiet_NaN()};
   int64_t baseTimeOffset_{0};
@@ -140,6 +142,7 @@ private:
   flir_camera_msgs::msg::ImageMetaData metaMsg_;
   rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr callbackHandle_;  // keep alive callbacks
   rclcpp::TimerBase::SharedPtr statusTimer_;
+  rclcpp::TimerBase::SharedPtr checkSubscriptionsTimer_;
   bool cameraRunning_{false};
   std::mutex mutex_;
   std::condition_variable cv_;
