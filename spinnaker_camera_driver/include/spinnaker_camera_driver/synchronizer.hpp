@@ -13,25 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SPINNAKER_CAMERA_DRIVER__CAMERA_DRIVER_HPP_
-#define SPINNAKER_CAMERA_DRIVER__CAMERA_DRIVER_HPP_
+#ifndef SPINNAKER_CAMERA_DRIVER__SYNCHRONIZER_HPP_
+#define SPINNAKER_CAMERA_DRIVER__SYNCHRONIZER_HPP_
 
-#include <image_transport/image_transport.hpp>
-#include <memory>
+#include <cstdint>
 #include <rclcpp/rclcpp.hpp>
-#include <spinnaker_camera_driver/camera.hpp>
 
 namespace spinnaker_camera_driver
 {
-class CameraDriver : public rclcpp::Node
+class Synchronizer
 {
 public:
-  explicit CameraDriver(const rclcpp::NodeOptions & options);
-  ~CameraDriver();
-
-private:
-  std::shared_ptr<image_transport::ImageTransport> imageTransport_;
-  std::shared_ptr<Camera> camera_;
+  Synchronizer() = default;
+  virtual ~Synchronizer() {}
+  virtual bool getTimeStamp(
+    uint64_t hostTime, uint64_t imageTime, uint64_t frameId, uint64_t * ft) = 0;
 };
 }  // namespace spinnaker_camera_driver
-#endif  // SPINNAKER_CAMERA_DRIVER__CAMERA_DRIVER_HPP_
+#endif  // SPINNAKER_CAMERA_DRIVER__SYNCHRONIZER_HPP_
