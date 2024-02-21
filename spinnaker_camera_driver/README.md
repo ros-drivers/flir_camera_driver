@@ -116,27 +116,33 @@ around the Spinnaker SDK, and should allow you to access all features available 
 spinview program. *In addition to the parameters defined in the .yaml
 files*, the driver has the following ROS parameters:
 
+- ``adjust_timestamp``: see below for more documentation
+- ``acquisition_timeout``: timeout for expecting frames (in seconds).
+  If no frame is received for this time, the driver restarts. Default is 3s.
+- ``buffer_queue_size``: max number of images to queue internally
+  before shoving them into the ROS output queue. Decouples the
+  Spinnaker SDK thread from the ROS publishing thread. Default: 4.
+- ``camerainfo_url``: where to find the camera calibration yaml file.
+- ``compute_brightness``: if true, compute image brightness and
+  publish it in meta data message. This is useful for external
+  exposure control but incurs extra CPU load. Default: false.
+- ``connect_while_subscribed``: if true, connect to the SDK and
+  pull data from the camera *only while subscribers to image or meta
+  topics are present*. This feature reduces compute load and link
+  utilization while no ROS subscribers are present, but adds latency
+  on subscription in that the first image will be published
+  up to 1s later than without this option.
+- ``dump_node_map``: set this to true to get a dump of the node map. This
+- ``frame_id``: the ROS frame id to put in the header of the published
+  image messages.
+- ``image_queue_size``: ROS output queue size (number of frames). Default: 4
+  feature is helpful when developing a new config file. Default: false.
+- ``parameter_file``: location of the .yaml file defining the camera
+  (blackfly_s.yaml etc)
 - ``serial_number``: must have the serial number of the camera. If you
   don't know it, put in anything you like and
   the driver will croak with an error message, telling you what
   cameras serial numbers are available
-- ``frame_id``: the ROS frame id to put in the header of the published
-  image messages.
-- ``camerainfo_url``: where to find the camera calibration yaml file.
-- ``parameter_file``: location of the .yaml file defining the camera
-  (blackfly_s.yaml etc)
-- ``compute_brightness``: if true, compute image brightness and
-  publish it in meta data message. This is useful for external
-  exposure control but incurs extra CPU load. Default: false.
-- ``buffer_queue_size``: max number of images to queue internally
-  before shoving them into the ROS output queue. Decouples the
-  Spinnaker SDK thread from the ROS publishing thread. Default: 4.
-- ``image_queue_size``: ROS output queue size (number of frames). Default: 4
-- ``dump_node_map``: set this to true to get a dump of the node map. This
-  feature is helpful when developing a new config file. Default: false.
-- ``adjust_timestamp``: see below for more documentation
-- ``acquisition_timeout``: timeout for expecting frames (in seconds).
-  If no frame is received for this time, the driver restarts. Default is 3s.
 
 ## Setting up GigE cameras
 
