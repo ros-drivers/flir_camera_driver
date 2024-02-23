@@ -4,6 +4,11 @@ Changelog for package spinnaker_camera_driver
 
 Forthcoming
 -----------
+* Added connect_while_subscribed feature
+* Added binning parameter
+* Export library and refactor for synchronized driver support
+* fixed stereo launch file serial number bug
+* Contributors: Bernd Pfrommer, Luis Camero, buckleytoby
 
 2.0.8 (2023-11-14)
 ------------------
