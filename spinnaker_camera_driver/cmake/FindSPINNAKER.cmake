@@ -49,6 +49,7 @@ find_library(SPINNAKER_LIBRARIES
   /usr/lib/
   /usr/local/lib
   PATH_SUFFIXES Release Debug
+  NO_DEFAULT_PATH  # else it will find ROS system spinnaker libraries first
 )
 
 set(SPINNAKER_INCLUDE_DIRS ${SPINNAKER_INCLUDE_DIRS})
