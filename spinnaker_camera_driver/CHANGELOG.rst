@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.2.11 (2024-02-23)
+-------------------
 * added connect_while_subscribed feature
 * Added binning parameter
 * install spinnaker library in same place as driver library
