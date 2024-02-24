@@ -2,6 +2,16 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* added connect_while_subscribed feature
+* Added binning parameter
+* install spinnaker library in same place as driver library
+* remove junk directories from search path
+* prepare single-camera driver for use with sync'ed driver
+* fixed stereo launch file serial nb bug
+* Contributors: Bernd Pfrommer, Luis Camero, buckleytoby
+
 2.2.10 (2023-12-02)
 -------------------
 
