@@ -192,11 +192,16 @@ void Camera::checkSubscriptions()
 
 void Camera::readParameters()
 {
+  quiet_ = safe_declare<bool>(prefix_ + "quiet", false);
   serial_ = safe_declare<std::string>(prefix_ + "serial_number", "missing_serial_number");
-  LOG_INFO("reading ros parameters for camera with serial: " << serial_);
+  if (!quiet_) {
+    LOG_INFO("reading ros parameters for camera with serial: " << serial_);
+  }
   debug_ = safe_declare<bool>(prefix_ + "debug", false);
   adjustTimeStamp_ = safe_declare<bool>(prefix_ + "adjust_timestamp", false);
-  LOG_INFO((adjustTimeStamp_ ? "" : "not ") << "adjusting time stamps!");
+  if (!quiet_) {
+    LOG_INFO((adjustTimeStamp_ ? "" : "not ") << "adjusting time stamps!");
+  }
 
   cameraInfoURL_ = safe_declare<std::string>(prefix_ + "camerainfo_url", "");
   frameId_ = safe_declare<std::string>(prefix_ + "frame_id", node_->get_name());
@@ -258,7 +263,9 @@ void Camera::createCameraParameters()
 
 bool Camera::setEnum(const std::string & nodeName, const std::string & v)
 {
-  LOG_INFO("setting " << nodeName << " to: " << v);
+  if (!quiet_) {
+    LOG_INFO("setting " << nodeName << " to: " << v);
+  }
   std::string retV;  // what actually was set
   std::string msg = wrapper_->setEnum(nodeName, v, &retV);
   bool status(true);
@@ -275,7 +282,9 @@ bool Camera::setEnum(const std::string & nodeName, const std::string & v)
 
 bool Camera::setDouble(const std::string & nodeName, double v)
 {
-  LOG_INFO("setting " << nodeName << " to: " << v);
+  if (!quiet_) {
+    LOG_INFO("setting " << nodeName << " to: " << v);
+  }
   double retV;  // what actually was set
   std::string msg = wrapper_->setDouble(nodeName, v, &retV);
   bool status(true);
@@ -292,7 +301,9 @@ bool Camera::setDouble(const std::string & nodeName, double v)
 
 bool Camera::setInt(const std::string & nodeName, int v)
 {
-  LOG_INFO("setting " << nodeName << " to: " << v);
+  if (!quiet_) {
+    LOG_INFO("setting " << nodeName << " to: " << v);
+  }
   int retV;  // what actually was set
   std::string msg = wrapper_->setInt(nodeName, v, &retV);
   bool status(true);
@@ -309,7 +320,9 @@ bool Camera::setInt(const std::string & nodeName, int v)
 
 bool Camera::setBool(const std::string & nodeName, bool v)
 {
-  LOG_INFO("setting " << nodeName << " to: " << v);
+  if (!quiet_) {
+    LOG_INFO("setting " << nodeName << " to: " << v);
+  }
   bool retV;  // what actually was set
   std::string msg = wrapper_->setBool(nodeName, v, &retV);
   bool status(true);

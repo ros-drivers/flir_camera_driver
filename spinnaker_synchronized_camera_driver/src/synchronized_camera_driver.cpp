@@ -109,8 +109,9 @@ bool SynchronizedCameraDriver::update(
   std::unique_lock<std::mutex> lock(mutex_);
   constexpr double NUM_FRAMES_TO_AVG = 20.0;
   constexpr double alpha = 1.0 / NUM_FRAMES_TO_AVG;
+  dt = std::max(1e-6, dt);
   avgFrameInterval_ =
-    (avgFrameInterval_ == 0) ? dt : (avgFrameInterval_ * (1.0 - alpha) + alpha * dt);
+    (avgFrameInterval_ < 0) ? dt : (avgFrameInterval_ * (1.0 - alpha) + alpha * dt);
   if (numUpdatesReceived_ < numUpdatesRequired_) {
     numUpdatesReceived_++;
     if (numUpdatesReceived_ >= numUpdatesRequired_) {

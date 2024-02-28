@@ -16,6 +16,8 @@
 #include <spinnaker_synchronized_camera_driver/logging.hpp>
 #include <spinnaker_synchronized_camera_driver/time_estimator.hpp>
 
+// #define DEBUG
+
 static rclcpp::Logger get_logger() { return (rclcpp::get_logger("cam_sync")); }
 
 namespace spinnaker_synchronized_camera_driver
@@ -112,12 +114,18 @@ bool TimeEstimator::getTimeFromList(uint64_t t_a, uint64_t * T)
     // this frame is older than the oldest frame time but still within range
     (*frameTimes_.begin()).addTime(t);
     *T = static_cast<uint64_t>(T_min) + T0_;
+#ifdef DEBUG
+    LOG_INFO("frame old but within range");
+#endif
     return (true);
   }
 
   // make sure to add new frames if needed
   for (auto ft = *(frameTimes_.rbegin()); (t - ft.getFrameTime()) * 2 > dT;
        ft = *(frameTimes_.rbegin())) {
+    // if a new frame is found, perform a measurement update
+    // based on the average arrival time of the last frames that
+    // have arrived before the new frame
     if (ft.isValid()) {
       updateKalman(ft.getAverageFrameTime());
     }
@@ -132,10 +140,13 @@ bool TimeEstimator::getTimeFromList(uint64_t t_a, uint64_t * T)
   const int64_t T_max = (*frameTimes_.rbegin()).getFrameTime();
   const auto dT_max = static_cast<int64_t>(t) - T_max;
 
-  if (dT_max > 0 && dT_max * 2 <= dT) {
+  if (dT_max >= 0 && dT_max * 2 <= dT) {
     // this frame is younger than the latest frame time but still in range
     (*frameTimes_.rbegin()).addTime(t);
     *T = static_cast<uint64_t>(T_max) + T0_;
+#ifdef DEBUG
+    LOG_INFO("frame young but within range");
+#endif
     return (true);
   }
 
@@ -154,11 +165,17 @@ bool TimeEstimator::getTimeFromList(uint64_t t_a, uint64_t * T)
         // closer to beginning of interval
         (*it).addTime(t);
         *T = static_cast<uint64_t>(t1) + T0_;
+#ifdef DEBUG
+        LOG_INFO("frame closer to begin of interval");
+#endif
         return (true);
       } else {
         // closer to end of interval
         (*itp1).addTime(t);
         *T = static_cast<uint64_t>(t2) + T0_;
+#ifdef DEBUG
+        LOG_INFO("frame closer to end of interval");
+#endif
         return (true);
       }
     }
@@ -169,12 +186,26 @@ bool TimeEstimator::getTimeFromList(uint64_t t_a, uint64_t * T)
   // never be reached.
   LOG_ERROR("INTERNAL BUG, should never reach this point!!");
   *T = static_cast<uint64_t>(T_max) + T0_;
+  LOG_INFO_FMT("newly added time: %8ld", t_a);
+  for (const auto & tl : frameTimes_) {
+    LOG_INFO_FMT("   %8ld", tl.getFrameTime());
+  }
   return (true);
 }
 
 bool TimeEstimator::update(size_t idx, uint64_t t_a, uint64_t * frameTime)
 {
   (void)idx;
-  return (getTimeFromList(t_a - T0_, frameTime));
+  const bool gotValidTime = getTimeFromList(t_a - T0_, frameTime);
+  if (
+    gotValidTime &&
+    std::abs(static_cast<int64_t>(*frameTime) - static_cast<int64_t>(t_a)) > 1000000000LL) {
+    std::cout << "bad time: " << t_a << " vs ft: " << *frameTime << std::endl;
+    LOG_INFO_FMT("time list looks like this");
+    for (const auto & tl : frameTimes_) {
+      LOG_INFO_FMT("   %8ld", tl.getFrameTime());
+    }
+  }
+  return (gotValidTime);
 }
 }  // namespace spinnaker_synchronized_camera_driver

@@ -122,7 +122,8 @@ def launch_setup(context, *args, **kwargs):
                 output='screen',
                 name=[LaunchConfig('camera_name')],
                 parameters=[example_parameters[camera_type],
-                            {'parameter_file': parameter_file,
+                            {'ffmpeg_image_transport.encoding': 'hevc_nvenc',
+                             'parameter_file': parameter_file,
                              'serial_number': [LaunchConfig('serial')]}],
                 remappings=[('~/control', '/exposure_control/control'), ])
 
