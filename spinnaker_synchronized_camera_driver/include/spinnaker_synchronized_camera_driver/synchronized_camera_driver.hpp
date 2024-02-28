@@ -43,7 +43,7 @@ private:
   std::map<const std::string, std::shared_ptr<spinnaker_camera_driver::Camera>> cameras_;
   std::vector<std::shared_ptr<TimeKeeper>> timeKeepers_;
   rclcpp::TimerBase::SharedPtr statusTimer_;
-  double avgFrameInterval_{0};
+  double avgFrameInterval_{-1};
   std::mutex mutex_;
   size_t numUpdatesRequired_{0};
   size_t numUpdatesReceived_{0};

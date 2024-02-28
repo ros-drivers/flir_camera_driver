@@ -44,7 +44,7 @@ private:
       sumFrameTime_ += static_cast<double>(t) * 1e-9;
       numFrames_++;
     }
-    bool isValid() const { return (numFrames_ > 1); }
+    bool isValid() const { return (numFrames_ > 0); }
     double getAverageFrameTime() const
     {
       return (numFrames_ > 0 ? sumFrameTime_ / static_cast<double>(numFrames_) : 0);

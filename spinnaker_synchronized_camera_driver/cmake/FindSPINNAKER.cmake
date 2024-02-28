@@ -36,6 +36,7 @@ find_library(SPINNAKER_LIBRARIES
   /opt/spinnaker/lib
   /usr/lib/
   /usr/local/lib
+  NO_DEFAULT_PATH  # else it will find ROS system spinnaker libraries first
   PATH_SUFFIXES Release Debug
 )
 

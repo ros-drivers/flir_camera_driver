@@ -127,6 +127,7 @@ private:
   bool autoExposure_;    // if auto exposure is on/off
   bool dumpNodeMap_{false};
   bool debug_{false};
+  bool quiet_{false};
   bool computeBrightness_{false};
   double acquisitionTimeout_{3.0};
   bool adjustTimeStamp_{false};
