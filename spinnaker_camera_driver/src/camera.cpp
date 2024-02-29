@@ -25,6 +25,7 @@
 #include <sensor_msgs/fill_image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <spinnaker_camera_driver/camera_driver.hpp>
+#include <spinnaker_camera_driver/exposure_controller.hpp>
 #include <spinnaker_camera_driver/logging.hpp>
 #include <type_traits>
 
@@ -448,7 +449,7 @@ void Camera::controlCallback(const flir_camera_msgs::msg::CameraControl::UniqueP
   }
 }
 
-void Camera::publishImage(const ImageConstPtr & im)
+void Camera::processImage(const ImageConstPtr & im)
 {
   {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -481,6 +482,9 @@ void Camera::run()
       }  // -------- end of locked section
       if (img && keepRunning_ && rclcpp::ok()) {
         doPublish(img);
+        if (exposureController_) {
+          exposureController_->update(this, img);
+        }
       }
     }
   }
@@ -617,7 +621,7 @@ void Camera::startCamera()
 {
   if (!cameraRunning_) {
     spinnaker_camera_driver::SpinnakerWrapper::Callback cb =
-      std::bind(&Camera::publishImage, this, std::placeholders::_1);
+      std::bind(&Camera::processImage, this, std::placeholders::_1);
     cameraRunning_ = wrapper_->startCamera(cb);
     if (!cameraRunning_) {
       LOG_ERROR("failed to start camera!");
