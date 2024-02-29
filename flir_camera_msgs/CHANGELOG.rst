@@ -2,8 +2,8 @@
 Changelog for package flir_camera_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.11 (2024-02-29)
+-------------------
 * removed changelogs
 * Contributors: Bernd Pfrommer
 

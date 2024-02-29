@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.11 (2024-02-29)
+-------------------
 * provision camera driver for exposure control
 * fixed bugs discovered when running on GigE cams
 * avoid searching ROS path for library
