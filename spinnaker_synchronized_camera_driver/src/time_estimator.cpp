@@ -196,16 +196,8 @@ bool TimeEstimator::getTimeFromList(uint64_t t_a, uint64_t * T)
 bool TimeEstimator::update(size_t idx, uint64_t t_a, uint64_t * frameTime)
 {
   (void)idx;
-  const bool gotValidTime = getTimeFromList(t_a - T0_, frameTime);
-  if (
-    gotValidTime &&
-    std::abs(static_cast<int64_t>(*frameTime) - static_cast<int64_t>(t_a)) > 1000000000LL) {
-    std::cout << "bad time: " << t_a << " vs ft: " << *frameTime << std::endl;
-    LOG_INFO_FMT("time list looks like this");
-    for (const auto & tl : frameTimes_) {
-      LOG_INFO_FMT("   %8ld", tl.getFrameTime());
-    }
-  }
+  const uint64_t t_a_0 = (t_a >= T0_) ? (t_a - T0_) : 0;
+  const bool gotValidTime = getTimeFromList(t_a_0, frameTime);
   return (gotValidTime);
 }
 }  // namespace spinnaker_synchronized_camera_driver

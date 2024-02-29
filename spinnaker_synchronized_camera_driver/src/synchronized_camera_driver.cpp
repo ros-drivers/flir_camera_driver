@@ -1,5 +1,5 @@
 // -*-c++-*--------------------------------------------------------------------
-// Copyright 2023 Bernd Pfrommer <bernd.pfrommer@gmail.com>
+// Copyright 2024 Bernd Pfrommer <bernd.pfrommer@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 #include <image_transport/image_transport.hpp>
 #include <rclcpp/node_options.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+#include <spinnaker_camera_driver/exposure_controller.hpp>
+#include <spinnaker_synchronized_camera_driver/exposure_controller_factory.hpp>
 #include <spinnaker_synchronized_camera_driver/logging.hpp>
 #include <spinnaker_synchronized_camera_driver/synchronized_camera_driver.hpp>
 #include <spinnaker_synchronized_camera_driver/time_estimator.hpp>
@@ -28,6 +30,7 @@ SynchronizedCameraDriver::SynchronizedCameraDriver(const rclcpp::NodeOptions & o
 {
   imageTransport_ = std::make_shared<image_transport::ImageTransport>(
     std::shared_ptr<SynchronizedCameraDriver>(this, [](auto *) {}));
+  createExposureControllers();  // before cams so they can refer to it
   createCameras();
   // start cameras only when all synchronizer state has been set up!
   for (auto & c : cameras_) {
@@ -84,6 +87,21 @@ void SynchronizedCameraDriver::printStatus()
   }
 }
 
+void SynchronizedCameraDriver::createExposureControllers()
+{
+  using svec = std::vector<std::string>;
+  const svec controllers = this->declare_parameter<svec>("exposure_controllers", svec());
+  for (const auto & c : controllers) {
+    const std::string type = this->declare_parameter<std::string>(c + ".type", "");
+    if (!type.empty()) {
+      exposureControllers_.insert({c, exposure_controller_factory::newInstance(type, c, this)});
+      LOG_INFO("created exposure controller: " << c);
+    } else {
+      BOMB_OUT("no controller type specified for controller " << c);
+    }
+  }
+}
+
 void SynchronizedCameraDriver::createCameras()
 {
   using svec = std::vector<std::string>;
@@ -91,7 +109,6 @@ void SynchronizedCameraDriver::createCameras()
   if (cameras.empty()) {
     BOMB_OUT("no cameras configured for synchronized driver!");
   }
-
   for (size_t i = 0; i < cameras.size(); i++) {
     const auto & c = cameras[i];
     auto cam =
@@ -99,6 +116,16 @@ void SynchronizedCameraDriver::createCameras()
     cameras_.insert({c, cam});
     timeKeepers_.push_back(std::make_shared<TimeKeeper>(i, c, this));
     cam->setSynchronizer(timeKeepers_.back());
+    // set exposure controller if configured
+    const auto ctrlName = this->declare_parameter<std::string>(c + ".exposure_controller_name", "");
+    if (!ctrlName.empty()) {
+      auto it = exposureControllers_.find(ctrlName);
+      if (it == exposureControllers_.end()) {
+        BOMB_OUT("unknown exposure controller: " << ctrlName);
+      }
+      it->second->addCamera(cam);
+      cam->setExposureController(it->second);
+    }
   }
   numUpdatesRequired_ = cameras.size() * 3;
 }
