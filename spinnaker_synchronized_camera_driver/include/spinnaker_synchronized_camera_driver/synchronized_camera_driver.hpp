@@ -24,6 +24,12 @@
 #include <spinnaker_camera_driver/camera.hpp>
 #include <spinnaker_synchronized_camera_driver/time_keeper.hpp>
 #include <thread>
+#include <unordered_map>
+
+namespace spinnaker_camera_driver
+{
+class ExposureController;
+}
 
 namespace spinnaker_synchronized_camera_driver
 {
@@ -37,6 +43,7 @@ public:
 
 private:
   void createCameras();
+  void createExposureControllers();
   void printStatus();
   // ----- variables --
   std::shared_ptr<image_transport::ImageTransport> imageTransport_;
@@ -48,6 +55,8 @@ private:
   size_t numUpdatesRequired_{0};
   size_t numUpdatesReceived_{0};
   std::shared_ptr<TimeEstimator> timeEstimator_;
+  std::unordered_map<std::string, std::shared_ptr<spinnaker_camera_driver::ExposureController>>
+    exposureControllers_;
 };
 }  // namespace spinnaker_synchronized_camera_driver
 #endif  // SPINNAKER_SYNCHRONIZED_CAMERA_DRIVER__SYNCHRONIZED_CAMERA_DRIVER_HPP_
