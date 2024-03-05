@@ -83,6 +83,7 @@ private:
   std::shared_ptr<std::thread> thread_;
   std::mutex mutex_;
   uint64_t acquisitionTimeout_{10000000000ULL};
+  size_t numIncompleteImages_{0};
 };
 }  // namespace spinnaker_camera_driver
 

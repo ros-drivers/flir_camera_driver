@@ -557,7 +557,8 @@ void Camera::doPublish(const ImageConstPtr & im)
   rclcpp::Time t;
   if (synchronizer_) {
     uint64_t t_64;
-    bool haveTime = synchronizer_->getTimeStamp(im->time_, im->imageTime_, im->frameId_, &t_64);
+    bool haveTime = synchronizer_->getTimeStamp(
+      im->time_, im->imageTime_, im->frameId_, im->numIncomplete_, &t_64);
     t = rclcpp::Time(t_64, RCL_SYSTEM_TIME);
     if (!haveTime) {
       if (firstSynchronizedFrame_) {

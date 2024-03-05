@@ -294,9 +294,12 @@ void SpinnakerWrapperImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
   }
 
   if (imgPtr->IsIncomplete()) {
+    numIncompleteImages_++;
+#if 0
     // Retrieve and print the image status description
     std::cout << "Image incomplete: "
               << Spinnaker::Image::GetImageStatusDescription(imgPtr->GetImageStatus()) << std::endl;
+#endif
   } else {
     float expTime = 0;
     float gain = 0;
@@ -340,7 +343,8 @@ void SpinnakerWrapperImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
       t, brightness, expTime, maxExpTime, gain, stamp, imgPtr->GetImageSize(),
       imgPtr->GetImageStatus(), imgPtr->GetData(), imgPtr->GetWidth(), imgPtr->GetHeight(),
       imgPtr->GetStride(), imgPtr->GetBitsPerPixel(), imgPtr->GetNumChannels(),
-      imgPtr->GetFrameID(), pixelFormat_));
+      imgPtr->GetFrameID(), pixelFormat_, numIncompleteImages_));
+    numIncompleteImages_ = 0;
     callback_(img);
   }
 }
