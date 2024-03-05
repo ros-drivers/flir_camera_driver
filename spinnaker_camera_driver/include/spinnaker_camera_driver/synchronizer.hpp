@@ -26,7 +26,7 @@ public:
   Synchronizer() = default;
   virtual ~Synchronizer() {}
   virtual bool getTimeStamp(
-    uint64_t hostTime, uint64_t imageTime, uint64_t frameId, uint64_t * ft) = 0;
+    uint64_t hostTime, uint64_t imageTime, uint64_t frameId, size_t numIncompl, uint64_t * ft) = 0;
 };
 }  // namespace spinnaker_camera_driver
 #endif  // SPINNAKER_CAMERA_DRIVER__SYNCHRONIZER_HPP_
