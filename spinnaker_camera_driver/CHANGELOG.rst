@@ -2,6 +2,15 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* track incomplete frames
+* fixed licensing documentation
+* provision camera driver for exposure control
+* fixed bugs discovered when running on GigE cams
+* avoid searching ROS path for library
+* Contributors: Bernd Pfrommer
+
 2.2.11 (2024-02-23)
 -------------------
 * added connect_while_subscribed feature
