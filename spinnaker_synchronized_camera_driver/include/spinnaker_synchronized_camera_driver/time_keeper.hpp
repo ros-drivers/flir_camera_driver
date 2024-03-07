@@ -33,7 +33,7 @@ public:
   const std::string & getName() const { return (name_); }
 
   bool getTimeStamp(
-    uint64_t hostTime, uint64_t imageTime, uint64_t frameId, uint64_t * ft) override;
+    uint64_t hostTime, uint64_t imageTime, uint64_t frameId, size_t ninc, uint64_t * ft) override;
 
   double getOffsetAverage() const
   {
@@ -46,6 +46,7 @@ public:
     return (numOffset_ > 1 ? S_ / static_cast<double>(numOffset_ - 1) : 0);
   }
   int64_t getNumFramesDropped() const { return (numFramesDropped_); }
+  size_t getNumFramesIncomplete() const { return (numFramesIncomplete_); }
   void clearStatistics();
 
 private:
@@ -55,6 +56,7 @@ private:
   uint64_t lastFrameId_{0};
   uint64_t lastHostTime_{0};
   int64_t numFramesDropped_{0};
+  size_t numFramesIncomplete_{0};
   size_t numOffset_{0};
   double offsetSum_{0};
   double S_{0};

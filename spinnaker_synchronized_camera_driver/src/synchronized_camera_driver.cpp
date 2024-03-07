@@ -1,5 +1,5 @@
 // -*-c++-*--------------------------------------------------------------------
-// Copyright 2023 Bernd Pfrommer <bernd.pfrommer@gmail.com>
+// Copyright 2024 Bernd Pfrommer <bernd.pfrommer@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 #include <image_transport/image_transport.hpp>
 #include <rclcpp/node_options.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+#include <spinnaker_camera_driver/exposure_controller.hpp>
+#include <spinnaker_synchronized_camera_driver/exposure_controller_factory.hpp>
 #include <spinnaker_synchronized_camera_driver/logging.hpp>
 #include <spinnaker_synchronized_camera_driver/synchronized_camera_driver.hpp>
 #include <spinnaker_synchronized_camera_driver/time_estimator.hpp>
@@ -28,6 +30,7 @@ SynchronizedCameraDriver::SynchronizedCameraDriver(const rclcpp::NodeOptions & o
 {
   imageTransport_ = std::make_shared<image_transport::ImageTransport>(
     std::shared_ptr<SynchronizedCameraDriver>(this, [](auto *) {}));
+  createExposureControllers();  // before cams so they can refer to it
   createCameras();
   // start cameras only when all synchronizer state has been set up!
   for (auto & c : cameras_) {
@@ -55,14 +58,15 @@ void SynchronizedCameraDriver::printStatus()
 
   struct TKInfo
   {
-    explicit TKInfo(const std::string & n, double off, double jit, int64_t d)
-    : name(n), offset(off), jitter(jit), dropped(d)
+    explicit TKInfo(const std::string & n, double off, double jit, int64_t d, size_t i)
+    : name(n), offset(off), jitter(jit), dropped(d), incomplete(i)
     {
     }
     std::string name;
     double offset;
     double jitter;
     int64_t dropped;
+    size_t incomplete;
   };
   std::vector<TKInfo> tki;
   double dt = 0;
@@ -72,15 +76,31 @@ void SynchronizedCameraDriver::printStatus()
     for (auto & tk : timeKeepers_) {
       tki.push_back(TKInfo(
         tk->getName(), tk->getOffsetAverage() / dt, std::sqrt(tk->getOffsetVariance()) / dt,
-        tk->getNumFramesDropped()));
+        tk->getNumFramesDropped(), tk->getNumFramesIncomplete()));
       tk->clearStatistics();
     }
   }
   LOG_INFO_FMT("------ frequency: %10.3f Hz", 1.0 / dt);
-  LOG_INFO_FMT("%-10s %5s %10s %10s", "camera", "drop", "offset", "jitter");
+  LOG_INFO_FMT("%-8s %4s %4s %9s %9s", "camera", "drop", "icmp", "offset", "jitter");
   for (auto & tk : tki) {
     LOG_INFO_FMT(
-      "%-10s %5ld %9.2f%% %9.2f%%", tk.name.c_str(), tk.dropped, tk.offset * 100, tk.jitter * 100);
+      "%-8s %4ld %4zu %8.2f%% %8.2f%%", tk.name.c_str(), tk.dropped, tk.incomplete, tk.offset * 100,
+      tk.jitter * 100);
+  }
+}
+
+void SynchronizedCameraDriver::createExposureControllers()
+{
+  using svec = std::vector<std::string>;
+  const svec controllers = this->declare_parameter<svec>("exposure_controllers", svec());
+  for (const auto & c : controllers) {
+    const std::string type = this->declare_parameter<std::string>(c + ".type", "");
+    if (!type.empty()) {
+      exposureControllers_.insert({c, exposure_controller_factory::newInstance(type, c, this)});
+      LOG_INFO("created exposure controller: " << c);
+    } else {
+      BOMB_OUT("no controller type specified for controller " << c);
+    }
   }
 }
 
@@ -91,7 +111,6 @@ void SynchronizedCameraDriver::createCameras()
   if (cameras.empty()) {
     BOMB_OUT("no cameras configured for synchronized driver!");
   }
-
   for (size_t i = 0; i < cameras.size(); i++) {
     const auto & c = cameras[i];
     auto cam =
@@ -99,6 +118,16 @@ void SynchronizedCameraDriver::createCameras()
     cameras_.insert({c, cam});
     timeKeepers_.push_back(std::make_shared<TimeKeeper>(i, c, this));
     cam->setSynchronizer(timeKeepers_.back());
+    // set exposure controller if configured
+    const auto ctrlName = this->declare_parameter<std::string>(c + ".exposure_controller_name", "");
+    if (!ctrlName.empty()) {
+      auto it = exposureControllers_.find(ctrlName);
+      if (it == exposureControllers_.end()) {
+        BOMB_OUT("unknown exposure controller: " << ctrlName);
+      }
+      it->second->addCamera(cam);
+      cam->setExposureController(it->second);
+    }
   }
   numUpdatesRequired_ = cameras.size() * 3;
 }
@@ -109,8 +138,9 @@ bool SynchronizedCameraDriver::update(
   std::unique_lock<std::mutex> lock(mutex_);
   constexpr double NUM_FRAMES_TO_AVG = 20.0;
   constexpr double alpha = 1.0 / NUM_FRAMES_TO_AVG;
+  dt = std::max(1e-6, dt);
   avgFrameInterval_ =
-    (avgFrameInterval_ == 0) ? dt : (avgFrameInterval_ * (1.0 - alpha) + alpha * dt);
+    (avgFrameInterval_ < 0) ? dt : (avgFrameInterval_ * (1.0 - alpha) + alpha * dt);
   if (numUpdatesReceived_ < numUpdatesRequired_) {
     numUpdatesReceived_++;
     if (numUpdatesReceived_ >= numUpdatesRequired_) {

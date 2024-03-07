@@ -46,14 +46,14 @@ void get_nodemap_as_string(std::stringstream & ss, Spinnaker::CameraPtr cam)
   ss << s;
 }
 
-static CNodePtr find_node(const std::string & path, CNodePtr & node, bool debug)
+static std::optional<CNodePtr> find_node(const std::string & path, CNodePtr & node, bool debug)
 {
   // split off first part
   auto pos = path.find("/");
   const std::string token = path.substr(0, pos);  // first part of it
   if (node->GetPrincipalInterfaceType() != intfICategory) {
     std::cerr << "no category node: " << node->GetName() << " vs " << path << std::endl;
-    return (NULL);
+    return (std::nullopt);
   }
 
   CCategoryPtr catNode = static_cast<CCategoryPtr>(node);
@@ -70,28 +70,31 @@ static CNodePtr find_node(const std::string & path, CNodePtr & node, bool debug)
       std::cout << "checking child: " << childNode->GetName() << " vs " << token << std::endl;
     }
     if (std::string(childNode->GetName().c_str()) == token) {
+      // no slash in name, this is a leaf node
+      const bool is_leaf_node = (pos == std::string::npos);
       if (is_readable(childNode)) {
-        if (pos == std::string::npos) {  // no slash in name, found leaf node
+        if (is_leaf_node) {
           return (childNode);
         } else {
           const std::string rest = path.substr(pos + 1);
           return (find_node(rest, childNode, debug));
         }
+      } else {
+        return (CNodePtr(nullptr));  // found, but not readable
       }
     }
   }
   if (debug) {
     std::cerr << "driver: node not found: " << path << std::endl;
   }
-  return (CNodePtr(NULL));
+  return (std::nullopt);
 }
 
-CNodePtr find_node(const std::string & path, Spinnaker::CameraPtr cam, bool debug)
+std::optional<CNodePtr> find_node(const std::string & path, Spinnaker::CameraPtr cam, bool debug)
 {
   INodeMap & appLayerNodeMap = cam->GetNodeMap();
   CNodePtr rootNode = appLayerNodeMap.GetNode("Root");
-  CNodePtr retNode = find_node(path, rootNode, debug);
-  return (retNode);
+  return (find_node(path, rootNode, debug));
 }
 }  // namespace genicam_utils
 }  // namespace spinnaker_camera_driver
