@@ -2,8 +2,8 @@
 Changelog for package spinnaker_synchronized_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.13 (2024-03-13)
+-------------------
 * track incomplete frames
 * fixed licensing documentation
 * implement individual exposure controller
