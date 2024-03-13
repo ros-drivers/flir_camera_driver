@@ -2,6 +2,11 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* added blackfly GigE configuration file
+* Contributors: Bernd Pfrommer
+
 2.2.12 (2024-03-07)
 -------------------
 * track incomplete frames
