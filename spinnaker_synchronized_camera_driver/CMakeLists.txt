@@ -83,7 +83,9 @@ cmake_print_properties(TARGETS spinnaker_camera_driver::camera_driver PROPERTIES
 add_library(synchronized_camera_driver SHARED
   src/synchronized_camera_driver.cpp
   src/time_estimator.cpp
-  src/time_keeper.cpp)
+  src/time_keeper.cpp
+  src/exposure_controller_factory.cpp
+  src/individual_exposure_controller.cpp)
 
 ament_target_dependencies(synchronized_camera_driver PUBLIC ${ROS_DEPENDENCIES})
 target_link_libraries(synchronized_camera_driver PUBLIC spinnaker_camera_driver::camera_driver PRIVATE yaml-cpp)

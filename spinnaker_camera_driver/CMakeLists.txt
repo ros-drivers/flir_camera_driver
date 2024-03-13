@@ -15,7 +15,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.5)
-project(spinnaker_camera_driver)
+project(spinnaker_camera_driver VERSION 2.0.0)
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
@@ -164,7 +164,7 @@ install(TARGETS
 # generate the ConfigVersion.cmake file that will be included by Config.cmake
 write_basic_package_version_file(
   ${PROJECT_NAME}ConfigVersion.cmake
-  VERSION ${PACKAGE_VERSION}
+  VERSION ${CMAKE_PROJECT_VERSION}
   COMPATIBILITY AnyNewerVersion)
 
 # generate the *Config.cmake file

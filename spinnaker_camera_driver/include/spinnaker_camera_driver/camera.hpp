@@ -35,10 +35,11 @@
 
 namespace spinnaker_camera_driver
 {
+class ExposureController;  // forward decl
 class Camera
 {
 public:
-  typedef spinnaker_camera_driver::ImageConstPtr ImageConstPtr;
+  using ImageConstPtr = spinnaker_camera_driver::ImageConstPtr;
   explicit Camera(
     rclcpp::Node * node, image_transport::ImageTransport * it, const std::string & prefix,
     bool useStatus = true);
@@ -47,6 +48,12 @@ public:
   bool start();
   bool stop();
   void setSynchronizer(const std::shared_ptr<Synchronizer> & s) { synchronizer_ = s; }
+  void setExposureController(const std::shared_ptr<ExposureController> & e)
+  {
+    exposureController_ = e;
+  }
+  const std::string & getName() const { return (name_); }
+  const std::string & getPrefix() const { return (prefix_); }
 
 private:
   struct NodeInfo
@@ -57,7 +64,7 @@ private:
     NodeType type{INVALID};
     rcl_interfaces::msg::ParameterDescriptor descriptor;
   };
-  void publishImage(const ImageConstPtr & image);
+  void processImage(const ImageConstPtr & image);
   void readParameters();
   void printCameraInfo();
   void startCamera();
@@ -127,6 +134,7 @@ private:
   bool autoExposure_;    // if auto exposure is on/off
   bool dumpNodeMap_{false};
   bool debug_{false};
+  bool quiet_{false};
   bool computeBrightness_{false};
   double acquisitionTimeout_{3.0};
   bool adjustTimeStamp_{false};
@@ -159,6 +167,7 @@ private:
   rclcpp::Time lastStatusTime_;
   int qosDepth_{4};
   std::shared_ptr<Synchronizer> synchronizer_;
+  std::shared_ptr<ExposureController> exposureController_;
   bool firstSynchronizedFrame_{true};
 };
 }  // namespace spinnaker_camera_driver
