@@ -2,6 +2,11 @@
 Changelog for package spinnaker_synchronized_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* avoid direct spinnaker dependency
+* Contributors: Bernd Pfrommer
+
 2.2.13 (2024-03-13)
 -------------------
 
