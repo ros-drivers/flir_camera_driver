@@ -58,7 +58,7 @@ public:
 private:
   struct NodeInfo
   {
-    enum NodeType { INVALID, ENUM, FLOAT, INT, BOOL };
+    enum NodeType { INVALID, ENUM, FLOAT, INT, BOOL, COMMAND };
     explicit NodeInfo(const std::string & n, const std::string & nodeType);
     std::string name;
     NodeType type{INVALID};
@@ -75,7 +75,9 @@ private:
   bool setDouble(const std::string & nodeName, double v);
   bool setInt(const std::string & nodeName, int v);
   bool setBool(const std::string & nodeName, bool v);
+  bool execute(const std::string & nodeName);
   bool readParameterDefinitionFile();
+  
   rclcpp::Time getAdjustedTimeStamp(uint64_t t, int64_t sensorTime);
 
   void run();  // thread
