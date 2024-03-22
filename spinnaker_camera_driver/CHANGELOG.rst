@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.14 (2024-03-22)
+-------------------
 * make spinnaker dependency private for sync driver build
 * Contributors: Bernd Pfrommer
 

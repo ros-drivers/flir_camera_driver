@@ -2,8 +2,8 @@
 Changelog for package spinnaker_synchronized_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.14 (2024-03-22)
+-------------------
 * remove direct dependency on spinnaker to fix broken build on ros2 farm
 * Contributors: Bernd Pfrommer
 
