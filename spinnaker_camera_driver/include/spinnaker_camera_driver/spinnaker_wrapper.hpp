@@ -59,6 +59,7 @@ public:
   std::string setDouble(const std::string & nodeName, double val, double * retVal);
   std::string setBool(const std::string & nodeName, bool val, bool * retVal);
   std::string setInt(const std::string & nodeName, int val, int * retVal);
+  std::string execute(const std::string & nodeName);
 
 private:
   // ----- variables --
