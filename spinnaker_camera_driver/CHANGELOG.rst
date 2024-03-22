@@ -2,6 +2,11 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* make spinnaker dependency private for sync driver build
+* Contributors: Bernd Pfrommer
+
 2.1.13 (2024-03-13)
 -------------------
 * added blackfly GigE configuration file
