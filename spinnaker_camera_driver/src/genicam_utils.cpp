@@ -46,7 +46,8 @@ void get_nodemap_as_string(std::stringstream & ss, Spinnaker::CameraPtr cam)
   ss << s;
 }
 
-static std::optional<CNodePtr> find_node(const std::string & path, CNodePtr & node, bool debug, bool allow_unreadable)
+static std::optional<CNodePtr> find_node(
+  const std::string & path, CNodePtr & node, bool debug, bool allow_unreadable)
 {
   // split off first part
   auto pos = path.find("/");
@@ -90,7 +91,8 @@ static std::optional<CNodePtr> find_node(const std::string & path, CNodePtr & no
   return (std::nullopt);
 }
 
-std::optional<CNodePtr> find_node(const std::string & path, Spinnaker::CameraPtr cam, bool debug, bool allow_unreadable)
+std::optional<CNodePtr> find_node(
+  const std::string & path, Spinnaker::CameraPtr cam, bool debug, bool allow_unreadable)
 {
   INodeMap & appLayerNodeMap = cam->GetNodeMap();
   CNodePtr rootNode = appLayerNodeMap.GetNode("Root");

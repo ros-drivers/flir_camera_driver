@@ -77,7 +77,7 @@ private:
   bool setBool(const std::string & nodeName, bool v);
   bool execute(const std::string & nodeName);
   bool readParameterDefinitionFile();
-  
+
   rclcpp::Time getAdjustedTimeStamp(uint64_t t, int64_t sensorTime);
 
   void run();  // thread
