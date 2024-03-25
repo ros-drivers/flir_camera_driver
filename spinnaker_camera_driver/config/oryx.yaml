@@ -1,0 +1,282 @@
+#
+# config file for oryx cameras (10GigE) 
+# adapted from blackfly_s
+#
+# This file maps the ros parameters to the corresponding Spinnaker "nodes" in the camera.
+# For more details on how to modify this file, see the README on camera configuration files.
+# 
+
+parameters:
+  #
+  # -------- image format control
+  #
+  - name: pixel_format
+    type: enum
+    # Check available values with SpinView. Not all are supported by ROS!
+    # Some formats are e.g. "Mono8", "BayerRG8", "BGR8", "BayerRG16"
+    # default is "BayerRG8"
+    node: ImageFormatControl/PixelFormat
+  - name: isp_enable
+    type: bool
+    node: ImageFormatControl/IspEnable
+  - name: decimation_selector # All, Sensor
+    type: enum
+    node: ImageFormatControl/DecimationSelector
+    # only Discard decimation mode is supported
+  - name: decimation_horizontal
+    type: int
+    node: ImageFormatControl/DecimationHorizontal
+  - name: decimation_vertical
+    type: int
+    node: ImageFormatControl/DecimationVertical
+  - name: reverse_x
+    type: bool
+    node: ImageFormatControl/ReverseX
+  - name: reverse_y
+    type: bool
+    node: ImageFormatControl/ReverseY
+  - name: adc_bit_depth # "Bit{8,10,12}"
+    type: enum
+    node: ImageFormatControl/AdcBitDepth
+  - name: binning_selector # All, Sensor, ISP
+    type: enum
+    node: ImageFormatControl/BinningSelector
+  - name: binning_horizontal_mode # Sum, Average
+    type: enum
+    node: ImageFormatControl/BinningHorizontalMode
+  - name: binning_vertical_mode # Sum, Average
+    type: enum
+    node: ImageFormatControl/BinningVerticalMode
+  - name: binning_horizontal
+    type: int
+    node: ImageFormatControl/BinningHorizontal
+  - name: binning_vertical
+    type: int
+    node: ImageFormatControl/BinningVertical
+  - name: image_width
+    type: int
+    node: ImageFormatControl/Width
+  - name: image_height
+    type: int
+    node: ImageFormatControl/Height
+  - name: offset_x  # offset must come after image width reduction!
+    type: int
+    node: ImageFormatControl/OffsetX
+  - name: offset_y
+    type: int
+    node: ImageFormatControl/OffsetY
+  #
+  # -------- analog control
+  #
+  - name: gain_auto
+    type: enum
+    # valid values are "Continuous", "Once", "Off"
+    node: AnalogControl/GainAuto
+  - name: gain
+    type: float
+    node: AnalogControl/Gain
+  - name: black_level_selector # "All", "Analog", "Digital"
+    type: enum
+    node: AnalogControl/BlackLevelSelector
+  - name: black_level
+    type: float
+    node: AnalogControl/BlackLevel
+  - name: black_level_clamping_enable
+    type: bool
+    node: AnalogControl/BlackLevelClampingEnable
+  - name: balance_ratio_selector # "Red", "Blue"
+    type: enum
+    node: AnalogControl/BalanceRatioSelector
+  - name: balance_ratio
+    type: float
+    node: AnalogControl/BalanceRatio
+  - name: balance_white_auto # "Continuous", "Once", "Off"
+    type: enum
+    node: AnalogControl/BalanceWhiteAuto
+  - name: gamma
+    type: float
+    node: AnalogControl/Gamma
+  - name: gamma_enable
+    type: bool
+    node: AnalogControl/GammaEnable
+  - name: sharpening_enable
+    type: bool
+    node: AnalogControl/SharpeningEnable
+  - name: sharpening_auto
+    type: bool
+    node: AnalogControl/SharpeningAuto
+  - name: sharpening
+    type: float
+    node: AnalogControl/Sharpening
+  - name: sharpening_threshold
+    type: float
+    node: AnalogControl/SharpeningThreshold
+  - name: gain_conversion # "LCG", "HCG"
+    type: enum
+    node: AnalogControl/GainConversion
+  #
+  # -------- device link throughput settings
+  #
+  - name: device_link_throughput_limit
+    type: int
+    node: DeviceControl/DeviceLinkThroughputLimit
+  - name: device_link_bandwidth_reserve
+    type: float
+    node: DeviceControl/DeviceLinkBandwidthReserve
+  - name: control_packets_reserved_bandwidth
+    type: int
+    node: DeviceControl/ControlPacketsReservedBandwidth
+  #
+  # -------- transport layer control (GigE)
+  #
+  - name: gev_scps_packet_size
+    type: int
+    # default is 1400. Set to 9000 to enable jumbo frames, ensure NIC MTU set >= 9000
+    node: TransportLayerControl/GigEVision/GevSCPSPacketSize
+  #
+  # -------- digital IO control
+  #
+  - name: line_selector  # Line[0-6]
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line_linemode  # depending on selector: "Input", "Output", ""
+    type: enum
+    node: DigitalIOControl/LineMode
+  - name: line_inverter
+    type: bool
+    node: DigitalIOControl/LineInverter
+  - name: line_v33enable # available on Pin 6
+    type: bool
+    node: DigitalIOControl/V3_3Enable
+  - name: input_filter_selector # "Deglitch", "Debounce"
+    type: enum
+    node: DigitalIOControl/InputFilterSelector
+  - name: line_filter_width
+    type: float
+    node: DigitalIOControl/LineFilterWidth
+  - name: line_source # "On", "Off"
+    type: enum
+    node: DigitalIOControl/LineSource
+  #
+  # -------- acquisition control
+  #
+  - name: exposure_auto
+    type: enum
+    # valid values are "Off", "Continuous"
+    node: AcquisitionControl/ExposureAuto
+  - name: exposure_time
+    type: float
+    node: AcquisitionControl/ExposureTime
+  - name: exposure_mode
+    type: enum
+    node: AcquisitionControl/ExposureMode
+  - name: frame_rate_enable
+    type: bool
+    node: AcquisitionControl/AcquisitionFrameRateEnable
+  - name: frame_rate
+    type: float
+    node: AcquisitionControl/AcquisitionFrameRate
+  - name: trigger_selector
+    type: enum
+    # valid values are e.g. "FrameStart", "AcquisitionStart", "FrameBurstStart"
+    node: AcquisitionControl/TriggerSelector
+  - name: trigger_mode
+    type: enum
+    # valid values are "On" and "Off"
+    node: AcquisitionControl/TriggerMode
+  - name: trigger_source
+    type: enum
+    # valid values are "Line<0,1,2>", "UserOutput<0,1,2>", "Counter<0,1><Start/End>",
+    # "LogicBlock<0,1>", "Software"
+    node: AcquisitionControl/TriggerSource
+  - name: trigger_software
+    type: command
+    node: AcquisitionControl/TriggerSoftware
+  - name: trigger_delay
+    # value >= 9 
+    type: float
+    node: AcquisitionControl/TriggerDelay
+  - name: trigger_overlap
+    type: enum
+    # valid values: "Off" and "ReadOut"
+    node: AcquisitionControl/TriggerOverlap
+  - name: acquisition_mode
+    type: enum
+    # Continuous, SingleFrame, MultiFrame
+    node: AcquisitionControl/AcquisitionMode
+  #
+  # --------- chunk control
+  #
+  - name: chunk_mode_active
+    type: bool
+    node: ChunkDataControl/ChunkModeActive
+  - name: chunk_selector_frame_id
+    type: enum
+    # valid values: "FrameID"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_frame_id
+    type: bool
+    node: ChunkDataControl/ChunkEnable
+  - name: chunk_selector_exposure_time
+    type: enum
+    # valid values: "ExposureTime"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_exposure_time
+    type: bool
+    node: ChunkDataControl/ChunkEnable
+  - name: chunk_selector_gain
+    type: enum
+    # valid values: "Gain"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_gain
+    type: bool
+    node: ChunkDataControl/ChunkEnable
+  - name: chunk_selector_timestamp
+    type: enum
+    # valid values: "Timestamp"
+    node: ChunkDataControl/ChunkSelector
+  - name: chunk_enable_timestamp
+    type: bool
+    node: ChunkDataControl/ChunkEnable
+  #
+  # --------- sequencer control
+  #
+  - name: sequencer_mode # "On"/"Off"
+    type: enum
+    node: SequencerControl/SequencerMode
+  - name: sequencer_configuration_mode # "On"/"Off"
+    type: enum
+    node: SequencerControl/SequencerConfigurationMode
+  - name: sequencer_feature_selector # "ExposureTime", "Gain"
+    type: enum
+    node: SequencerControl/SequencerFeatureSelector
+  - name: sequencer_feature_enable
+    type: bool
+    node: SequencerControl/SequencerFeatureEnable
+  - name: sequencer_set_start
+    type: int
+    node: SequencerControl/SequencerSetStart
+  - name: sequencer_set_active
+    type: int
+    node: SequencerControl/SequencerSetActive
+  - name: sequencer_set_selector
+    type: int
+    node: SequencerControl/SequencerSetSelector
+  - name: sequencer_set_save
+    type: command
+    node: SequencerControl/SequencerSetSave
+  - name: sequencer_set_load
+    type: command
+    node: SequencerControl/SequencerSetLoad
+  - name: sequencer_path_selector
+    type: int
+    node: SequencerControl/SequencerPathSelector
+  - name: sequencer_trigger_source # "On"/"Off"
+    type: enum
+    node: SequencerControl/SequencerTriggerSource
+  - name: sequencer_trigger_activation
+    type: enum
+    node: SequencerControl/SequencerTriggerActivation
+  - name: sequencer_set_next
+    type: int
+    node: SequencerControl/SequencerSetNext
