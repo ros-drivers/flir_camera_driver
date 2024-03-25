@@ -247,15 +247,17 @@ std::string SpinnakerWrapperImpl::setInt(const std::string & nn, int val, int * 
 
 std::string SpinnakerWrapperImpl::execute(const std::string & nn)
 {
-  const auto np = genicam_utils::find_node(nn, camera_, debug_);
+  const auto np = genicam_utils::find_node(nn, camera_, debug_, true);
   if (!np) {
     return ("node " + nn + " not found!");
   }
-  std::string msg;
-  if (!common_checks(*np, nn, &msg)) {
-    return (msg);
-  }
   auto p = static_cast<GenApi::CCommandPtr>(*np);
+  if (!is_available(p)) {
+    return ("node " + nn + " not available!");
+  }
+  if (!is_writable(p)) {
+    return ("node " + nn + " not writeable");
+  }
   p->Execute();
   return ("OK");
 }
