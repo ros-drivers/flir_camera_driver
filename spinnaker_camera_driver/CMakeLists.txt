@@ -103,16 +103,9 @@ add_library(camera_driver SHARED
   src/genicam_utils.cpp
 )
 
-# ament_target_dependencies(camera_driver PUBLIC ${ROS_DEPENDENCIES})
+ament_target_dependencies(camera_driver PUBLIC ${ROS_DEPENDENCIES})
 target_link_libraries(camera_driver
   PUBLIC
-  rclcpp::rclcpp
-  rclcpp_components::component
-  camera_info_manager::camera_info_manager
-  image_transport::image_transport
-  ${flir_camera_msgs_TARGETS}
-  ${sensor_msgs_TARGETS}
-  ${std_msgs_TARGETS}
   yaml-cpp
   PRIVATE
   Spinnaker::Spinnaker)

@@ -21,7 +21,6 @@ static rclcpp::Logger get_logger() { return (rclcpp::get_logger("cam_sync")); }
 
 namespace spinnaker_synchronized_camera_driver
 {
-
 bool TimeKeeper::getTimeStamp(
   uint64_t hostTime, uint64_t, uint64_t frameId, size_t ninc, uint64_t * frameTime)
 {

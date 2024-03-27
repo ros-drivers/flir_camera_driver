@@ -22,7 +22,6 @@
 
 namespace spinnaker_synchronized_camera_driver
 {
-
 IndividualExposureController::IndividualExposureController(
   const std::string & name, rclcpp::Node * node)
 : name_(name), node_(node)
@@ -249,6 +248,6 @@ void IndividualExposureController::addCamera(
   const std::shared_ptr<spinnaker_camera_driver::Camera> & cam)
 {
   cameraName_ = cam->getName();
-};
+}
 
 }  // namespace spinnaker_synchronized_camera_driver

@@ -100,7 +100,9 @@ private:
     try {
       return (node_->declare_parameter<T>(name, def));
     } catch (const rclcpp::exceptions::ParameterAlreadyDeclaredException & e) {
-      return (node_->get_parameter_or<T>(name, def));
+      T value;
+      (void)node_->get_parameter_or<T>(name, value, def);
+      return (value);
     }
   }
 

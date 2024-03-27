@@ -69,11 +69,7 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
         # prefix=["xterm -e gdb -ex run --args"],
         name=[LaunchConfig("driver_name")],
-        parameters=[
-            driver_parameters,
-            cam_0_parameters,
-            cam_1_parameters,
-        ],
+        parameters=[driver_parameters, cam_0_parameters, cam_1_parameters],
     )
     return [node]
 
