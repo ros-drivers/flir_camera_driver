@@ -245,6 +245,23 @@ std::string SpinnakerWrapperImpl::setInt(const std::string & nn, int val, int * 
   return (set_parameter<GenApi::CIntegerPtr, int>(nn, val, retVal, camera_, debug_));
 }
 
+std::string SpinnakerWrapperImpl::execute(const std::string & nn)
+{
+  const auto np = genicam_utils::find_node(nn, camera_, debug_, true);
+  if (!np) {
+    return ("node " + nn + " not found!");
+  }
+  auto p = static_cast<GenApi::CCommandPtr>(*np);
+  if (!is_available(p)) {
+    return ("node " + nn + " not available!");
+  }
+  if (!is_writable(p)) {
+    return ("node " + nn + " not writeable");
+  }
+  p->Execute();
+  return ("OK");
+}
+
 double SpinnakerWrapperImpl::getReceiveFrameRate() const
 {
   return (avgTimeInterval_ > 0 ? (1.0 / avgTimeInterval_) : 0);
@@ -294,9 +311,12 @@ void SpinnakerWrapperImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
   }
 
   if (imgPtr->IsIncomplete()) {
+    numIncompleteImages_++;
+#if 0
     // Retrieve and print the image status description
     std::cout << "Image incomplete: "
               << Spinnaker::Image::GetImageStatusDescription(imgPtr->GetImageStatus()) << std::endl;
+#endif
   } else {
     float expTime = 0;
     float gain = 0;
@@ -340,7 +360,8 @@ void SpinnakerWrapperImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
       t, brightness, expTime, maxExpTime, gain, stamp, imgPtr->GetImageSize(),
       imgPtr->GetImageStatus(), imgPtr->GetData(), imgPtr->GetWidth(), imgPtr->GetHeight(),
       imgPtr->GetStride(), imgPtr->GetBitsPerPixel(), imgPtr->GetNumChannels(),
-      imgPtr->GetFrameID(), pixelFormat_));
+      imgPtr->GetFrameID(), pixelFormat_, numIncompleteImages_));
+    numIncompleteImages_ = 0;
     callback_(img);
   }
 }

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
 project(spinnaker_synchronized_camera_driver)
 
 include(CMakePrintHelpers)
@@ -31,31 +31,6 @@ endif()
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo)
-endif()
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
-# The spinnaker_camera_driver links against the spinnaker libraries,
-# and also exports them as a dependency. However, if the spinnaker SDK
-# is not installed system-wide, then the spinnaker_camera_driver actually
-# installs a private copy of the spinnaker SDK libraries alongside its own
-# libraries. The hack below works detects this scenario and works around it.
-
-find_package(SPINNAKER)
-if(NOT SPINNAKER_FOUND)
-  # assumes that "spinnaker_camera_driver" is installed at the same root
-  # as "spinnaker_synchronized_camera_driver"
-  cmake_path(GET CMAKE_INSTALL_FULL_LIBDIR PARENT_PATH SPINNAKER_ROOT_DIR)
-  cmake_path(GET SPINNAKER_ROOT_DIR PARENT_PATH SPINNAKER_ROOT_DIR)
-  cmake_path(APPEND SPINNAKER_ROOT_DIR "spinnaker_camera_driver")
-  message(STATUS "searching for spinnaker here: ${SPINNAKER_ROOT_DIR}")
-  # SPINNAKER_ROOT_DIR will be actually used when
-  # find_package(spinnaker_camera_driver) executes a find_package(SPINNAKER).
-  # This find_package(SPINNAKER) is actually triggered by
-  # spinnaker_camera_driverConfig.cmake.in
-  # But the FindSPINNAKER.cmake used for that search is actually the one
-  # in spinnaker_synchronized_camera_driver/cmake/,
-  # which has been stripped to not search for the include path.
 endif()
 
 find_package(spinnaker_camera_driver REQUIRED)

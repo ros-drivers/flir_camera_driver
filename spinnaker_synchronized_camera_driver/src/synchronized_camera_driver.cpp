@@ -24,7 +24,6 @@
 
 namespace spinnaker_synchronized_camera_driver
 {
-
 SynchronizedCameraDriver::SynchronizedCameraDriver(const rclcpp::NodeOptions & options)
 : Node("sync_cam_driver", options), timeEstimator_(new TimeEstimator())
 {
@@ -58,14 +57,15 @@ void SynchronizedCameraDriver::printStatus()
 
   struct TKInfo
   {
-    explicit TKInfo(const std::string & n, double off, double jit, int64_t d)
-    : name(n), offset(off), jitter(jit), dropped(d)
+    explicit TKInfo(const std::string & n, double off, double jit, int64_t d, size_t i)
+    : name(n), offset(off), jitter(jit), dropped(d), incomplete(i)
     {
     }
     std::string name;
     double offset;
     double jitter;
     int64_t dropped;
+    size_t incomplete;
   };
   std::vector<TKInfo> tki;
   double dt = 0;
@@ -75,15 +75,16 @@ void SynchronizedCameraDriver::printStatus()
     for (auto & tk : timeKeepers_) {
       tki.push_back(TKInfo(
         tk->getName(), tk->getOffsetAverage() / dt, std::sqrt(tk->getOffsetVariance()) / dt,
-        tk->getNumFramesDropped()));
+        tk->getNumFramesDropped(), tk->getNumFramesIncomplete()));
       tk->clearStatistics();
     }
   }
   LOG_INFO_FMT("------ frequency: %10.3f Hz", 1.0 / dt);
-  LOG_INFO_FMT("%-10s %5s %10s %10s", "camera", "drop", "offset", "jitter");
+  LOG_INFO_FMT("%-8s %4s %4s %9s %9s", "camera", "drop", "icmp", "offset", "jitter");
   for (auto & tk : tki) {
     LOG_INFO_FMT(
-      "%-10s %5ld %9.2f%% %9.2f%%", tk.name.c_str(), tk.dropped, tk.offset * 100, tk.jitter * 100);
+      "%-8s %4ld %4zu %8.2f%% %8.2f%%", tk.name.c_str(), tk.dropped, tk.incomplete, tk.offset * 100,
+      tk.jitter * 100);
   }
 }
 

@@ -21,8 +21,8 @@ static rclcpp::Logger get_logger() { return (rclcpp::get_logger("cam_sync")); }
 
 namespace spinnaker_synchronized_camera_driver
 {
-
-bool TimeKeeper::getTimeStamp(uint64_t hostTime, uint64_t, uint64_t frameId, uint64_t * frameTime)
+bool TimeKeeper::getTimeStamp(
+  uint64_t hostTime, uint64_t, uint64_t frameId, size_t ninc, uint64_t * frameTime)
 {
   if (lastHostTime_ == 0) {
     lastFrameId_ = frameId;
@@ -35,6 +35,7 @@ bool TimeKeeper::getTimeStamp(uint64_t hostTime, uint64_t, uint64_t frameId, uin
   lastHostTime_ = hostTime;
 
   numFramesDropped_ += std::max<int64_t>(0, gap - 1);
+  numFramesIncomplete_ += ninc;
   if (gap > 0 && gap < 4) {  // ignore all but none, 1 or 2 frames dropped
     if (gap != 1) {
       LOG_WARN(name_ << " dropped " << gap - 1 << " frame(s)");
@@ -72,6 +73,7 @@ void TimeKeeper::clearStatistics()
   offsetSum_ = 0.0;
   numOffset_ = 0;
   numFramesDropped_ = 0;
+  numFramesIncomplete_ = 0;
   S_ = 0;
   M_ = 0;
 }

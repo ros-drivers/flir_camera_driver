@@ -104,6 +104,9 @@ Camera::NodeInfo::NodeInfo(const std::string & n, const std::string & nodeType) 
   } else if (nodeType == "enum") {
     type = ENUM;
     descriptor = make_desc(n, rclcpp::ParameterType::PARAMETER_STRING);
+  } else if (nodeType == "command") {
+    type = COMMAND;
+    descriptor = make_desc(n, rclcpp::ParameterType::PARAMETER_NOT_SET);
   }
 }
 Camera::Camera(
@@ -338,6 +341,20 @@ bool Camera::setBool(const std::string & nodeName, bool v)
   return (status);
 }
 
+bool Camera::execute(const std::string & nodeName)
+{
+  if (!quiet_) {
+    LOG_INFO("executing " << nodeName);
+  }
+  std::string msg = wrapper_->execute(nodeName);
+  if (msg != "OK") {
+    LOG_WARN("executing " << nodeName << " failed: " << msg);
+    return false;
+  }
+
+  return true;
+}
+
 void Camera::setParameter(const NodeInfo & ni, const rclcpp::Parameter & p)
 {
   switch (ni.type) {
@@ -373,6 +390,10 @@ void Camera::setParameter(const NodeInfo & ni, const rclcpp::Parameter & p)
       } else {
         LOG_WARN("bad non-bool " << p.get_name() << " type: " << p.get_type());
       }
+      break;
+    }
+    case NodeInfo::COMMAND: {
+      execute(ni.name);
       break;
     }
     default:
@@ -557,7 +578,8 @@ void Camera::doPublish(const ImageConstPtr & im)
   rclcpp::Time t;
   if (synchronizer_) {
     uint64_t t_64;
-    bool haveTime = synchronizer_->getTimeStamp(im->time_, im->imageTime_, im->frameId_, &t_64);
+    bool haveTime = synchronizer_->getTimeStamp(
+      im->time_, im->imageTime_, im->frameId_, im->numIncomplete_, &t_64);
     t = rclcpp::Time(t_64, RCL_SYSTEM_TIME);
     if (!haveTime) {
       if (firstSynchronizedFrame_) {

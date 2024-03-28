@@ -57,6 +57,7 @@ public:
   std::string setDouble(const std::string & nodeName, double val, double * retVal);
   std::string setInt(const std::string & nodeName, int val, int * retVal);
   std::string setBool(const std::string & nodeName, bool val, bool * retVal);
+  std::string execute(const std::string & nodeName);
   void setDebug(bool b) { debug_ = b; }
   void setComputeBrightness(bool b) { computeBrightness_ = b; }
   void setAcquisitionTimeout(double t) { acquisitionTimeout_ = static_cast<uint64_t>(t * 1e9); }
@@ -83,6 +84,7 @@ private:
   std::shared_ptr<std::thread> thread_;
   std::mutex mutex_;
   uint64_t acquisitionTimeout_{10000000000ULL};
+  size_t numIncompleteImages_{0};
 };
 }  // namespace spinnaker_camera_driver
 

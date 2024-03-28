@@ -19,7 +19,8 @@ namespace spinnaker_camera_driver
 Image::Image(
   uint64_t t, int16_t brightness, uint32_t et, uint32_t maxEt, float gain, int64_t imgT,
   size_t imageSize, int status, const void * data, size_t w, size_t h, size_t stride,
-  size_t bitsPerPixel, size_t numChan, uint64_t frameId, pixel_format::PixelFormat pixFmt)
+  size_t bitsPerPixel, size_t numChan, uint64_t frameId, pixel_format::PixelFormat pixFmt,
+  size_t ninc)
 : time_(t),
   brightness_(brightness),
   exposureTime_(et),
@@ -35,7 +36,8 @@ Image::Image(
   bitsPerPixel_(bitsPerPixel),
   numChan_(numChan),
   frameId_(frameId),
-  pixelFormat_(pixFmt)
+  pixelFormat_(pixFmt),
+  numIncomplete_(ninc)
 {
 }
 }  // namespace spinnaker_camera_driver

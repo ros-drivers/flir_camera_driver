@@ -103,17 +103,11 @@ add_library(camera_driver SHARED
   src/genicam_utils.cpp
 )
 
-# ament_target_dependencies(camera_driver PUBLIC ${ROS_DEPENDENCIES})
+ament_target_dependencies(camera_driver PUBLIC ${ROS_DEPENDENCIES})
 target_link_libraries(camera_driver
   PUBLIC
-  rclcpp::rclcpp
-  rclcpp_components::component
-  camera_info_manager::camera_info_manager
-  image_transport::image_transport
-  ${flir_camera_msgs_TARGETS}
-  ${sensor_msgs_TARGETS}
-  ${std_msgs_TARGETS}
   yaml-cpp
+  PRIVATE
   Spinnaker::Spinnaker)
 
 target_include_directories(camera_driver
@@ -128,7 +122,7 @@ rclcpp_components_register_nodes(camera_driver "spinnaker_camera_driver::CameraD
 add_executable(camera_driver_node
   src/camera_driver_node.cpp)
 
-target_link_libraries(camera_driver_node camera_driver)
+target_link_libraries(camera_driver_node PUBLIC camera_driver PRIVATE Spinnaker::Spinnaker)
 
 target_include_directories(camera_driver_node
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
