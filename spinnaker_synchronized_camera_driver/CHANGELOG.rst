@@ -2,8 +2,8 @@
 Changelog for package spinnaker_synchronized_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.2.15 (2024-03-28)
+-------------------
 * fixes to compile on focal/galactic
 * Contributors: Bernd Pfrommer
 

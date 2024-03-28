@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.2.15 (2024-03-28)
+-------------------
 
 * Oryx parameter file
 * support for command nodes
