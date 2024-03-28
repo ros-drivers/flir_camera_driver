@@ -92,6 +92,15 @@ std::string SpinnakerWrapper::setInt(const std::string & nodeName, int val, int 
   }
 }
 
+std::string SpinnakerWrapper::execute(const std::string & nodeName)
+{
+  try {
+    return (wrapperImpl_->execute(nodeName));
+  } catch (const Spinnaker::Exception & e) {
+    throw SpinnakerWrapper::Exception(e.what());
+  }
+}
+
 void SpinnakerWrapper::setComputeBrightness(bool b) { wrapperImpl_->setComputeBrightness(b); }
 
 void SpinnakerWrapper::setAcquisitionTimeout(double t) { wrapperImpl_->setAcquisitionTimeout(t); }

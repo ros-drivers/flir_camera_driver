@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ROS_DISTRO: [humble]
+        ROS_DISTRO: [galactic, humble, iron]
         ROS_REP: [testing, main]
     env:
       CCACHE_DIR: "${{ github.workspace }}/.ccache" # directory for ccache (and how we enable ccache in industrial_ci)

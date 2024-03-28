@@ -24,7 +24,6 @@
 
 namespace spinnaker_synchronized_camera_driver
 {
-
 SynchronizedCameraDriver::SynchronizedCameraDriver(const rclcpp::NodeOptions & options)
 : Node("sync_cam_driver", options), timeEstimator_(new TimeEstimator())
 {
