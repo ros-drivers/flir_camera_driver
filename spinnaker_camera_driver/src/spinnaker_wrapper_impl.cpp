@@ -245,6 +245,23 @@ std::string SpinnakerWrapperImpl::setInt(const std::string & nn, int val, int * 
   return (set_parameter<GenApi::CIntegerPtr, int>(nn, val, retVal, camera_, debug_));
 }
 
+std::string SpinnakerWrapperImpl::execute(const std::string & nn)
+{
+  const auto np = genicam_utils::find_node(nn, camera_, debug_, true);
+  if (!np) {
+    return ("node " + nn + " not found!");
+  }
+  auto p = static_cast<GenApi::CCommandPtr>(*np);
+  if (!is_available(p)) {
+    return ("node " + nn + " not available!");
+  }
+  if (!is_writable(p)) {
+    return ("node " + nn + " not writeable");
+  }
+  p->Execute();
+  return ("OK");
+}
+
 double SpinnakerWrapperImpl::getReceiveFrameRate() const
 {
   return (avgTimeInterval_ > 0 ? (1.0 / avgTimeInterval_) : 0);
