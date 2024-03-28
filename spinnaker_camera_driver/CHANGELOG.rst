@@ -2,6 +2,17 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fixes to compile on focal/galactic
+* Oryx parameter file
+* support for command nodes
+* remove more spinnaker imports, make spinnaker private
+* added blackfly GigE configuration file
+* track incomplete frames
+* fixed licensing documentation
+* Contributors: Bernd Pfrommer, Sir-Photch
+
 2.0.11 (2024-02-29)
 -------------------
 * provision camera driver for exposure control
