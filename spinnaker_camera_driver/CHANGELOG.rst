@@ -2,6 +2,14 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
+* Oryx parameter file
+* support for command nodes
+* updated docs
+* Contributors: Bernd Pfrommer, Sir-Photch
+
 2.2.14 (2024-03-17)
 -------------------
 * make Spinnaker lib private to fix sync build problems
