@@ -49,6 +49,16 @@ parameters:
   - name: gain
     type: float
     node: AnalogControl/Gain
+  - name: black_level
+    type: float
+    node: AnalogControl/BlackLevel
+  - name: balance_white_auto
+    type: enum # valid values: Off, Once, Continuous
+    node: AnalogControl/BalanceWhiteAuto
+  - name: balance_ratio_selector
+    type: enum # valid values: Red, Blue
+    node: AnalogControl/BalanceRatioSelector
+
   #
   # -------- device link throughput limiting
   #
@@ -66,10 +76,10 @@ parameters:
   # -------- digital IO control
   #
   - name: line0_selector
-    type: enum  # valid value: Line0
+    type: enum # valid value: Line0
     node: DigitalIOControl/LineSelector
   - name: line1_selector # white wire: opto-isolated output
-    type: enum  # valid value: Line1
+    type: enum # valid value: Line1
     node: DigitalIOControl/LineSelector
   - name: line1_source # valid values: "ExposureActive", "ExternalTriggerActive", "UserOutput1"
     type: enum
@@ -108,7 +118,7 @@ parameters:
     type: enum
     # valid values: "LevelLow", "LevelHigh", "FallingEdge", "RisingEdge", "AnyEdge",
     node: AcquisitionControl/TriggerActivation
-  - name: frame_rate_enable  # must come after trigger_mode
+  - name: frame_rate_enable # must come after trigger_mode
     type: bool
     node: AcquisitionControl/AcquisitionFrameRateEnable
   - name: frame_rate
