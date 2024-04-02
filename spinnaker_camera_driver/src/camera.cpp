@@ -666,7 +666,7 @@ bool Camera::start()
   }
 
   infoManager_ = std::make_shared<camera_info_manager::CameraInfoManager>(
-    node_, node_->get_name(), cameraInfoURL_);
+    node_, name_.empty() ? node_->get_name() : name_, cameraInfoURL_);
   controlSub_ = node_->create_subscription<flir_camera_msgs::msg::CameraControl>(
     "~/" + topicPrefix_ + "control", 10,
     std::bind(&Camera::controlCallback, this, std::placeholders::_1));
