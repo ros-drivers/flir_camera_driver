@@ -60,7 +60,8 @@ add_library(synchronized_camera_driver SHARED
   src/time_estimator.cpp
   src/time_keeper.cpp
   src/exposure_controller_factory.cpp
-  src/individual_exposure_controller.cpp)
+  src/master_exposure_controller.cpp
+  src/follower_exposure_controller.cpp)
 
 ament_target_dependencies(synchronized_camera_driver PUBLIC ${ROS_DEPENDENCIES})
 target_link_libraries(synchronized_camera_driver PUBLIC spinnaker_camera_driver::camera_driver PRIVATE yaml-cpp)
@@ -111,7 +112,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_copyright REQUIRED)
   find_package(ament_cmake_cppcheck REQUIRED)
   find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_black REQUIRED)
+  find_package(ament_cmake_flake8 REQUIRED)
   find_package(ament_cmake_lint_cmake REQUIRED)
   find_package(ament_cmake_pep257 REQUIRED)
   find_package(ament_cmake_clang_format REQUIRED)
@@ -120,7 +121,7 @@ if(BUILD_TESTING)
   ament_copyright()
   ament_cppcheck(LANGUAGE c++)
   ament_cpplint(FILTERS "-build/include,-runtime/indentation_namespace")
-  ament_black()
+  ament_flake8()
   ament_lint_cmake()
   ament_pep257()
   ament_clang_format(CONFIG_FILE .clang-format)

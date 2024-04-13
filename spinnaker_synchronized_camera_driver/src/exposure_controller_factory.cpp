@@ -14,8 +14,9 @@
 // limitations under the License.
 
 #include <spinnaker_synchronized_camera_driver/exposure_controller_factory.hpp>
-#include <spinnaker_synchronized_camera_driver/individual_exposure_controller.hpp>
+#include <spinnaker_synchronized_camera_driver/follower_exposure_controller.hpp>
 #include <spinnaker_synchronized_camera_driver/logging.hpp>
+#include <spinnaker_synchronized_camera_driver/master_exposure_controller.hpp>
 
 namespace spinnaker_synchronized_camera_driver
 {
@@ -25,8 +26,10 @@ static rclcpp::Logger get_logger() { return (rclcpp::get_logger("cam_sync")); }
 std::shared_ptr<spinnaker_camera_driver::ExposureController> newInstance(
   const std::string & type, const std::string & name, rclcpp::Node * node)
 {
-  if (type == "individual") {
-    return (std::make_shared<IndividualExposureController>(name, node));
+  if (type == "master") {
+    return (std::make_shared<MasterExposureController>(name, node));
+  } else if (type == "follower") {
+    return (std::make_shared<FollowerExposureController>(name, node));
   }
   BOMB_OUT("unknown exposure controller type: " << type);
   return (nullptr);

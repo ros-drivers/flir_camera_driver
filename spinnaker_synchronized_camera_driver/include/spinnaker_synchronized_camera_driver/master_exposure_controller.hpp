@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SPINNAKER_SYNCHRONIZED_CAMERA_DRIVER__INDIVIDUAL_EXPOSURE_CONTROLLER_HPP_
-#define SPINNAKER_SYNCHRONIZED_CAMERA_DRIVER__INDIVIDUAL_EXPOSURE_CONTROLLER_HPP_
+#ifndef SPINNAKER_SYNCHRONIZED_CAMERA_DRIVER__MASTER_EXPOSURE_CONTROLLER_HPP_
+#define SPINNAKER_SYNCHRONIZED_CAMERA_DRIVER__MASTER_EXPOSURE_CONTROLLER_HPP_
 
 #include <limits>
 #include <rclcpp/rclcpp.hpp>
@@ -22,14 +22,17 @@
 
 namespace spinnaker_synchronized_camera_driver
 {
-class IndividualExposureController : public spinnaker_camera_driver::ExposureController
+class MasterExposureController : public spinnaker_camera_driver::ExposureController
 {
 public:
-  explicit IndividualExposureController(const std::string & name, rclcpp::Node * n);
+  using Camera = spinnaker_camera_driver::Camera;
+  explicit MasterExposureController(const std::string & name, rclcpp::Node * n);
   void update(
-    spinnaker_camera_driver::Camera * cam,
-    const std::shared_ptr<const spinnaker_camera_driver::Image> & img) final;
-  void addCamera(const std::shared_ptr<spinnaker_camera_driver::Camera> & cam) final;
+    Camera * cam, const std::shared_ptr<const spinnaker_camera_driver::Image> & img) final;
+  void addCamera(const std::shared_ptr<Camera> & cam) final;
+  double getExposureTime() final { return (currentExposureTime_); };
+  double getGain() final { return (currentGain_); }
+  void link(const std::unordered_map<std::string, std::shared_ptr<ExposureController>> &) final {}
 
 private:
   double calculateGain(double brightRatio) const;
@@ -68,4 +71,4 @@ private:
   bool gainPriority_{false};
 };
 }  // namespace spinnaker_synchronized_camera_driver
-#endif  // SPINNAKER_SYNCHRONIZED_CAMERA_DRIVER__INDIVIDUAL_EXPOSURE_CONTROLLER_HPP_
+#endif  // SPINNAKER_SYNCHRONIZED_CAMERA_DRIVER__MASTER_EXPOSURE_CONTROLLER_HPP_

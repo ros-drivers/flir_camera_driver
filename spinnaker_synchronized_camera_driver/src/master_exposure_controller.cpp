@@ -15,15 +15,14 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <spinnaker_camera_driver/camera.hpp>
-#include <spinnaker_synchronized_camera_driver/individual_exposure_controller.hpp>
 #include <spinnaker_synchronized_camera_driver/logging.hpp>
+#include <spinnaker_synchronized_camera_driver/master_exposure_controller.hpp>
 
 // #define DEBUG
 
 namespace spinnaker_synchronized_camera_driver
 {
-IndividualExposureController::IndividualExposureController(
-  const std::string & name, rclcpp::Node * node)
+MasterExposureController::MasterExposureController(const std::string & name, rclcpp::Node * node)
 : name_(name), node_(node)
 {
   exposureParameterName_ = declare_param<std::string>("exposure_parameter", "exposure_time");
@@ -35,10 +34,10 @@ IndividualExposureController::IndividualExposureController(
   minExposureTime_ = std::max(declare_param<int>("min_exposure_time", 10), 1);
   maxGain_ = declare_param<double>("max_gain", 10);
   gainPriority_ = declare_param<bool>("gain_priority", false);
-  maxFramesSkip_ = declare_param<int>("min_frames_skip", 10);  // number of frames to wait
+  maxFramesSkip_ = declare_param<int>("max_frames_skip", 10);  // number of frames to wait
 }
 
-double IndividualExposureController::calculateGain(double brightRatio) const
+double MasterExposureController::calculateGain(double brightRatio) const
 {
   // because gain is in db:
   // db(G) = 10 * log_10(G) = 10 * ln(G) / ln(10) = 4.34 * ln(G)
@@ -50,14 +49,14 @@ double IndividualExposureController::calculateGain(double brightRatio) const
   return (cappedGain > 0.5 ? cappedGain : 0);
 }
 
-double IndividualExposureController::calculateExposureTime(double brightRatio) const
+double MasterExposureController::calculateExposureTime(double brightRatio) const
 {
   const double desiredExposureTime = currentExposureTime_ * brightRatio;
   const double optTime = std::max(0.0, std::min(desiredExposureTime, maxExposureTime_));
   return (optTime);
 }
 
-bool IndividualExposureController::changeExposure(
+bool MasterExposureController::changeExposure(
   double brightRatio, double minTime, double maxTime, const char * debugMsg)
 {
   const double optTime = std::min(std::max(calculateExposureTime(brightRatio), minTime), maxTime);
@@ -73,7 +72,7 @@ bool IndividualExposureController::changeExposure(
   return (false);
 }
 
-bool IndividualExposureController::changeGain(
+bool MasterExposureController::changeGain(
   double brightRatio, double minGain, double maxGain, const char * debugMsg)
 {
   const double optGain = std::min(std::max(calculateGain(brightRatio), minGain), maxGain);
@@ -89,7 +88,7 @@ bool IndividualExposureController::changeGain(
   return (false);
 }
 
-bool IndividualExposureController::updateExposureWithGainPriority(double brightRatio)
+bool MasterExposureController::updateExposureWithGainPriority(double brightRatio)
 {
   if (brightRatio < 1) {  // image is too bright
     if (currentGain_ > 0) {
@@ -119,7 +118,7 @@ bool IndividualExposureController::updateExposureWithGainPriority(double brightR
   return (false);
 }
 
-bool IndividualExposureController::updateExposureWithTimePriority(double brightRatio)
+bool MasterExposureController::updateExposureWithTimePriority(double brightRatio)
 {
   if (brightRatio < 1) {  // image is too bright
     if (currentExposureTime_ > minExposureTime_) {
@@ -163,7 +162,7 @@ bool IndividualExposureController::updateExposureWithTimePriority(double brightR
   return (false);
 }
 
-bool IndividualExposureController::updateExposure(double b)
+bool MasterExposureController::updateExposure(double b)
 {
   const double err_b = (brightnessTarget_ - b);
   // the current gain is higher than it should be, let's
@@ -194,7 +193,7 @@ bool IndividualExposureController::updateExposure(double b)
   return (false);
 }
 
-void IndividualExposureController::update(
+void MasterExposureController::update(
   spinnaker_camera_driver::Camera * cam,
   const std::shared_ptr<const spinnaker_camera_driver::Image> & img)
 {
@@ -206,11 +205,6 @@ void IndividualExposureController::update(
   if (currentGain_ == std::numeric_limits<float>::lowest()) {
     currentGain_ = img->gain_;
   }
-#if 0
-  LOG_INFO(
-    "img: " << img->exposureTime_ << "/" << currentExposureTime_ << " gain: " << img->gain_ << "/"
-            << currentGain_ << " brightness: " << b);
-#endif
 
   // check if the reported exposure and brightness settings
   // match ours. That means the changes have taken effect
@@ -244,7 +238,7 @@ void IndividualExposureController::update(
   }
 }
 
-void IndividualExposureController::addCamera(
+void MasterExposureController::addCamera(
   const std::shared_ptr<spinnaker_camera_driver::Camera> & cam)
 {
   cameraName_ = cam->getName();

@@ -101,6 +101,10 @@ void SynchronizedCameraDriver::createExposureControllers()
       BOMB_OUT("no controller type specified for controller " << c);
     }
   }
+  // allow the exposure controllers to link to each other.
+  for (auto & c : exposureControllers_) {
+    c.second->link(exposureControllers_);
+  }
 }
 
 void SynchronizedCameraDriver::createCameras()
