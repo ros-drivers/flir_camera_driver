@@ -30,6 +30,10 @@ public:
   virtual ~ExposureController() {}
   virtual void update(Camera * cam, const std::shared_ptr<const Image> & img) = 0;
   virtual void addCamera(const std::shared_ptr<Camera> & cam) = 0;
+  virtual double getExposureTime() = 0;
+  virtual double getGain() = 0;
+  virtual void link(
+    const std::unordered_map<std::string, std::shared_ptr<ExposureController>> & map) = 0;
 };
 }  // namespace spinnaker_camera_driver
 #endif  // SPINNAKER_CAMERA_DRIVER__EXPOSURE_CONTROLLER_HPP_
