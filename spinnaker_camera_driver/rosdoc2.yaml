@@ -1,0 +1,42 @@
+## This 'attic section' self-documents this file's type and version.
+type: 'rosdoc2 config'
+version: 1
+
+---
+
+settings:
+    ## If this is true, a standard index page is generated in the output directory.
+    ## It uses the package information from the 'package.xml' to show details
+    ## about the package, creates a table of contents for the various builders
+    ## that were run, and may contain links to things like build farm jobs for
+    ## this package or links to other versions of this package.
+    ## If this is not specified explicitly, it defaults to 'true'.
+    generate_package_index: true
+
+    ## Point to python sources relative to package.xml file
+    # python_source: ''
+
+    ## Don't run doxygen
+    always_run_doxygen: false
+
+    ## Build python API docs
+    ## This is most useful if the user would like to generate Python API
+    ## documentation for a package that is not of the `ament_python` build type.
+    always_run_sphinx_apidoc: false
+
+    # disable breathe and exhale
+    enable_breathe: false
+    enable_exhale: false
+
+    # This setting, if provided, will override the build_type of this package
+    # for documentation purposes only. If not provided, documentation will be
+    # generated assuming the build_type in package.xml.
+    # override_build_type: 'ament_python'
+
+builders:
+    - sphinx: {
+        name: 'spinnaker_camera_driver',
+        ## This path is relative to output staging.
+        sphinx_sourcedir: 'doc/',
+        output_dir: ''
+    }
