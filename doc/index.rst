@@ -27,12 +27,14 @@ Spinnaker camera driver
   `spinnaker_camera_driver <spinnaker_camera_driver/doc/index.rst>`__ for
   more.
 
-|driver_humble| |driver_iron| |driver_rolling|
+|driver_humble| |driver_iron| |driver_jazzy| |driver_rolling|
 
 .. |driver_humble| image:: https://build.ros2.org/buildStatus/icon?job=Hbin_uJ64__spinnaker_camera_driver__ubuntu_jammy_amd64__binary&subject=Humble
    :target: https://build.ros2.org/job/Hbin_uJ64__spinnaker_camera_driver__ubuntu_jammy_amd64__binary/
 .. |driver_iron| image:: https://build.ros2.org/buildStatus/icon?job=Ibin_uJ64__spinnaker_camera_driver__ubuntu_jammy_amd64__binary&subject=Iron
    :target: https://build.ros2.org/job/Ibin_uJ64__spinnaker_camera_driver__ubuntu_jammy_amd64__binary/
+.. |driver_jazzy| image:: https://build.ros2.org/buildStatus/icon?job=Jbin_uN64__spinnaker_camera_driver__ubuntu_noble_amd64__binary&subject=Jazzy
+   :target: https://build.ros2.org/job/Jbin_uN64__spinnaker_camera_driver__ubuntu_noble_amd64__binary/
 .. |driver_rolling| image:: https://build.ros2.org/buildStatus/icon?job=Rbin_uN64__spinnaker_camera_driver__ubuntu_noble_amd64__binary&subject=Rolling
    :target: https://build.ros2.org/job/Rbin_uN64__spinnaker_camera_driver__ubuntu_noble_amd64__binary/
 
@@ -45,12 +47,14 @@ Spinnaker synchronized camera driver
   `spinnaker_synchronized_camera_driver <spinnaker_synchronized_camera_driver/doc/index.rst>`__
   for more.
 
-|sync_humble| |sync_iron| |sync_rolling|
+|sync_humble| |sync_iron| |sync_jazzy| |sync_rolling|
 
 .. |sync_humble| image:: https://build.ros2.org/buildStatus/icon?job=Hbin_uJ64__spinnaker_synchronized_camera_driver__ubuntu_jammy_amd64__binary&subject=Humble
    :target: https://build.ros2.org/job/Hbin_uJ64__spinnaker_synchronized_camera_driver__ubuntu_jammy_amd64__binary/
 .. |sync_iron| image:: https://build.ros2.org/buildStatus/icon?job=Ibin_uJ64__spinnaker_synchronized_camera_driver__ubuntu_jammy_amd64__binary&subject=Iron
    :target: https://build.ros2.org/job/Ibin_uJ64__spinnaker_synchronized_camera_driver__ubuntu_jammy_amd64__binary/
+.. |sync_jazzy| image:: https://build.ros2.org/buildStatus/icon?job=Jbin_uN64__spinnaker_synchronized_camera_driver__ubuntu_noble_amd64__binary&subject=Jazzy
+   :target: https://build.ros2.org/job/Jbin_uN64__spinnaker_synchronized_camera_driver__ubuntu_noble_amd64__binary/
 .. |sync_rolling| image:: https://build.ros2.org/buildStatus/icon?job=Rbin_uN64__spinnaker_synchronized_camera_driver__ubuntu_noble_amd64__binary&subject=Rolling
    :target: https://build.ros2.org/job/Rbin_uN64__spinnaker_synchronized_camera_driver__ubuntu_noble_amd64__binary/
             
@@ -60,12 +64,14 @@ FLIR camera description
 | Package with `meshes and urdf <flir_camera_description/README.md>`__
   files.
 
-|desc_humble| |desc_iron| |desc_rolling|
+|desc_humble| |desc_iron| |desc_jazzy| |desc_rolling|
 
 .. |desc_humble| image:: https://build.ros2.org/buildStatus/icon?job=Hbin_uJ64__flir_camera_description__ubuntu_jammy_amd64__binary&subject=Humble
    :target: https://build.ros2.org/job/Hbin_uJ64__flir_camera_description__ubuntu_jammy_amd64__binary/
 .. |desc_iron| image:: https://build.ros2.org/buildStatus/icon?job=Ibin_uJ64__flir_camera_description__ubuntu_jammy_amd64__binary&subject=Iron
    :target: https://build.ros2.org/job/Ibin_uJ64__flir_camera_description__ubuntu_jammy_amd64__binary/
+.. |desc_jazzy| image:: https://build.ros2.org/buildStatus/icon?job=Jbin_uN64__flir_camera_description__ubuntu_noble_amd64__binary&subject=Jazzy
+   :target: https://build.ros2.org/job/Jbin_uN64__flir_camera_description__ubuntu_noble_amd64__binary/
 .. |desc_rolling| image:: https://build.ros2.org/buildStatus/icon?job=Rbin_uN64__flir_camera_description__ubuntu_noble_amd64__binary&subject=Rolling
    :target: https://build.ros2.org/job/Rbin_uN64__flir_camera_description__ubuntu_noble_amd64__binary/
 
@@ -78,11 +84,13 @@ FLIR camera messages
   `spinnaker_camera_driver <spinnaker_camera_driver/doc/index.rst>`__.
 
 
-|msg_humble| |msg_iron| |msg_rolling|
+|msg_humble| |msg_iron| |msg_jazzy| |msg_rolling|
 
 .. |msg_humble| image:: https://build.ros2.org/buildStatus/icon?job=Hbin_uJ64__flir_camera_msgs__ubuntu_jammy_amd64__binary&subject=Humble
    :target: https://build.ros2.org/job/Hbin_uJ64__flir_camera_msgs__ubuntu_jammy_amd64__binary/
 .. |msg_iron| image:: https://build.ros2.org/buildStatus/icon?job=Ibin_uJ64__flir_camera_msgs__ubuntu_jammy_amd64__binary&subject=Iron
    :target: https://build.ros2.org/job/Ibin_uJ64__flir_camera_msgs__ubuntu_jammy_amd64__binary/
+.. |msg_jazzy| image:: https://build.ros2.org/buildStatus/icon?job=Jbin_uN64__flir_camera_msgs__ubuntu_noble_amd64__binary&subject=Jazzy
+   :target: https://build.ros2.org/job/Jbin_uN64__flir_camera_msgs__ubuntu_noble_amd64__binary/
 .. |msg_rolling| image:: https://build.ros2.org/buildStatus/icon?job=Rbin_uN64__flir_camera_msgs__ubuntu_noble_amd64__binary&subject=Rolling
    :target: https://build.ros2.org/job/Rbin_uN64__flir_camera_msgs__ubuntu_noble_amd64__binary/

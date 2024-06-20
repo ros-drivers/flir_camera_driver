@@ -165,16 +165,8 @@ ARCHS = {
                 'libspinnaker-c_4.0.0.116_amd64.deb',
                 'libspinnaker-c-dev_4.0.0.116_amd64.deb',
                 'libspinnaker-dev_4.0.0.116_amd64.deb',
-                # 'libspinvideo_4.0.0.116_amd64.deb',
-                # 'libspinvideo-c_4.0.0.116_amd64.deb',
-                # 'libspinvideo-c-dev_4.0.0.116_amd64.deb',
-                # 'libspinvideo-dev_4.0.0.116_amd64.deb',
                 'spinnaker_4.0.0.116_amd64.deb',
                 'spinnaker-doc_4.0.0.116_amd64.deb',
-                # 'spinupdate_4.0.0.116_amd64.deb',
-                # 'spinupdate-dev_4.0.0.116_amd64.deb',
-                # 'spinview-qt_4.0.0.116_amd64.deb',
-                # 'spinview-qt-dev_4.0.0.116_amd64.deb'
             ],
         },
         'armv8': {
@@ -188,16 +180,8 @@ ARCHS = {
                 'libspinnaker-c_4.0.0.116_amd64.deb',
                 'libspinnaker-c-dev_4.0.0.116_amd64.deb',
                 'libspinnaker-dev_4.0.0.116_amd64.deb',
-                # 'libspinvideo_4.0.0.116_amd64.deb',
-                # 'libspinvideo-c_4.0.0.116_amd64.deb',
-                # 'libspinvideo-c-dev_4.0.0.116_amd64.deb',
-                # 'libspinvideo-dev_4.0.0.116_amd64.deb',
                 'spinnaker_4.0.0.116_amd64.deb',
                 'spinnaker-doc_4.0.0.116_amd64.deb',
-                # 'spinupdate_4.0.0.116_amd64.deb',
-                # 'spinupdate-dev_4.0.0.116_amd64.deb',
-                # 'spinview-qt_4.0.0.116_amd64.deb',
-                # 'spinview-qt-dev_4.0.0.116_amd64.deb'
             ],
         },
     },
@@ -207,7 +191,7 @@ ARCHS = {
 OS_LIBRARY_VERSION = {
     'focal': '20.04',
     'jammy': '22.04',
-    'noble': '22.04',  # Change this to 24.04 once new files are on clearpath's server
+    'noble': '24.04',
 }
 
 arch = sys.argv[1]
