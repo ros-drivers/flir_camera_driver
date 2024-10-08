@@ -384,8 +384,7 @@ your machine.
 
 .. code::
 
-   export
-   SPINNAKER_GENTL64_CTI=/opt/ros/${ROS_DISTRO}/lib/spinnaker-gentl/Spinnaker_GenTL.cti
+   export SPINNAKER_GENTL64_CTI=/opt/ros/${ROS_DISTRO}/lib/spinnaker-gentl/Spinnaker_GenTL.cti
 
 2) Add the “flirimaging” group and make yourself a member of it
 

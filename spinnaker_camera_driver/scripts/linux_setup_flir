@@ -4,6 +4,7 @@ echo ""
 echo -e "\e[32mStarting spinnaker_camera_driver setup script\e[0m"
 echo ""
 
+
 while true; do
 read -p "Add the flirimaging group? (y/n)? " yn
 case $yn in
@@ -67,3 +68,7 @@ echo ""
 echo -e "\e[32mDone: spinnaker_camera_driver setup script\e[0m"
 echo "Please reboot the device to ensure changes have taken full effect"
 echo ""
+
+echo "Don't forget to add this line to your .bashrc: "
+echo ""
+echo "export SPINNAKER_GENTL64_CTI=/opt/ros/\${ROS_DISTRO}/lib/spinnaker-gentl/Spinnaker_GenTL.cti"
