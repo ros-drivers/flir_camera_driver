@@ -63,6 +63,7 @@ def make_camera_node(name, camera_type, serial, camera_info_url):
         package='spinnaker_camera_driver',
         plugin='spinnaker_camera_driver::CameraDriver',
         name=name,
+        namespace='SM2',
         parameters=[camera_params, {'parameter_file': parameter_file, 'serial_number': serial, 'camerainfo_url': camera_info_url}],
         remappings=[
             ('~/control', '/exposure_control/control'),
@@ -124,12 +125,12 @@ def generate_launch_description():
             ),
             LaunchArg(
                 'cam_0_name',
-                default_value=['sm2_left'],
+                default_value=['left'],
                 description='camera name (ros node name) of camera 0',
             ),
             LaunchArg(
                 'cam_1_name',
-                default_value=['sm2_right'],
+                default_value=['right'],
                 description='camera name (ros node name) of camera 1',
             ),
             LaunchArg('cam_0_type', default_value='blackfly_s', description='type of camera 0'),
