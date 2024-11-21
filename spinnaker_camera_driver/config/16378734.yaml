@@ -2,25 +2,26 @@ image_width: 1600
 image_height: 1200
 camera_name: right
 distortion_model: plumb_bob
-camera_matrix:
+#comentarios considerando outputs Matlab
+camera_matrix: # stereoParams.CameraParameters2.IntrinsicMatrix'
   rows: 3
   cols: 3
-  data: [ 1.3717e+03, 0.0, 772.7449,
-          0.0, 1.3676e+03, 585.9463,
-          0.0, 0.0, 1.0 ]
-distortion_coefficients:
+  data: [1382.8, 0.0, 760.5,
+         0.0, 1379.6, 596.7,
+         0.0, 0.0, 1.0]
+distortion_coefficients: # stereoParams.CameraParameters2.RadialDistortion e stereoParams.CameraParameters2.TangentialDistortion
   rows: 1
   cols: 5
-  data: [ -0.2012, 0.1429, -0.0017, -0.0009, 0.0 ]
-rectification_matrix:
+  data: [-0.2032, 0.1398, 0.0, 0.0, 0.0] # [k1, k2, t1, t2, k3]
+rectification_matrix: # stereoParams.CameraParameters2.RotationMatrices(:,:,1)
   rows: 3
   cols: 3
-  data: [ 0.9877, 0.0207, -0.1549,
-           0.0193, -0.9998, -0.0104,
-          -0.1550, 0.0073, -0.9879]
-projection_matrix:
+  data: [0.9757, 0.0223, -0.2181,
+         -0.0214, 0.9997, 0.0066,
+         0.2182, -0.0018, 0.9759]
+projection_matrix: # Matriz intrinsica e stereoParams.CameraParameters2.TranslationVectors(1,:)
   rows: 3
   cols: 4
-  data: [ 1.3717e+03, 0.0, 772.7449, -1.092e+02,
-          0.0, 1.3676e+03, 585.9463, 1.137e+02,
-          0.0, 0.0, 1.0, 1.0316e+03]
+  data: [1382.8, 0.0, 760.5, -141.0741,
+         0.0, 1379.6, 596.7, -171.8228,
+         0.0, 0.0, 1.0, 804.1065]
