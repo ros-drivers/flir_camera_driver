@@ -13,12 +13,12 @@ distortion_coefficients: # stereoParams.CameraParameters1.RadialDistortion e ste
   rows: 1
   cols: 5
   data: [-0.2057, 0.1535, 0.0, 0.0, 0.0] # [k1, k2, t1, t2, k3]
-rectification_matrix: # stereoParams.CameraParameters1.RotationMatrices(:,:,1)
+rectification_matrix: # stereoParams.CameraParameters1.RotationMatrices(:,:,1)'
   rows: 3
   cols: 3
-  data: [0.9912, 0.0182, 0.1308,
-         -0.0189, 0.9998, 0.0037,
-         -0.1307, -0.0061, 0.9914]
+  data: [0.9913, -0.0189, -0.1303,
+         0.0183, 0.9998, -0.0060,
+         0.1304, 0.0035, 0.9915]
 projection_matrix: # Matriz intrinsica e stereoParams.CameraParameters1.TranslationVectors(1,:)
   rows: 3
   cols: 4
