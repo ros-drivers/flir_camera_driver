@@ -174,6 +174,10 @@ files*, the driver has the following ROS parameters:
    with an error message, telling you what cameras serial numbers are
    available
 
+Parameters can also be defined to correspond to commands for the camera to run, for
+example a `software trigger <https://github.com/ros-drivers/flir_camera_driver/blob/76fe2ff0c3e92d2ebcdea7c6e792e7cea8cf5f0e/spinnaker_camera_driver/config/oryx.yaml#L192>`__.
+The command is then executed whenever the ROS parameter is updated.
+
 Example usage
 -------------
 The driver comes with an example launch file (``driver_node.launch.py``)
