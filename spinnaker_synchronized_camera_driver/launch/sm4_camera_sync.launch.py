@@ -55,7 +55,7 @@ shared_cam_parameters = {
     'compute_brightness': True,
     'pixel_format': 'BGR8',
     'exposure_auto': 'Off',
-    'exposure_time': 3000,  # not used under auto exposure
+    'exposure_time': 2083.333,  # not used under auto exposure
     'gain_auto': 'Off',
     'balance_white_auto': 'Continuous',
     'chunk_mode_active': True,
@@ -72,18 +72,21 @@ shared_cam_parameters = {
 # Parameters for the primary camera
 primary_cam_parameters = {
     **shared_cam_parameters,
-    'trigger_mode': 'Off',
-    'line1_selector': 'Line1',
-    'line1_linemode': 'Output',
-    'line2_selector': 'Line2',
-    'line2_v33enable': True,
+    'trigger_mode': 'On',
+    'trigger_source': 'Line0',
+    'trigger_selector': 'FrameStart',
+    'trigger_overlap': 'ReadOut',
+    'line0_selector': 'Line0',
+    'line0_linemode': 'Input',
+    # 'line2_selector': 'Line2',
+    # 'line2_v33enable': True,
 }
 
 # Parameters for the secondary camera
 secondary_cam_parameters = {
     **shared_cam_parameters,
     'trigger_mode': 'On',
-    'trigger_source': 'Line3',
+    'trigger_source': 'Line0',
     'trigger_selector': 'FrameStart',
     'trigger_overlap': 'ReadOut',
 }
