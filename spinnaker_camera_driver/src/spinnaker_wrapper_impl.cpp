@@ -286,7 +286,7 @@ static int int_ceil(size_t x, int y)
 static int16_t compute_brightness(
   pixel_format::PixelFormat pf, const uint8_t * data, size_t w, size_t h, size_t stride, int skip)
 {
-  if (pf != pixel_format::BayerRG8) {
+  if (!pixel_format::is_bayer(pf)) {
     return (0);
   }
   const uint64_t cnt = int_ceil(w, skip) * int_ceil(h, skip);

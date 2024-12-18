@@ -56,6 +56,7 @@ enum PixelFormat {
 };
 std::string to_string(PixelFormat f);
 PixelFormat from_nodemap_string(const std::string pixFmt);
+bool is_bayer(PixelFormat f);
 }  // namespace pixel_format
 }  // namespace spinnaker_camera_driver
 #endif  // SPINNAKER_CAMERA_DRIVER__PIXEL_FORMAT_HPP_
