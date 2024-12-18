@@ -8,24 +8,34 @@ parameters:
   #
   # --------- image format control
   #
-  - name: offset_x
-    type: int
-    node: ImageFormatControl/OffsetX
-  - name: offset_y
-    type: int
-    node: ImageFormatControl/OffsetY
-  - name: image_width
-    type: int
-    node: ImageFormatControl/Width
-  - name: image_height
-    type: int
-    node: ImageFormatControl/Height
   - name: pixel_format
     type: enum
     # Check available values with SpinView. Not all are supported by ROS!
     # Some formats are e.g. "Mono8", "BayerRG8", "BGR8", "BayerRG16"
     # default is "BayerRG8"
     node: ImageFormatControl/PixelFormat
+  - name: image_width
+    type: int
+    node: ImageFormatControl/Width
+  - name: image_height
+    type: int
+    node: ImageFormatControl/Height
+  - name: offset_x
+    type: int
+    node: ImageFormatControl/OffsetX
+  - name: offset_y
+    type: int
+    node: ImageFormatControl/OffsetY
+  - name: reverse_x
+    type: bool
+    node: ImageFormatControl/ReverseX
+  - name: reverse_y
+    type: bool
+    node: ImageFormatControl/ReverseY
+  - name: video_mode
+    type: enum
+    # allowed video modes: Mode0, Mode4, Mode5, Mode7
+    node: ImageFormatControl/VideoMode
   #
   # -------- analog control
   #
@@ -82,11 +92,11 @@ parameters:
   - name: frame_rate
     type: float
     node: AcquisitionControl/AcquisitionFrameRate
-  - name: trigger_selector  # NOT TESTED
+  - name: trigger_selector
     type: enum
     # valid values are e.g. "FrameStart", "ExposureActive"
     node: AcquisitionControl/TriggerSelector
-  - name: trigger_source  # NOT TESTED
+  - name: trigger_source
     type: enum
     # valid values are "Software", "Line<0,2,3>"
     node: AcquisitionControl/TriggerSource

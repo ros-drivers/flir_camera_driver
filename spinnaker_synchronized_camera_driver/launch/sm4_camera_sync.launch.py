@@ -108,6 +108,7 @@ def make_parameters(context):
         driver_parameters.update(
             {exp + '.' + k: v for k, v in exposure_controller_parameters.items()}
         )
+
     # Set cam0 as master and cam1 as follower
     driver_parameters[exp_ctrl_names[0] + '.type'] = 'master'
     driver_parameters[exp_ctrl_names[1] + '.type'] = 'follower'

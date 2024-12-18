@@ -16,6 +16,7 @@
 #include <spinnaker_camera_driver/pixel_format.hpp>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace spinnaker_camera_driver
 {
@@ -81,11 +82,17 @@ static const std::unordered_map<std::string, PixelFormat> string_2_fmt{
    {"BGR8", BGR8},
    {"BGRa8", BGRa8}}};
 
+static const std::unordered_set<PixelFormat> bayer_formats{
+  BayerRG8, BayerRG10p, BayerRG10Packed, BayerRG12p, BayerRG12Packed, BayerRG16,
+  BayerGR8, BayerGR16,  BayerGB8,        BayerGB16,  BayerBG8,        BayerBG16};
+
 PixelFormat from_nodemap_string(const std::string pixFmt)
 {
   auto it = string_2_fmt.find(pixFmt);
   return (it == string_2_fmt.end() ? INVALID : it->second);
 }
+
+bool is_bayer(const PixelFormat f) { return (bayer_formats.find(f) != bayer_formats.end()); }
 
 std::string to_string(PixelFormat f)
 {
