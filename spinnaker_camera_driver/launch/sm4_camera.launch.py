@@ -40,7 +40,7 @@ camera_params = {
     'trigger_selector': 'FrameStart',
     'trigger_mode': 'On',
     'trigger_source': 'Line0',
-    'trigger_delay': 0.0,
+    'trigger_delay': 2.0,
     'trigger_overlap': 'ReadOut',
     'chunk_mode_active': True,
     'chunk_selector_frame_id': 'FrameID',
