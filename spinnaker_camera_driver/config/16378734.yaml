@@ -6,22 +6,22 @@ distortion_model: plumb_bob
 camera_matrix: # stereoParams.CameraParameters2.IntrinsicMatrix'
   rows: 3
   cols: 3
-  data: [1365.4504, 0.0, 774.5093,
-         0.0, 1364.5961, 602.0580,
+  data: [1366.5948, 0.0, 771.2434,
+         0.0, 1366.3036, 602.9112,
          0.0, 0.0, 1.0]
 distortion_coefficients: # stereoParams.CameraParameters2.RadialDistortion e stereoParams.CameraParameters2.TangentialDistortion
   rows: 1
   cols: 5
-  data: [-0.2140, 0.1495, -0.0013, -0.0002, 0.0] # [k1, k2, t1, t2, k3]
+  data: [-0.2127, 0.1492, -0.0011, -0.0001, 0.0] # [k1, k2, t1, t2, k3]
 rectification_matrix: # stereoParams.CameraParameters2.RotationMatrices(:,:,1)'
   rows: 3
   cols: 3
-  data: [0.9892, 0.0105, -0.1463,
-         0.0119, -0.9999, 0.0089,
-         -0.1462, -0.0105, -0.9892]
+  data: [0.9887, 0.0183, -0.1487,
+         0.0198, -0.9998, 0.0086,
+         -0.1485, -0.0115, -0.9888]
 projection_matrix: # Matriz intrinsica e stereoParams.CameraParameters2.TranslationVectors(1,:)
   rows: 3
   cols: 4
-  data: [1365.4504, 0.0, 774.5093, -183.4078,
-         0.0, 1364.5961, 602.0580, 96.6440,
-         0.0, 0.0, 1.0, 1033.1283]
+  data: [1366.5948, 0.0, 771.2434, -124.8087,
+         0.0, 1366.3036, 602.9112, 70.2488,
+         0.0, 0.0, 1.0, 1019.407]

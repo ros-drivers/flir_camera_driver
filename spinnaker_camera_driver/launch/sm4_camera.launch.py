@@ -32,7 +32,7 @@ camera_params = {
     'gain_auto': 'Off',
     'gain': 0,
     'exposure_auto': 'Off',
-    'exposure_time': 3000,
+    'exposure_time': 833,
     'line2_selector': 'Line2',
     'line2_v33enable': False,
     'line3_selector': 'Line3',
