@@ -473,6 +473,17 @@ bool SpinnakerWrapperImpl::stopCamera()
   return (false);
 }
 
+void SpinnakerWrapperImpl::resetCamera()
+{
+  if (camera_) {
+    try {
+      camera_->DeviceReset();
+    } catch (const Spinnaker::Exception & e) {
+      std::cerr << "reset failed with spinnaker error: " << e.what() << std::endl;
+    }
+  }
+}
+
 void SpinnakerWrapperImpl::setPixelFormat(const std::string & pixFmt)
 {
   pixelFormat_ = pixel_format::from_nodemap_string(pixFmt);

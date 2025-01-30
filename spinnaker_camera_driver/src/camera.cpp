@@ -224,6 +224,7 @@ void Camera::readParameters()
   parameterFile_ = safe_declare<std::string>(prefix_ + "parameter_file", "parameters.yaml");
   connectWhileSubscribed_ = safe_declare<bool>(prefix_ + "connect_while_subscribed", false);
   enableExternalControl_ = safe_declare<bool>(prefix_ + "enable_external_control", false);
+  restartDelay_ = safe_declare<int>(prefix_ + "restart_delay", 10);
   callbackHandle_ = node_->add_on_set_parameters_callback(
     std::bind(&Camera::parameterChanged, this, std::placeholders::_1));
 }
@@ -478,6 +479,34 @@ void Camera::controlCallback(const flir_camera_msgs::msg::CameraControl::UniqueP
   }
 }
 
+void Camera::resetCallback(
+  const std::shared_ptr<std_srvs::srv::Trigger::Request>,
+  const std::shared_ptr<std_srvs::srv::Trigger::Response> res)
+{
+  if (wrapper_) {
+    const bool cameraRunning = cameraRunning_;
+    stopCamera();  // stops the camera
+    wrapper_->resetCamera();
+    if (cameraRunning) {
+      LOG_INFO("restarting camera in " << restartDelay_ << " seconds");
+      delayedStartTimer_ = rclcpp::create_timer(
+        node_, node_->get_clock(), rclcpp::Duration(restartDelay_, 0),
+        std::bind(&Camera::delayedStart, this));
+    }
+    res->success = true;
+    res->message = "camera reset!";
+  } else {
+    res->success = false;
+    res->message = "camera not initialized!";
+  }
+}
+
+void Camera::delayedStart()
+{
+  delayedStartTimer_->cancel();
+  startCamera();
+}
+
 void Camera::processImage(const ImageConstPtr & im)
 {
   {
@@ -689,7 +718,9 @@ bool Camera::start()
   metaMsg_.header.frame_id = frameId_;
 
   pub_ = imageTransport_->advertiseCamera("~/" + topicPrefix_ + "image_raw", qosDepth_);
-
+  resetService_ = node_->create_service<std_srvs::srv::Trigger>(
+    "~/" + prefix_ + "reset",
+    std::bind(&Camera::resetCallback, this, std::placeholders::_1, std::placeholders::_2));
   wrapper_ = std::make_shared<spinnaker_camera_driver::SpinnakerWrapper>();
   wrapper_->setDebug(debug_);
   wrapper_->setComputeBrightness(computeBrightness_);

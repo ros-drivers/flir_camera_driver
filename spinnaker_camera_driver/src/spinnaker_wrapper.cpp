@@ -101,6 +101,7 @@ std::string SpinnakerWrapper::execute(const std::string & nodeName)
     throw SpinnakerWrapper::Exception(e.what());
   }
 }
+void SpinnakerWrapper::resetCamera() { wrapperImpl_->resetCamera(); }
 
 void SpinnakerWrapper::setComputeBrightness(bool b) { wrapperImpl_->setComputeBrightness(b); }
 

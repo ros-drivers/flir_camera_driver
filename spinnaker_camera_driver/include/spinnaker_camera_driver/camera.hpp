@@ -31,6 +31,7 @@
 #include <spinnaker_camera_driver/spinnaker_wrapper.hpp>
 #include <spinnaker_camera_driver/synchronizer.hpp>
 #include <std_msgs/msg/float64.hpp>
+#include <std_srvs/srv/trigger.hpp>
 #include <thread>
 
 namespace spinnaker_camera_driver
@@ -88,6 +89,11 @@ private:
   void printStatus();
   void checkSubscriptions();
   void doPublish(const ImageConstPtr & im);
+  void resetCallback(
+    const std::shared_ptr<std_srvs::srv::Trigger::Request> req,
+    const std::shared_ptr<std_srvs::srv::Trigger::Response> res);
+  void delayedStart();
+
   rclcpp::Logger get_logger()
   {
     return rclcpp::get_logger(
@@ -128,6 +134,7 @@ private:
   image_transport::ImageTransport * imageTransport_;
   image_transport::CameraPublisher pub_;
   rclcpp::Publisher<flir_camera_msgs::msg::ImageMetaData>::SharedPtr metaPub_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr resetService_;
   std::string serial_;
   std::string name_;
   std::string cameraInfoURL_;
@@ -156,6 +163,8 @@ private:
   rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr callbackHandle_;  // keep alive callbacks
   rclcpp::TimerBase::SharedPtr statusTimer_;
   rclcpp::TimerBase::SharedPtr checkSubscriptionsTimer_;
+  rclcpp::TimerBase::SharedPtr delayedStartTimer_;
+  int restartDelay_{10};
   bool cameraRunning_{false};
   std::mutex mutex_;
   std::condition_variable cv_;

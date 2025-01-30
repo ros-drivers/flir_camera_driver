@@ -48,6 +48,7 @@ public:
   bool deInitCamera();
   bool startCamera(const SpinnakerWrapper::Callback & cb);
   bool stopCamera();
+  void resetCamera();
   void setDebug(bool b);
   void setComputeBrightness(bool b);
   void setAcquisitionTimeout(double sec);
