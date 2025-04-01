@@ -34,8 +34,8 @@ example_parameters = {
         # 'pixel_format': 'BayerRG8',
         'exposure_auto': 'Continuous',
         # to use a user set, do this:
-        'user_set_selector': 'UserSet0',
-        'user_set_load': 'Yes',
+        # 'user_set_selector': 'UserSet0',
+        # 'user_set_load': 'Yes',
         # These are useful for GigE cameras
         # 'device_link_throughput_limit': 380000000,
         # 'gev_scps_packet_size': 9000,
