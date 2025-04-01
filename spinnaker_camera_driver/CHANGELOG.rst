@@ -2,6 +2,12 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* do not use user_set_selector for blackfly_s in launch file
+* document software trigger
+* Contributors: Bernd Pfrommer
+
 3.0.0 (2024-11-21)
 ------------------
 * Remove "NOT TESTED" from tested Chameleon params
