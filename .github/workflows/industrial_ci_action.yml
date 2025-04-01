@@ -18,13 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ROS_DISTRO: [galactic, humble, iron]
+        ROS_DISTRO: [humble, jazzy, rolling]
         ROS_REP: [testing, main]
     env:
       CCACHE_DIR: "${{ github.workspace }}/.ccache" # directory for ccache (and how we enable ccache in industrial_ci)
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v2
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
         with:
           path: ${{ env.CCACHE_DIR }}
           # This configuration will always create a new ccache cache starting off from the previous one (if any).
