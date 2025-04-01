@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.0.1 (2025-04-01)
+------------------
 * do not use user_set_selector for blackfly_s in launch file
 * document software trigger
 * Contributors: Bernd Pfrommer

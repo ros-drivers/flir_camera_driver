@@ -2,8 +2,8 @@
 Changelog for package spinnaker_synchronized_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.0.1 (2025-04-01)
+------------------
 * added missing ament_cmake_ros_dep to sync driver
 * Contributors: Bernd Pfrommer
 
