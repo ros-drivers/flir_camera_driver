@@ -8,7 +8,8 @@
   <license>Apache-2</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-
+  <buildtool_depend>ament_cmake_ros</buildtool_depend>
+  
   <depend>spinnaker_camera_driver</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
