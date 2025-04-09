@@ -47,6 +47,8 @@ example_parameters = {
         # 'binning_x': 1,
         # 'binning_y': 1,
         # 'connect_while_subscribed': True,
+        # 'reverse_x': True,
+        # 'reverse_y': True,
         'frame_rate_auto': 'Off',
         'frame_rate': 40.0,
         'frame_rate_enable': True,

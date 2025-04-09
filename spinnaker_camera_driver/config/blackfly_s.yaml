@@ -46,6 +46,12 @@ parameters:
   - name: offset_y
     type: int
     node: ImageFormatControl/OffsetY
+  - name: reverse_x
+    type: bool
+    node: ImageFormatControl/ReverseX
+  - name: reverse_y
+    type: bool
+    node: ImageFormatControl/ReverseY
 
   #
   # -------- analog control
