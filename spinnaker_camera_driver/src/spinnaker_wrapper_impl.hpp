@@ -64,6 +64,8 @@ public:
   void setDebug(bool b) { debug_ = b; }
   void setComputeBrightness(bool b) { computeBrightness_ = b; }
   void setAcquisitionTimeout(double t) { acquisitionTimeout_ = static_cast<uint64_t>(t * 1e9); }
+  void useIEEE1588(bool b) { useIEEE1588_ = b; }
+  std::string getIEEE1588Status() const;
 
 private:
   void setPixelFormat(const std::string & pixFmt);
@@ -83,6 +85,7 @@ private:
   bool debug_{false};
   bool computeBrightness_{false};
   int brightnessSkipPixels_{32};
+  bool useIEEE1588_{false};
   pixel_format::PixelFormat pixelFormat_{pixel_format::INVALID};
   Spinnaker::GenApi::CFloatPtr exposureTimeNode_;
   bool keepRunning_{true};
@@ -92,6 +95,7 @@ private:
   size_t numIncompleteImages_{0};
   size_t numImagesTotal_{0};
   size_t numIncompleteImagesTotal_{0};
+  Spinnaker::GevIEEE1588StatusEnums ptpStatus_{Spinnaker::GevIEEE1588Status_Disabled};
 };
 }  // namespace spinnaker_camera_driver
 

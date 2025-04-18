@@ -106,6 +106,12 @@ void SpinnakerWrapper::setComputeBrightness(bool b) { wrapperImpl_->setComputeBr
 
 void SpinnakerWrapper::setAcquisitionTimeout(double t) { wrapperImpl_->setAcquisitionTimeout(t); }
 
+void SpinnakerWrapper::useIEEE1588(bool b) { wrapperImpl_->useIEEE1588(b); }
+std::string SpinnakerWrapper::getIEEE1588Status() const
+{
+  return (wrapperImpl_->getIEEE1588Status());
+}
+
 void SpinnakerWrapper::setDebug(bool b) { wrapperImpl_->setDebug(b); }
 
 }  // namespace spinnaker_camera_driver

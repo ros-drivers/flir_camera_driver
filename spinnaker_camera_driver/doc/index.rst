@@ -167,12 +167,21 @@ files*, the driver has the following ROS parameters:
    This feature is being deprecated, *do not use*.   Default: false.
 -  ``frame_id``: the ROS frame id to put in the header of the published image messages.
 -  ``image_queue_size``: ROS output queue size (number of frames). Default: 4
+-  ``max_ieee_1588_offset``: maximum allowed PTP/system clock offset [s]
+   before warning is triggered. Default: 0.1
+-  ``min_ieee_1588_offset``: minimum PTP offset [s] before warning is triggered. Default: 0
 -  ``parameter_file``: location of the .yaml file defining the camera
    (blackfly_s.yaml etc)
 -  ``serial_number``: serial number of the camera. If you
    don’t know it, put in anything you like and the driver will croak
    with an error message, telling you what cameras serial numbers are
    available
+-  ``use_ieee_1588``: use PTP (IEEE 1588) to set the ``header.stamp`` time
+   stamp instead of system time. Note that you will still need to enable
+   IEEE 1588 at the camera level, and enable time stamp "chunks". Default: false.
+
+The parameters listed above *cannot* be dynamically updated at runtime
+but require a driver restart to modify.
 
 Parameters can also be defined to correspond to commands for the camera to run, for
 example a `software trigger <https://github.com/ros-drivers/flir_camera_driver/blob/76fe2ff0c3e92d2ebcdea7c6e792e7cea8cf5f0e/spinnaker_camera_driver/config/oryx.yaml#L192>`__.
@@ -275,10 +284,80 @@ that connects to your camera to "Link-Local Only." (You could also set
 the IPv4 Method to "Manual" with an address of 169.254.100.1 and a 
 subnet mask of 255.255.0.0).
 
+To check if the MTU settings are working correctly on the host you
+can ping with large packet size from a different host on the same
+network (must also have a MTU of 9000):
+```
+ping <host_ip_address> -c 2 -M do -s 8972
+```
+Beware that some network cards have `bugs that mess up the MTU when
+running ptp4l <https://www.reddit.com/r/networking/comments/1ebvj5y/linux_ptp_and_jumbo_frames_for_gige_vision/>`__.
+
 For more tips on GigE setup look at FLIR’s support pages
 `here <https://www.flir.com/support-center/iis/machine-vision/knowledge-base/lost-ethernet-data-packets-on-linux-systems/>`__
 and
 `here <https://www.flir.com/support-center/iis/machine-vision/application-note/troubleshooting-image-consistency-errors/>`__.
+
+
+Configuring PTP (IEEE 1588)
+===========================
+The following resources are useful to learn about PTP setup on Linux:
+
+- `Synchronizing Time with Linux PTP <https://tsn.readthedocs.io/timesync.html/>`__
+- `RedHat Configuring PTP using ptp4l <https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/system_administrators_guide/ch-configuring_ptp_using_ptp4l#sec-Checking_for_Driver_and_Hardware_Support/>`__.
+
+Only FLIR GigE cameras are PTP capable, but not all of them. For example the Blackfly series does not have PTP support, but the Blackfly S series does.
+
+Each camera has a built-in PTP hardware clock (PHC). To use it, you need to:
+
+- configure the camera to use PTP by enabling it either in SpinView or via the ROS parameter `gev_ieee_1588`` (set to true/false)
+- run the camera in ``Auto`` or ``SlaveOnly`` mode by setting the corresponding parameter in SpinView or using the ROS parameter ``gev_ieee_1588_mode``.
+- enable time stamps being sent via chunks by setting ``chunk_mode_active``
+  to ``True``, ``chunk_selector_timestamp`` to ``Timestamp`` followed by ``chunk_enable_timestamp`` to True.
+- tell the driver to actually use the time stamps instead of the system clock by setting ``use_ieee_1588`` to True. If this flag is set, the driver will populate the ROS image message header stamp with the PTP time stamp.
+
+The launch file section for the Blackfly S has some commented out example settings.
+
+When the camera boots up it will start its PHC time at zero rather than at the correct time (TAI). The driver log will have warning messages and indicate a huge offset.
+
+::
+
+[WARN] [1744643742.707293740] rate [Hz] in   5.01 out   0.00 drop   0 LIS off[s]: 1744643660.7902
+
+**Do not run like that** because your image header stamps will be totally messed up. In the above example, the camera has been started in ``SlaveOnly`` mode, and hence is in the ``LIS`` status (listening). This cannot be fixed by running the camera in ``Auto`` mode, because the camera has no way to set its PHC to a network time. Although the camera will eventually assume a role as master and the clock status will show ``MAS``, it will still have a huge offset. To fix this you must provide PTP messages from
+another host on the network by running ``ptp4l`` like so:
+::
+
+ ptp4l -i eth0 -m
+
+If you have some fancy PTP capable hardware clock attached to this host, you can synchronize your host system clock with the
+PHC of the network card:
+
+::
+
+ phc2sys -c /dev/ptp_my_fancy_clock -c CLOCK_REALTIME -O 0 -m -l 6
+
+and you are all set. Alternatively you can force the network card's PHC to follow your host's system clock:
+
+::
+
+ phc2sys -s CLOCK_REALTIME -c /dev/ptp0 -O 0 -m -l 6
+ 
+In this scenario you need to make sure that your host's system clock does not exhibit jumps, e.g. use something like ``chrony`` to keep it smoothly in sync with network time.
+
+Once the camera gets PTP packets it will eventually accept the host's PHC as master clock, switch to slave mode, and reset its time stamps:
+
+::
+
+ [WARN] [1744645260.742396500]: rate [Hz] in   5.00 out   0.00 drop   0 LIS off[s]: 1744645228.1477
+ [WARN] [1744645265.742424829]: rate [Hz] in   5.00 out   0.00 drop   0 SLV off[s]: 1744645228.1478
+ [INFO] [1744645270.742237929]: rate [Hz] in   5.00 out   0.00 drop   0 SLV off[s]: 0.0273
+
+
+Note that once a camera has been up and running for a while it can be very reluctant to accept PTP message from a master and switch from listener (``LIS``) to Slave (``SLV``) mode. Power cycle the camera (disconnect the GigE/POE cable) to fix this. Best practice is to have the master clock running already before starting the camera.
+
+**Monitor the offset for a while!**. If the system clock of the host that is running the driver is not disciplined by the master PHC then the offset will keep drifting. Make sure that something keeps the system clock synchronized with the PHC.
+
 
 
 How to develop your own camera configuration file
@@ -377,6 +456,17 @@ Troubleshooting/Common Issues
    Switch to Bayer images to reduce network bandwidth by a factor of three.
    Check your exposure time. The frame rate cannot exceed the inverse of the exposure time.
 
+6) GigE camera cannot be initialized:
+
+.. code::
+
+   [19074765]: found camera with serial number: 19074765
+   [Spinnaker Wrapper]: Could not initialize camera on any interface!
+   [Spinnaker Wrapper]: failed attempt on interface: GEV Interface 1
+
+   Either the IP address of your camera is out-of-network (switch it to
+   DHCP using SpinView) or another application (SpinView?) is
+   currently using the camera.
 
 Setting up Linux without Spinnaker SDK
 ======================================

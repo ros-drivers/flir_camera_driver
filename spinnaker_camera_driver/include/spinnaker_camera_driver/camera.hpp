@@ -142,6 +142,10 @@ private:
   bool computeBrightness_{false};
   double acquisitionTimeout_{3.0};
   bool adjustTimeStamp_{false};
+  bool useIEEE1588_{false};
+  double minIEEE1588Offset_{0};
+  double maxIEEE1588Offset_{0.1};
+  double ptpOffset_{0};                 // in seconds
   bool connectWhileSubscribed_{false};  // if true, connects to SDK when subscription happens
   bool enableExternalControl_{false};
   uint32_t currentExposureTime_{0};
