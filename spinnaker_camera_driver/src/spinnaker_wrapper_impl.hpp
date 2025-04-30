@@ -50,6 +50,7 @@ public:
 
   bool startCamera(const SpinnakerWrapper::Callback & cb);
   bool stopCamera();
+  void resetCamera();
 
   double getReceiveFrameRate() const;
   double getIncompleteRate();
