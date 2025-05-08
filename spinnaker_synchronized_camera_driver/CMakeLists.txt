@@ -63,8 +63,7 @@ add_library(synchronized_camera_driver SHARED
   src/master_exposure_controller.cpp
   src/follower_exposure_controller.cpp)
 
-target_link_libraries(synchronized_camera_driver PUBLIC ${ROS_DEPENDENCIES})
-target_link_libraries(synchronized_camera_driver PUBLIC spinnaker_camera_driver::camera_driver PRIVATE yaml-cpp)
+target_link_libraries(synchronized_camera_driver PUBLIC rclcpp::rclcpp rclcpp_components::component rclcpp_components::component_manager spinnaker_camera_driver::camera_driver PRIVATE yaml-cpp)
 
 target_include_directories(synchronized_camera_driver
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
