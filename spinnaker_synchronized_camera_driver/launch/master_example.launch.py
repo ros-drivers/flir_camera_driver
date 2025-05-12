@@ -36,7 +36,7 @@ from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
 camera_list = {
-    'cam0': '20435008',
+    'cam0': '17550665',
     'cam1': '20415937',
 }
 

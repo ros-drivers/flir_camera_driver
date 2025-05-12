@@ -195,7 +195,7 @@ that you can customize as needed.
 ::
 
    # launch with --show-args to print out all available launch arguments
-   ros2 launch spinnaker_camera_driver driver_node.launch.py camera_type:=blackfly_s serial:="'20435008'"
+   ros2 launch spinnaker_camera_driver driver_node.launch.py camera_type:=blackfly_s serial:="'17550665'"
 
 
 Using multiple cameras at the same time

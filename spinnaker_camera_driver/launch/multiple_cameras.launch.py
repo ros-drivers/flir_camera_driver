@@ -118,7 +118,7 @@ def generate_launch_description():
             LaunchArg('cam_1_type', default_value='blackfly_s', description='type of camera 1'),
             LaunchArg(
                 'cam_0_serial',
-                default_value="'20435008'",
+                default_value="'17550665'",
                 description='FLIR serial number of camera 0 (in quotes!!)',
             ),
             LaunchArg(
