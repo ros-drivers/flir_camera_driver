@@ -2,8 +2,8 @@
 Changelog for package spinnaker_synchronized_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.0.2 (2025-05-25)
+------------------
 * avoid ament_target_dependencies
 * Contributors: Bernd Pfrommer
 

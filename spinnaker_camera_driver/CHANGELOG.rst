@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.0.2 (2025-05-25)
+------------------
 * avoid ament_target_dependencies
 * fixed doc formatting
 * PTP support for spinnaker_camera_driver
