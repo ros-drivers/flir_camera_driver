@@ -39,6 +39,10 @@ example_parameters = {
         # These are useful for GigE cameras
         # 'device_link_throughput_limit': 380000000,
         # 'gev_scps_packet_size': 9000,
+        # PTP for GigE cameras
+        # 'gev_ieee_1588': True,
+        # 'gev_ieee_1588_mode': 'SlaveOnly', # 'SlaveOnly',  #'Auto',
+        # 'use_ieee_1588' : True,
         # ---- to reduce the sensor width and shift the crop
         # 'image_width': 1408,
         # 'image_height': 1080,
@@ -47,6 +51,8 @@ example_parameters = {
         # 'binning_x': 1,
         # 'binning_y': 1,
         # 'connect_while_subscribed': True,
+        # 'reverse_x': True,
+        # 'reverse_y': True,
         'frame_rate_auto': 'Off',
         'frame_rate': 40.0,
         'frame_rate_enable': True,

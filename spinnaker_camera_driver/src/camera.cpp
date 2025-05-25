@@ -157,6 +157,21 @@ bool Camera::stopCamera()
   return false;
 }
 
+struct ffmt
+{
+  ffmt(int w, int p) : width(w), precision(p) {}
+  int width;
+  int precision;
+};
+
+std::ostream & operator<<(std::ostream & o, const ffmt & f)
+{
+  o << std::fixed;
+  o.width(f.width);
+  o.precision(f.precision);
+  return (o);
+}
+
 void Camera::printStatus()
 {
   if (wrapper_) {
@@ -168,15 +183,23 @@ void Camera::printStatus()
     const double dtns = std::max(dt.nanoseconds(), (int64_t)1);
     const double outRate = publishedCount_ * 1e9 / dtns;
     const double incompleteRate = wrapper_->getIncompleteRate();
-    if (incompleteRate != 0) {
-      LOG_WARN_FMT(
-        "rate [Hz] in %6.2f out %6.2f drop %3.0f%% INCOMPLETE %3.0f%%",
-        wrapper_->getReceiveFrameRate(), outRate, dropRate * 100, incompleteRate * 100);
-    } else {
-      LOG_INFO_FMT(
-        "rate [Hz] in %6.2f out %6.2f drop %3.0f%%", wrapper_->getReceiveFrameRate(), outRate,
-        dropRate * 100);
+    std::stringstream ss;
+    ss << "rate [Hz] in " << ffmt(6, 2) << wrapper_->getReceiveFrameRate() << " out " << ffmt(6, 2)
+       << outRate << " drop " << ffmt(3, 0) << dropRate * 100;
+    if (useIEEE1588_) {
+      ss << " " << wrapper_->getIEEE1588Status() << " off[s]: " << ffmt(6, 4) << ptpOffset_;
     }
+    if (incompleteRate != 0) {
+      ss << " INCOMPLETE: " << ffmt(3, 0) << incompleteRate * 100;
+    }
+    if (
+      incompleteRate != 0 ||
+      (useIEEE1588_ && (ptpOffset_ > maxIEEE1588Offset_ || ptpOffset_ < minIEEE1588Offset_))) {
+      LOG_WARN(ss.str());
+    } else {
+      LOG_INFO(ss.str());
+    }
+
     lastStatusTime_ = t;
     droppedCount_ = 0;
     publishedCount_ = 0;
@@ -210,10 +233,17 @@ void Camera::readParameters()
   }
   debug_ = safe_declare<bool>(prefix_ + "debug", false);
   adjustTimeStamp_ = safe_declare<bool>(prefix_ + "adjust_timestamp", false);
+  useIEEE1588_ = safe_declare<bool>(prefix_ + "use_ieee_1588", false);
+  if (adjustTimeStamp_ && useIEEE1588_) {
+    LOG_WARN("no time stamp adjusting while running IEEE 1588!");
+    adjustTimeStamp_ = false;
+  }
   if (!quiet_) {
     LOG_INFO((adjustTimeStamp_ ? "" : "not ") << "adjusting time stamps!");
+    LOG_INFO((useIEEE1588_ ? "" : "not ") << "using IEEE 1588 (PTP)!");
   }
-
+  minIEEE1588Offset_ = safe_declare<double>(prefix_ + "min_ieee_1588_offset", 0);
+  maxIEEE1588Offset_ = safe_declare<double>(prefix_ + "max_ieee_1588_offset", 0.1);
   cameraInfoURL_ = safe_declare<std::string>(prefix_ + "camerainfo_url", "");
   frameId_ = safe_declare<std::string>(prefix_ + "frame_id", node_->get_name());
   dumpNodeMap_ = safe_declare<bool>(prefix_ + "dump_node_map", false);
@@ -598,8 +628,13 @@ void Camera::doPublish(const ImageConstPtr & im)
       return;
     }
   } else {
-    t =
-      adjustTimeStamp_ ? getAdjustedTimeStamp(im->time_, im->imageTime_) : rclcpp::Time(im->time_);
+    if (useIEEE1588_) {
+      t = rclcpp::Time(im->imageTime_, RCL_SYSTEM_TIME);
+      ptpOffset_ = (static_cast<int64_t>(im->time_) - static_cast<int64_t>(im->imageTime_)) * 1e-9;
+    } else {
+      t = adjustTimeStamp_ ? getAdjustedTimeStamp(im->time_, im->imageTime_)
+                           : rclcpp::Time(im->time_);
+    }
   }
   imageMsg_.header.stamp = t;
   cameraInfoMsg_.header.stamp = t;
@@ -694,6 +729,7 @@ bool Camera::start()
   wrapper_->setDebug(debug_);
   wrapper_->setComputeBrightness(computeBrightness_);
   wrapper_->setAcquisitionTimeout(acquisitionTimeout_);
+  wrapper_->useIEEE1588(useIEEE1588_);
 
   LOG_INFO("using spinnaker lib version: " + wrapper_->getLibraryVersion());
   bool foundCamera = false;

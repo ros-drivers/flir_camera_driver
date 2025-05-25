@@ -34,20 +34,17 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(spinnaker_camera_driver REQUIRED)
-
 # list of all packages that use ament for export (may work for others too)
-
-set(ROS_DEPENDENCIES
-  "rclcpp"
-  "rclcpp_components")
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
 
-foreach(pkg ${ROS_DEPENDENCIES})
-  find_package(${pkg} REQUIRED)
-endforeach()
+set(ROS_DEPENDENCIES
+  rclcpp::rclcpp
+  rclcpp_components::component)
 
 #
 # shared library for composable node
@@ -63,8 +60,10 @@ add_library(synchronized_camera_driver SHARED
   src/master_exposure_controller.cpp
   src/follower_exposure_controller.cpp)
 
-ament_target_dependencies(synchronized_camera_driver PUBLIC ${ROS_DEPENDENCIES})
-target_link_libraries(synchronized_camera_driver PUBLIC spinnaker_camera_driver::camera_driver PRIVATE yaml-cpp)
+target_link_libraries(synchronized_camera_driver
+  PUBLIC
+  spinnaker_camera_driver::camera_driver ${ROS_DEPENDENCIES}
+  PRIVATE yaml-cpp)
 
 target_include_directories(synchronized_camera_driver
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

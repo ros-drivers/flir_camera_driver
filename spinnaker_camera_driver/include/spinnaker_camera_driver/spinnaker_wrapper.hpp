@@ -51,6 +51,8 @@ public:
   void setDebug(bool b);
   void setComputeBrightness(bool b);
   void setAcquisitionTimeout(double sec);
+  void useIEEE1588(bool b);
+  std::string getIEEE1588Status() const;
 
   std::string getPixelFormat() const;
   double getReceiveFrameRate() const;

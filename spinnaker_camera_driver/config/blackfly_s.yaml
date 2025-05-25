@@ -46,6 +46,12 @@ parameters:
   - name: offset_y
     type: int
     node: ImageFormatControl/OffsetY
+  - name: reverse_x
+    type: bool
+    node: ImageFormatControl/ReverseX
+  - name: reverse_y
+    type: bool
+    node: ImageFormatControl/ReverseY
 
   #
   # -------- analog control
@@ -70,6 +76,12 @@ parameters:
     type: int
     # default is 1400. Set to 9000 to enable jumbo frames, ensure NIC MTU set >= 9000
     node: TransportLayerControl/GigEVision/GevSCPSPacketSize
+  - name: gev_ieee_1588  # enable/disable PTP
+    type: bool
+    node: TransportLayerControl/GigEVision/GevIEEE1588
+  - name: gev_ieee_1588_mode  # PTP mode
+    type: enum   # valid values: "Auto","SlaveOnly"
+    node: TransportLayerControl/GigEVision/GevIEEE1588Mode
   #
   # -------- digital IO control
   #
