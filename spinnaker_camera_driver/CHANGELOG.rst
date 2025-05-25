@@ -2,6 +2,14 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* avoid ament_target_dependencies
+* fixed doc formatting
+* PTP support for spinnaker_camera_driver
+* added reverse x/y for blackfly s
+* Contributors: Bernd Pfrommer
+
 3.0.1 (2025-04-01)
 ------------------
 * do not use user_set_selector for blackfly_s in launch file
