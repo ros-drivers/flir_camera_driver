@@ -64,6 +64,16 @@ message(STATUS "libSpinnaker library location: ${SPINNAKER_LIBRARIES}")
 message(STATUS "libSpinnaker include location: ${SPINNAKER_INCLUDE_DIRS}")
 
 find_package(SPINNAKER REQUIRED)
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_ros REQUIRED)
+find_package(camera_info_manager REQUIRED)
+find_package(flir_camera_msgs REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 include_directories(SYSTEM
   ${SPINNAKER_INCLUDE_DIRS})
@@ -71,22 +81,13 @@ include_directories(SYSTEM
 # list of all packages that use ament for export (may work for others too)
 
 set(ROS_DEPENDENCIES
-  "rclcpp"
-  "rclcpp_components"
-  "sensor_msgs"
-  "std_msgs"
-  "camera_info_manager"
-  "image_transport"
-  "flir_camera_msgs")
-
-# find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_ros REQUIRED)
-
-foreach(pkg ${ROS_DEPENDENCIES})
-  find_package(${pkg} REQUIRED)
-endforeach()
-find_package(yaml-cpp REQUIRED)
+  camera_info_manager::camera_info_manager
+  ${flir_camera_msgs_TARGETS}
+  image_transport::image_transport
+  rclcpp::rclcpp
+  rclcpp_components::component
+  ${sensor_msgs_TARGETS}
+  ${std_msgs_TARGETS})
 
 #
 # shared library for composable node
@@ -102,9 +103,9 @@ add_library(camera_driver SHARED
   src/genicam_utils.cpp
 )
 
-ament_target_dependencies(camera_driver PUBLIC ${ROS_DEPENDENCIES})
 target_link_libraries(camera_driver
   PUBLIC
+  ${ROS_DEPENDENCIES}
   yaml-cpp
   PRIVATE
   Spinnaker::Spinnaker)
