@@ -24,6 +24,7 @@
 
   <depend>libusb-1.0-dev</depend> <!-- spinnaker dependency -->
   <depend>ffmpeg</depend> <!-- spinnaker dependency -->
+  <depend>libomp-dev</depend> <!-- spinnaker dependency -->
 
   <depend>yaml-cpp</depend> <!-- parameter definition file parsing -->
 
