@@ -2,6 +2,9 @@
 Changelog for package flir_camera_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 3.0.2 (2025-05-25)
 ------------------
 
