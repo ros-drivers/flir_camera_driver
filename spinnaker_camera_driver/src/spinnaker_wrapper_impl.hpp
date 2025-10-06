@@ -53,6 +53,8 @@ public:
 
   double getReceiveFrameRate() const;
   double getIncompleteRate();
+  size_t getNumIncompleteImages() const { return (numIncompleteImagesTotal_); }
+  size_t getNumDroppedImages() const { return (numDroppedImagesTotal_); }
 
   std::string getNodeMapAsString();
   // methods for setting camera params
@@ -95,6 +97,7 @@ private:
   size_t numIncompleteImages_{0};
   size_t numImagesTotal_{0};
   size_t numIncompleteImagesTotal_{0};
+  size_t numDroppedImagesTotal_{0};
   Spinnaker::GevIEEE1588StatusEnums ptpStatus_{Spinnaker::GevIEEE1588Status_Disabled};
 };
 }  // namespace spinnaker_camera_driver

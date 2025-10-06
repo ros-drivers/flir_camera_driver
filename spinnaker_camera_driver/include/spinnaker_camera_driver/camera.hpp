@@ -18,6 +18,8 @@
 
 #include <camera_info_manager/camera_info_manager.hpp>
 #include <deque>
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <diagnostic_updater/publisher.hpp>
 #include <flir_camera_msgs/msg/camera_control.hpp>
 #include <flir_camera_msgs/msg/image_meta_data.hpp>
 #include <image_transport/image_transport.hpp>
@@ -27,6 +29,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <spinnaker_camera_driver/diagnostic_levels.hpp>
 #include <spinnaker_camera_driver/image.hpp>
 #include <spinnaker_camera_driver/spinnaker_wrapper.hpp>
 #include <spinnaker_camera_driver/synchronizer.hpp>
@@ -40,6 +43,9 @@ class Camera
 {
 public:
   using ImageConstPtr = spinnaker_camera_driver::ImageConstPtr;
+  using CompositeDiagnosticsTask = diagnostic_updater::CompositeDiagnosticTask;
+  using FunctionDiagnosticsTask = diagnostic_updater::FunctionDiagnosticTask;
+  using DiagnosticStatusWrapper = diagnostic_updater::DiagnosticStatusWrapper;
   explicit Camera(
     rclcpp::Node * node, image_transport::ImageTransport * it, const std::string & prefix,
     bool useStatus = true);
@@ -77,6 +83,8 @@ private:
   bool setBool(const std::string & nodeName, bool v);
   bool execute(const std::string & nodeName);
   bool readParameterDefinitionFile();
+  void startDiagnostics();
+  void stopDiagnostics();
 
   rclcpp::Time getAdjustedTimeStamp(uint64_t t, int64_t sensorTime);
 
@@ -120,6 +128,11 @@ private:
       // do nothing
     }
   }
+  void updateDiagnosticsStatus(
+    DiagnosticStatusWrapper & status, const std::string & label, const int val,
+    const DiagnosticLevels<int> & levels);
+  void incompleteDiagnostics(DiagnosticStatusWrapper & status);
+  void droppedDiagnostics(DiagnosticStatusWrapper & status);
 
   // ----- variables --
   std::string prefix_;
@@ -178,6 +191,20 @@ private:
   std::shared_ptr<Synchronizer> synchronizer_;
   std::shared_ptr<ExposureController> exposureController_;
   bool firstSynchronizedFrame_{true};
+  // --------- related to diagnostics
+  std::shared_ptr<diagnostic_updater::Updater> updater_;
+  std::shared_ptr<diagnostic_updater::TopicDiagnostic> topicDiagnostic_;
+  std::shared_ptr<diagnostic_updater::FrequencyStatus> imageArrivalDiagnostic_;
+  double maxFreqDiag_{0};
+  double minFreqDiag_{0};
+  CompositeDiagnosticsTask imageTask_;
+  FunctionDiagnosticsTask incompleteFrameTask_;
+  uint64_t numIncompletes_{0};
+  DiagnosticLevels<int> incompleteLevels_;
+  FunctionDiagnosticsTask dropFrameTask_;
+  DiagnosticLevels<int> dropLevels_;
+  uint64_t lastFrameId_{0};
+  uint64_t numDrops_{0};
 };
 }  // namespace spinnaker_camera_driver
 #endif  // SPINNAKER_CAMERA_DRIVER__CAMERA_HPP_

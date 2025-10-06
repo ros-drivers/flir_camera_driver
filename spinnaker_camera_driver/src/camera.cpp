@@ -32,6 +32,7 @@
 namespace spinnaker_camera_driver
 {
 namespace chrono = std::chrono;
+using Status = diagnostic_msgs::msg::DiagnosticStatus;
 //
 // this complicated code is to detect an interface change
 // between foxy and galactic
@@ -112,9 +113,14 @@ Camera::NodeInfo::NodeInfo(const std::string & n, const std::string & nodeType) 
 Camera::Camera(
   rclcpp::Node * node, image_transport::ImageTransport * it, const std::string & prefix,
   bool useStatus)
+: node_(node),
+  name_(prefix),
+  imageTask_("image"),
+  incompleteFrameTask_(
+    "incomplete frames", std::bind(&Camera::incompleteDiagnostics, this, std::placeholders::_1)),
+  dropFrameTask_(
+    "dropped frames", std::bind(&Camera::droppedDiagnostics, this, std::placeholders::_1))
 {
-  node_ = node;
-  name_ = prefix;
   imageTransport_ = it;
   prefix_ = prefix.empty() ? std::string("") : (prefix + ".");
   topicPrefix_ = prefix.empty() ? std::string("") : (prefix + "/");
@@ -123,6 +129,8 @@ Camera::Camera(
     statusTimer_ = rclcpp::create_timer(
       node_, node_->get_clock(), rclcpp::Duration(5, 0), std::bind(&Camera::printStatus, this));
   }
+  imageTask_.addTask(&incompleteFrameTask_);
+  imageTask_.addTask(&dropFrameTask_);
 }
 
 Camera::~Camera()
@@ -133,6 +141,7 @@ Camera::~Camera()
 
 bool Camera::stop()
 {
+  stopDiagnostics();
   stopCamera();
   if (wrapper_) {
     wrapper_->deInitCamera();
@@ -231,6 +240,12 @@ void Camera::readParameters()
   if (!quiet_) {
     LOG_INFO("reading ros parameters for camera with serial: " << serial_);
   }
+  incompleteLevels_ = DiagnosticLevels<int>(
+    safe_declare<int>(prefix_ + "diagnostic_incompletes_warn", 1),
+    safe_declare<int>(prefix_ + "diagnostic_incompletes_error", 2));
+  dropLevels_ = DiagnosticLevels<int>(
+    safe_declare<int>(prefix_ + "diagnostic_drops_warn", 1),
+    safe_declare<int>(prefix_ + "diagnostic_drops_error", 2));
   debug_ = safe_declare<bool>(prefix_ + "debug", false);
   adjustTimeStamp_ = safe_declare<bool>(prefix_ + "adjust_timestamp", false);
   useIEEE1588_ = safe_declare<bool>(prefix_ + "use_ieee_1588", false);
@@ -519,6 +534,9 @@ void Camera::processImage(const ImageConstPtr & im)
     } else {
       droppedCount_++;
     }
+    if (imageArrivalDiagnostic_) {
+      imageArrivalDiagnostic_->tick();
+    }
   }
 }
 
@@ -659,6 +677,9 @@ void Camera::doPublish(const ImageConstPtr & im)
     } else {
       // const auto t0 = node_->now();
       pub_.publish(std::move(img), std::move(cinfo));
+      if (topicDiagnostic_) {
+        topicDiagnostic_->tick(t);
+      }
       // const auto t1 = node_->now();
       // std::cout << "dt: " << (t1 - t0).nanoseconds() * 1e-9 << std::endl;
       publishedCount_++;
@@ -673,6 +694,14 @@ void Camera::doPublish(const ImageConstPtr & im)
     metaMsg_.camera_time = im->imageTime_;
     metaPub_->publish(metaMsg_);
   }
+  numIncompletes_ += im->numIncomplete_;
+  if (lastFrameId_ == 0) {
+    lastFrameId_ = im->frameId_;
+  }
+  if (im->frameId_ != 0) {
+    numDrops_ += (im->frameId_ > lastFrameId_) ? (im->frameId_ - lastFrameId_ - 1) : 0;
+  }
+  lastFrameId_ = im->frameId_;
 }
 
 void Camera::printCameraInfo()
@@ -748,6 +777,8 @@ bool Camera::start()
       break;
     }
   }
+  startDiagnostics();  // not clear exactly when diagnostics should be started
+
   if (!foundCamera) {
     LOG_ERROR("giving up, camera " << serial_ << " not found!");
     return (false);
@@ -776,5 +807,65 @@ bool Camera::start()
     LOG_ERROR("init camera failed for cam: " << serial_);
   }
   return (true);
+}
+
+void Camera::startDiagnostics()
+{
+  const double period = safe_declare<double>("diagnostic_period", -1.0);
+  if (period <= 0) {
+    return;
+  }
+  updater_ = std::make_shared<diagnostic_updater::Updater>(node_, period);
+  updater_->setHardwareID(serial_);
+  minFreqDiag_ = safe_declare<double>("diagnostic_min_freq", -1.0);
+  maxFreqDiag_ = safe_declare<double>("diagnostic_max_freq", -1.0);
+  if (minFreqDiag_ < 0 || maxFreqDiag_ < 0) {
+    BOMB_OUT("must set diagnostic_min_freq and diagnostic_max_freq parameters!");
+  }
+  const int window_size = safe_declare<int>("diagnostic_window", 10);
+  const double min_ts_diff = -1.0 / minFreqDiag_;
+  const double max_ts_diff = 1.0 / minFreqDiag_;
+  topicDiagnostic_ = std::make_shared<diagnostic_updater::TopicDiagnostic>(
+    topicPrefix_ + "image_raw", *updater_,
+    diagnostic_updater::FrequencyStatusParam(&minFreqDiag_, &maxFreqDiag_, 0, window_size),
+    diagnostic_updater::TimeStampStatusParam(min_ts_diff, max_ts_diff));
+  imageArrivalDiagnostic_ = std::make_shared<diagnostic_updater::FrequencyStatus>(
+    diagnostic_updater::FrequencyStatusParam(&minFreqDiag_, &maxFreqDiag_, 0, window_size),
+    "image_arrival");
+  updater_->add(*imageArrivalDiagnostic_);
+  updater_->add(imageTask_);
+}
+
+void Camera::updateDiagnosticsStatus(
+  DiagnosticStatusWrapper & status, const std::string & label, const int val,
+  const DiagnosticLevels<int> & levels)
+{
+  if (val < levels.warning) {
+    status.summary(Status::OK, label + " is ok.");
+  } else if (val < levels.error) {
+    status.summary(Status::WARN, label + " is high!");
+  } else {
+    status.summary(Status::ERROR, label + " too high!");
+  }
+}
+
+void Camera::incompleteDiagnostics(DiagnosticStatusWrapper & status)
+{
+  updateDiagnosticsStatus(
+    status, "incompletes", static_cast<int>(numIncompletes_), incompleteLevels_);
+  numIncompletes_ = 0;
+}
+
+void Camera::droppedDiagnostics(DiagnosticStatusWrapper & status)
+{
+  updateDiagnosticsStatus(status, "drops", static_cast<int>(numDrops_), dropLevels_);
+  numDrops_ = 0;
+}
+
+void Camera::stopDiagnostics()
+{
+  updater_.reset();
+  topicDiagnostic_.reset();
+  imageArrivalDiagnostic_.reset();
 }
 }  // namespace spinnaker_camera_driver

@@ -67,6 +67,7 @@ find_package(SPINNAKER REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
 find_package(camera_info_manager REQUIRED)
+find_package(diagnostic_updater REQUIRED)
 find_package(flir_camera_msgs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -82,6 +83,7 @@ include_directories(SYSTEM
 
 set(ROS_DEPENDENCIES
   camera_info_manager::camera_info_manager
+  diagnostic_updater::diagnostic_updater
   ${flir_camera_msgs_TARGETS}
   image_transport::image_transport
   rclcpp::rclcpp
