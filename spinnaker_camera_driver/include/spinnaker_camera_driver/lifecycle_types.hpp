@@ -1,5 +1,5 @@
 // -*-c++-*--------------------------------------------------------------------
-// Copyright 2023 Bernd Pfrommer <bernd.pfrommer@gmail.com>
+// Copyright 2025 Bernd Pfrommer <bernd.pfrommer@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,18 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
+#ifndef SPINNAKER_CAMERA_DRIVER__LIFECYCLE_TYPES_HPP_
+#define SPINNAKER_CAMERA_DRIVER__LIFECYCLE_TYPES_HPP_
+
 #include <rclcpp/rclcpp.hpp>
-#include <spinnaker_camera_driver/camera_driver.hpp>
 
-int main(int argc, char * argv[])
-{
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<spinnaker_camera_driver::CameraDriver>(rclcpp::NodeOptions());
+#ifdef IMAGE_TRANSPORT_SUPPORTS_LIFECYCLE_NODE
+#include <rclcpp_lifecycle/lifecycle_node.hpp>
+#include <rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp>
+using NodeType = rclcpp_lifecycle::LifecycleNode;
+using LCState = rclcpp_lifecycle::State;
+using CbReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-  RCLCPP_INFO(node->get_logger(), "camera driver node started up!");
-  rclcpp::spin(node->get_node_base_interface());  // should not return
-  node.reset();
-  rclcpp::shutdown();
-  return 0;
-}
+#else
+using NodeType = rclcpp::Node;
+#endif
+
+#endif  // SPINNAKER_CAMERA_DRIVER__LIFECYCLE_TYPES_HPP_

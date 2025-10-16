@@ -144,6 +144,8 @@ spinview program.
 *In addition to the parameters defined in the .yaml
 files*, the driver has the following ROS parameters:
 
+-  ``auto_start``: automatically configure and activate the driver when starting
+   as a lifecycle node. Default: true.
 -  ``adjust_timestamp``: see `About time stamps`_ below for more documentation. Default: false.
 -  ``acquisition_timeout``: timeout for expecting frames (in seconds).
    If no frame is received for this time, the driver restarts. Default
@@ -161,6 +163,17 @@ files*, the driver has the following ROS parameters:
    while no ROS subscribers are present, but adds latency on
    subscription: after a subscription the first image will be published up to 1s later
    than without this option.
+-  ``diagnostic_incompletes_warn``: number of incomplete frames per diagnostic update period
+   before changing status to ``warning``.
+-  ``diagnostic_incompletes_error``: number of incomplete frames per diagnostic update period
+   before changing status to ``error``.
+-  ``diagnostic_drop_warn``: number of SDK-dropped frames per diagnostic update period
+   before changing status to ``warning``.
+-  ``diagnostic_drop_error``: number of SDK-dropped frames per diagnostic update period
+   before changing status to ``error``.
+-  ``diagnostic_min_freq``: minimum incoming message frequency before failing diagnostics.
+-  ``diagnostic_max_freq``: max incoming message frequency before failing diagnostics.
+-  ``diagnostic_window``: number of updates to maintain for diagnostic window.o
 -  ``dump_node_map``: set this to true to get a dump of the node map.
    Default: false.
 -  ``enable_external_control``: set this to true to enable external exposure control.
@@ -179,17 +192,6 @@ files*, the driver has the following ROS parameters:
 -  ``use_ieee_1588``: use PTP (IEEE 1588) to set the ``header.stamp`` time
    stamp instead of system time. Note that you will still need to enable
    IEEE 1588 at the camera level, and enable time stamp "chunks". Default: false.
--  ``diagnostic_incompletes_warn``: number of incomplete frames per diagnostic update period
-   before changing status to ``warning``.
--  ``diagnostic_incompletes_error``: number of incomplete frames per diagnostic update period
-   before changing status to ``error``.
--  ``diagnostic_drop_warn``: number of SDK-dropped frames per diagnostic update period
-   before changing status to ``warning``.
--  ``diagnostic_drop_error``: number of SDK-dropped frames per diagnostic update period
-   before changing status to ``error``.
--  ``diagnostic_min_freq``: minimum incoming message frequency before failing diagnostics.
--  ``diagnostic_max_freq``: max incoming message frequency before failing diagnostics.
--  ``diagnostic_window``: number of updates to maintain for diagnostic window.o
 
 The parameters listed above *cannot* be dynamically updated at runtime
 but require a driver restart to modify.

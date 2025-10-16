@@ -17,6 +17,7 @@
 #define SPINNAKER_SYNCHRONIZED_CAMERA_DRIVER__FOLLOWER_EXPOSURE_CONTROLLER_HPP_
 
 #include <limits>
+#include <rclcpp/node_interfaces/node_parameters_interface.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <spinnaker_camera_driver/exposure_controller.hpp>
 
@@ -26,7 +27,9 @@ class FollowerExposureController : public spinnaker_camera_driver::ExposureContr
 {
 public:
   using Camera = spinnaker_camera_driver::Camera;
-  explicit FollowerExposureController(const std::string & name, rclcpp::Node * n);
+  explicit FollowerExposureController(
+    const std::string & name,
+    const std::shared_ptr<rclcpp::node_interfaces::NodeParametersInterface> & pi);
   void update(
     Camera * cam, const std::shared_ptr<const spinnaker_camera_driver::Image> & img) final;
   void addCamera(const std::shared_ptr<Camera> & cam) final;
@@ -40,13 +43,21 @@ private:
   template <class T>
   T declare_param(const std::string & n, const T & def)
   {
-    return (node_->declare_parameter<T>(name_ + "." + n, def));
+    return (
+      node_parameters_interface_->declare_parameter(name_ + "." + n, rclcpp::ParameterValue(def))
+        .get<T>());
+  }
+
+  void set_param(const rclcpp::Parameter & p)
+  {
+    const std::vector<rclcpp::Parameter> pv{p};
+    node_parameters_interface_->set_parameters(pv);
   }
 
   // ----------------- variables --------------------
   std::string name_;
   std::string cameraName_;
-  rclcpp::Node * node_{0};
+  std::shared_ptr<rclcpp::node_interfaces::NodeParametersInterface> node_parameters_interface_;
   std::string exposureParameterName_;
   std::string gainParameterName_;
   std::string masterControllerName_;

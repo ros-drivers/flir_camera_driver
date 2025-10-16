@@ -24,12 +24,13 @@ namespace exposure_controller_factory
 {
 static rclcpp::Logger get_logger() { return (rclcpp::get_logger("cam_sync")); }
 std::shared_ptr<spinnaker_camera_driver::ExposureController> newInstance(
-  const std::string & type, const std::string & name, rclcpp::Node * node)
+  const std::string & type, const std::string & name,
+  const std::shared_ptr<rclcpp::node_interfaces::NodeParametersInterface> & pi)
 {
   if (type == "master") {
-    return (std::make_shared<MasterExposureController>(name, node));
+    return (std::make_shared<MasterExposureController>(name, pi));
   } else if (type == "follower") {
-    return (std::make_shared<FollowerExposureController>(name, node));
+    return (std::make_shared<FollowerExposureController>(name, pi));
   }
   BOMB_OUT("unknown exposure controller type: " << type);
   return (nullptr);

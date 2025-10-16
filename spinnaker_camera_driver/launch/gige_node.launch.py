@@ -177,6 +177,7 @@ def launch_setup(context, *args, **kwargs):
         executable='camera_driver_node',
         output='screen',
         name=[LaunchConfig('camera_name')],
+        # prefix=["xterm -e gdb -e xrun --args"],
         parameters=[
             example_parameters[camera_type],
             {

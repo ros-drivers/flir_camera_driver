@@ -22,7 +22,8 @@ int main(int argc, char * argv[])
   rclcpp::init(argc, argv);
   auto node = std::make_shared<spinnaker_synchronized_camera_driver::SynchronizedCameraDriver>(
     rclcpp::NodeOptions());
-  rclcpp::spin(node);  // should not return
+  rclcpp::spin(node->get_node_base_interface());  // should not return
+  node.reset();
   rclcpp::shutdown();
   return 0;
 }

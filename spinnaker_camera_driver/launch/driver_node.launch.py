@@ -168,6 +168,7 @@ def launch_setup(context, *args, **kwargs):
         package='spinnaker_camera_driver',
         executable='camera_driver_node',
         output='screen',
+        # prefix=['xterm -e gdb --args'],
         name=[LaunchConfig('camera_name')],
         parameters=[
             example_parameters[camera_type],

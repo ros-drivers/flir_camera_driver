@@ -17,6 +17,8 @@
 #define SPINNAKER_SYNCHRONIZED_CAMERA_DRIVER__EXPOSURE_CONTROLLER_FACTORY_HPP_
 
 #include <memory>
+#include <rclcpp/node_interfaces/node_parameters_interface.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <string>
 
 namespace spinnaker_camera_driver
@@ -32,7 +34,8 @@ namespace spinnaker_synchronized_camera_driver
 namespace exposure_controller_factory
 {
 std::shared_ptr<spinnaker_camera_driver::ExposureController> newInstance(
-  const std::string & type, const std::string & name, rclcpp::Node * node);
+  const std::string & type, const std::string & name,
+  const std::shared_ptr<rclcpp::node_interfaces::NodeParametersInterface> & pi);
 }  // namespace exposure_controller_factory
 }  // namespace spinnaker_synchronized_camera_driver
 #endif  // SPINNAKER_SYNCHRONIZED_CAMERA_DRIVER__EXPOSURE_CONTROLLER_FACTORY_HPP_
