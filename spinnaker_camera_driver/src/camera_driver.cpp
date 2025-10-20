@@ -43,7 +43,7 @@ CameraDriver::CameraDriver(const rclcpp::NodeOptions & options) : NodeType("came
   get_node_base_interface()->get_context()->add_pre_shutdown_callback(
     std::bind(&CameraDriver::preShutdown, this));
 
-  if (declare_parameter("auto_start", true)) {
+  if (declare_parameter<bool>("auto_start", true)) {
     // defer because one cannot call some of the required methods inside the constructor
     timer_ = create_wall_timer(std::chrono::microseconds(0), [this]() -> void {
       timer_->cancel();
