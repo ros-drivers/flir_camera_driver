@@ -555,7 +555,7 @@ void SpinnakerWrapperImpl::monitorStatus()
     const uint64_t t_now =
       chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch())
         .count();
-    if (t_now - lastTime_ > acquisitionTimeout_) {
+    if (t_now - lastTime_ > acquisitionTimeout_ && keepRunning_) {
       Lock lock(cameraMutex_);
       if (camera_) {
         LOG_WARN("Acquisition timeout, restarting streaming!");
