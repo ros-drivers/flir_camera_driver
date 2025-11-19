@@ -22,6 +22,7 @@
 #include <mutex>
 #include <rclcpp/rclcpp.hpp>
 #include <spinnaker_camera_driver/camera.hpp>
+#include <spinnaker_camera_driver/lifecycle_types.hpp>
 #include <spinnaker_synchronized_camera_driver/time_keeper.hpp>
 #include <thread>
 #include <unordered_map>
@@ -34,20 +35,41 @@ class ExposureController;
 namespace spinnaker_synchronized_camera_driver
 {
 class TimeEstimator;
-class SynchronizedCameraDriver : public rclcpp::Node
+class SynchronizedCameraDriver : public NodeType
 {
 public:
+  using CameraInfoManager = camera_info_manager::CameraInfoManager;
+  using ImageTransport = image_transport::ImageTransport;
   explicit SynchronizedCameraDriver(const rclcpp::NodeOptions & options);
   ~SynchronizedCameraDriver();
   bool update(size_t idx, uint64_t hostTime, double dt, uint64_t * frameTime);
 
+#ifdef IMAGE_TRANSPORT_SUPPORTS_LIFECYCLE_NODE
+protected:
+  void preShutdown();
+  CbReturn on_configure(const LCState & state) override;
+  CbReturn on_activate(const LCState & state) override;
+  CbReturn on_deactivate(const LCState & state) override;
+  CbReturn on_cleanup(const LCState & state) override;
+  CbReturn on_shutdown(const LCState & state) override;
+  CbReturn on_error(const LCState & state) override;
+#endif
+
 private:
-  void createCameras();
-  void createExposureControllers();
+  bool createCameras();
+  bool createExposureControllers();
+  void destroyCameras();
+  void destroyExposureControllers();
   void printStatus();
+  bool configure();
+  bool activate();
+  bool deactivate();
+  bool deconfigure();
+  void shutdown();
   // ----- variables --
-  std::shared_ptr<image_transport::ImageTransport> imageTransport_;
+  std::shared_ptr<ImageTransport> imageTransport_;
   std::map<const std::string, std::shared_ptr<spinnaker_camera_driver::Camera>> cameras_;
+  std::vector<std::shared_ptr<CameraInfoManager>> infoManagers_;
   std::vector<std::shared_ptr<TimeKeeper>> timeKeepers_;
   rclcpp::TimerBase::SharedPtr statusTimer_;
   double avgFrameInterval_{-1};
@@ -57,6 +79,7 @@ private:
   std::shared_ptr<TimeEstimator> timeEstimator_;
   std::unordered_map<std::string, std::shared_ptr<spinnaker_camera_driver::ExposureController>>
     exposureControllers_;
+  rclcpp::TimerBase::SharedPtr timer_;
 };
 }  // namespace spinnaker_synchronized_camera_driver
 #endif  // SPINNAKER_SYNCHRONIZED_CAMERA_DRIVER__SYNCHRONIZED_CAMERA_DRIVER_HPP_

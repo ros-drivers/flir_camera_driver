@@ -22,8 +22,11 @@
 
 namespace spinnaker_synchronized_camera_driver
 {
-MasterExposureController::MasterExposureController(const std::string & name, rclcpp::Node * node)
-: name_(name), node_(node)
+MasterExposureController::MasterExposureController(
+  const std::string & name,
+  const std::shared_ptr<rclcpp::node_interfaces::NodeParametersInterface> & pi)
+
+: name_(name), node_parameters_interface_(pi)
 {
   exposureParameterName_ = declare_param<std::string>("exposure_parameter", "exposure_time");
   gainParameterName_ = declare_param<std::string>("gain_parameter", "gain");
@@ -231,9 +234,9 @@ void MasterExposureController::update(
                   << currentExposureTime_ << " " << currentGain_ << "]");
       numFramesSkip_ = maxFramesSkip_;  // restart frame skipping
       const auto expName = cam->getPrefix() + exposureParameterName_;
-      node_->set_parameter(rclcpp::Parameter(expName, currentExposureTime_));
+      set_param(rclcpp::Parameter(expName, currentExposureTime_));
       const auto gainName = cam->getPrefix() + gainParameterName_;
-      node_->set_parameter(rclcpp::Parameter(gainName, currentGain_));
+      set_param(rclcpp::Parameter(gainName, currentGain_));
     }
   }
 }

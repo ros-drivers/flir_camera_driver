@@ -21,8 +21,9 @@
 namespace spinnaker_synchronized_camera_driver
 {
 FollowerExposureController::FollowerExposureController(
-  const std::string & name, rclcpp::Node * node)
-: name_(name), node_(node)
+  const std::string & name,
+  const std::shared_ptr<rclcpp::node_interfaces::NodeParametersInterface> & pi)
+: name_(name), node_parameters_interface_(pi)
 {
   exposureParameterName_ = declare_param<std::string>("exposure_parameter", "exposure_time");
   gainParameterName_ = declare_param<std::string>("gain_parameter", "gain");
@@ -73,12 +74,12 @@ void FollowerExposureController::update(
     bool parametersChanged{false};
     if (masterExposureTime != currentExposureTime_) {
       const auto expName = cam->getPrefix() + exposureParameterName_;
-      node_->set_parameter(rclcpp::Parameter(expName, masterExposureTime));
+      set_param(rclcpp::Parameter(expName, masterExposureTime));
       parametersChanged = true;
     }
     if (masterGain != currentGain_) {
       const auto gainName = cam->getPrefix() + gainParameterName_;
-      node_->set_parameter(rclcpp::Parameter(gainName, masterGain));
+      set_param(rclcpp::Parameter(gainName, masterGain));
       parametersChanged = true;
     }
     if (parametersChanged) {

@@ -42,6 +42,11 @@ find_package(ament_cmake_ros REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 
+if(${image_transport_VERSION} VERSION_GREATER_EQUAL "6.4.0")
+  add_definitions(-DIMAGE_TRANSPORT_SUPPORTS_LIFECYCLE_NODE)
+  add_definitions(-DIMAGE_TRANSPORT_SUPPORTS_NODE_INTERFACES)
+endif()
+
 set(ROS_DEPENDENCIES
   rclcpp::rclcpp
   rclcpp_components::component)

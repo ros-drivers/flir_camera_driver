@@ -32,6 +32,7 @@
 namespace spinnaker_camera_driver
 {
 namespace chrono = std::chrono;
+using Status = diagnostic_msgs::msg::DiagnosticStatus;
 //
 // this complicated code is to detect an interface change
 // between foxy and galactic
@@ -110,49 +111,216 @@ Camera::NodeInfo::NodeInfo(const std::string & n, const std::string & nodeType) 
   }
 }
 Camera::Camera(
-  rclcpp::Node * node, image_transport::ImageTransport * it, const std::string & prefix,
-  bool useStatus)
+  const std::shared_ptr<rclcpp::node_interfaces::NodeBaseInterface> & bi,
+  const std::shared_ptr<rclcpp::node_interfaces::NodeParametersInterface> & pi,
+  const std::shared_ptr<rclcpp::node_interfaces::NodeLoggingInterface> & li,
+  const std::shared_ptr<rclcpp::node_interfaces::NodeTimersInterface> & ti,
+  const std::shared_ptr<rclcpp::node_interfaces::NodeClockInterface> & ci,
+  const std::shared_ptr<rclcpp::node_interfaces::NodeTopicsInterface> & oi,
+  const std::shared_ptr<rclcpp::node_interfaces::NodeServicesInterface> & si,
+  image_transport::ImageTransport * it, camera_info_manager::CameraInfoManager * im,
+  const std::string & logName, const std::string & prefix, bool useStatus)
+: node_base_interface_(bi),
+  node_parameters_interface_(pi),
+  node_logging_interface_(li),
+  node_timers_interface_(ti),
+  node_clock_interface_(ci),
+  node_topics_interface_(oi),
+  node_services_interface_(si),
+  imageTransport_(it),
+  infoManager_(im),
+  logName_(logName),
+  name_(prefix),
+  imageTask_("image"),
+  incompleteFrameTask_(
+    "incomplete frames", std::bind(&Camera::incompleteDiagnostics, this, std::placeholders::_1)),
+  dropFrameTask_(
+    "dropped frames", std::bind(&Camera::droppedDiagnostics, this, std::placeholders::_1)),
+  acquisitionErrorTask_(
+    "acquisition error", std::bind(&Camera::acquisitionDiagnostics, this, std::placeholders::_1))
 {
-  node_ = node;
-  name_ = prefix;
-  imageTransport_ = it;
   prefix_ = prefix.empty() ? std::string("") : (prefix + ".");
   topicPrefix_ = prefix.empty() ? std::string("") : (prefix + "/");
-  lastStatusTime_ = node_->now();
-  if (useStatus) {
-    statusTimer_ = rclcpp::create_timer(
-      node_, node_->get_clock(), rclcpp::Duration(5, 0), std::bind(&Camera::printStatus, this));
-  }
+  lastStatusTime_ = clock()->now();
+  runStatusTimer_ = useStatus;
+  imageTask_.addTask(&incompleteFrameTask_);
+  imageTask_.addTask(&dropFrameTask_);
 }
 
 Camera::~Camera()
 {
-  stop();
-  wrapper_.reset();  // invoke destructor
+  deactivate();
+  deconfigure();
 }
 
-bool Camera::stop()
+bool Camera::configure()
 {
-  stopCamera();
-  if (wrapper_) {
-    wrapper_->deInitCamera();
+  readParameters();
+  imageMsg_.header.frame_id = frameId_;
+  metaMsg_.header.frame_id = frameId_;
+  try {
+    if (!readParameterDefinitionFile()) {
+      return (false);
+    }
+  } catch (const YAML::Exception & e) {
+    LOG_ERROR("error reading parameter definitions: " << e.what());
+    return (false);
   }
-  if (statusTimer_ && !statusTimer_->is_canceled()) {
-    statusTimer_->cancel();
-  }
-  keepRunning_ = false;
-  if (thread_) {
-    thread_->join();
-    thread_ = 0;
+  try {
+    makePublishers();
+    cameraInfoMsg_ = infoManager_->getCameraInfo();
+    cameraInfoMsg_.header.frame_id = frameId_;
+    imageMsg_.header.frame_id = frameId_;
+    metaMsg_.header.frame_id = frameId_;
+    openDevice();
+    // Must create the camera parameters before acquisition is started.
+    // Some parameters (like blackfly s chunk control) cannot be set once
+    // the camera is running.
+    createCameraParameters();
+    makeSubscribers();
+  } catch (const std::exception & e) {
+    LOG_ERROR("configure() failed: " << e.what());
+    deconfigure();
+    return (false);
   }
   return (true);
 }
 
-bool Camera::stopCamera()
+bool Camera::activate()
 {
-  if (cameraRunning_ && wrapper_) {
-    cameraRunning_ = false;
-    return wrapper_->stopCamera();
+  startTimers();  // must wait until publishers are created
+  keepRunning_ = true;
+  thread_ = std::make_shared<std::thread>(&Camera::run, this);
+  if (!streamOnlyWhileSubscribed_) {
+    if (!startStreaming()) {
+      return (false);
+    }
+  }
+  return (true);
+}
+
+bool Camera::startStreaming()
+{
+  if (!cameraStreaming_) {
+    cameraStreaming_ =
+      wrapper_->startCamera(std::bind(&Camera::processImage, this, std::placeholders::_1));
+    if (!cameraStreaming_) {
+      LOG_ERROR("failed to start camera!");
+      return (false);
+    } else {
+      startDiagnostics();
+      printCameraInfo();
+    }
+  }
+  return (true);
+}
+
+void Camera::makePublishers()
+{
+  metaPub_ = rclcpp::create_publisher<flir_camera_msgs::msg::ImageMetaData>(
+    node_parameters_interface_, node_topics_interface_, "~/" + topicPrefix_ + "meta",
+    rclcpp::QoS(1));
+  pub_ = imageTransport_->advertiseCamera("~/" + topicPrefix_ + "image_raw", qosDepth_);
+}
+
+void Camera::makeSubscribers()
+{
+  if (enableExternalControl_) {
+    controlSub_ = rclcpp::create_subscription<flir_camera_msgs::msg::CameraControl>(
+      node_parameters_interface_, node_topics_interface_, "~/" + topicPrefix_ + "control", 10,
+      std::bind(&Camera::controlCallback, this, std::placeholders::_1));
+  }
+}
+
+void Camera::startTimers()
+{
+  stopTimers();  // cancel any timers started earlier
+  if (streamOnlyWhileSubscribed_) {
+    checkSubscriptionsTimer_ = rclcpp::create_timer(
+      node_base_interface_, node_timers_interface_, clock(), rclcpp::Duration(1, 0),
+      std::bind(&Camera::checkSubscriptions, this));
+  }
+
+  if (runStatusTimer_) {
+    if (statusTimer_) {
+      statusTimer_->cancel();
+    }
+    statusTimer_ = rclcpp::create_timer(
+      node_base_interface_, node_timers_interface_, clock(), rclcpp::Duration(5, 0),
+      std::bind(&Camera::updateStatus, this));
+  }
+}
+
+static void cancelTimer(rclcpp::TimerBase::SharedPtr * timer)
+{
+  if (*timer) {
+    (*timer)->cancel();
+  }
+  timer->reset();
+}
+
+void Camera::stopTimers()
+{
+  cancelTimer(&checkSubscriptionsTimer_);
+  cancelTimer(&statusTimer_);
+}
+
+void Camera::openDevice()
+{
+  wrapper_ = std::make_shared<spinnaker_camera_driver::SpinnakerWrapper>(get_logger());
+  wrapper_->setDebug(debug_);
+  wrapper_->setComputeBrightness(computeBrightness_);
+  wrapper_->setAcquisitionTimeout(acquisitionTimeout_);
+  wrapper_->useIEEE1588(useIEEE1588_);
+
+  LOG_INFO("using spinnaker lib version: " + wrapper_->getLibraryVersion());
+  bool foundCamera = false;
+  for (int retry = 1; retry < 6; retry++) {
+    wrapper_->refreshCameraList();
+    const auto camList = wrapper_->getSerialNumbers();
+    if (std::find(camList.begin(), camList.end(), serial_) == camList.end()) {
+      LOG_WARN("no camera found with serial: " << serial_ << " on try # " << retry);
+      for (const auto & cam : camList) {
+        LOG_WARN(" instead found camera: " << cam);
+      }
+      std::this_thread::sleep_for(chrono::seconds(1));
+    } else {
+      LOG_INFO("found camera with serial number: " << serial_);
+      foundCamera = true;
+      break;
+    }
+  }
+  if (!foundCamera) {
+    LOG_ERROR("giving up, camera " << serial_ << " not found!");
+    throw std::runtime_error("camera " + serial_ + " not found!");
+  }
+  if (!wrapper_->initCamera(serial_)) {
+    LOG_ERROR("camera " << serial_ << " init failed!");
+    throw std::runtime_error("camera " + serial_ + "init failed!");
+  }
+  if (dumpNodeMap_) {
+    LOG_INFO("dumping node map!");
+    std::string nm = wrapper_->getNodeMapAsString();
+    std::cout << nm;
+  }
+}
+
+void Camera::closeDevice()
+{
+  if (wrapper_) {
+    wrapper_->deInitCamera();
+  }
+  wrapper_.reset();
+}
+
+bool Camera::stopStreaming()
+{
+  if (cameraStreaming_ && wrapper_) {
+    if (wrapper_->stopCamera()) {
+      cameraStreaming_ = false;
+      stopDiagnostics();
+      return (true);
+    }
   }
   return false;
 }
@@ -172,28 +340,36 @@ std::ostream & operator<<(std::ostream & o, const ffmt & f)
   return (o);
 }
 
-void Camera::printStatus()
+void Camera::updateStatus()
 {
   if (wrapper_) {
-    const double dropRate =
-      (queuedCount_ > 0) ? (static_cast<double>(droppedCount_) / static_cast<double>(queuedCount_))
-                         : 0;
-    const rclcpp::Time t = node_->now();
+    const rclcpp::Time t = clock()->now();
     const rclcpp::Duration dt = t - lastStatusTime_;
     const double dtns = std::max(dt.nanoseconds(), (int64_t)1);
     const double outRate = publishedCount_ * 1e9 / dtns;
-    const double incompleteRate = wrapper_->getIncompleteRate();
+    SpinnakerWrapper::Stats stats;
+    wrapper_->getAndClearStatistics(&stats);
+    acquisitionTimeouts_ += stats.acquisitionTimeouts;
+    acquisitionError_ = stats.acquisitionError;
+    const double inRate = stats.numberReceived * 1e9 / dtns;
+    const double dropRate =
+      (queuedCount_ > 0) ? (static_cast<double>(droppedCount_) / static_cast<double>(queuedCount_))
+                         : 0;
     std::stringstream ss;
-    ss << "rate [Hz] in " << ffmt(6, 2) << wrapper_->getReceiveFrameRate() << " out " << ffmt(6, 2)
-       << outRate << " drop " << ffmt(3, 0) << dropRate * 100;
+    ss << "IN: " << ffmt(6, 2) << inRate << " Hz ";
+    ss << " OUT: " << ffmt(6, 2) << outRate;
+    ss << " Hz drop " << ffmt(3, 0) << dropRate * 100 << "%";
     if (useIEEE1588_) {
       ss << " " << wrapper_->getIEEE1588Status() << " off[s]: " << ffmt(6, 4) << ptpOffset_;
     }
-    if (incompleteRate != 0) {
-      ss << " INCOMPLETE: " << ffmt(3, 0) << incompleteRate * 100;
+    if (stats.numberIncomplete != 0) {
+      ss << " INCOMPLETE: " << ffmt(3, 0) << stats.numberIncomplete;
+    }
+    if (stats.numberSkipped != 0) {
+      ss << " SKIPPED: " << ffmt(3, 0) << stats.numberSkipped;
     }
     if (
-      incompleteRate != 0 ||
+      stats.numberIncomplete != 0 || stats.numberSkipped != 0 ||
       (useIEEE1588_ && (ptpOffset_ > maxIEEE1588Offset_ || ptpOffset_ < minIEEE1588Offset_))) {
       LOG_WARN(ss.str());
     } else {
@@ -211,14 +387,14 @@ void Camera::printStatus()
 
 void Camera::checkSubscriptions()
 {
-  if (connectWhileSubscribed_) {
+  if (streamOnlyWhileSubscribed_) {
     if (pub_.getNumSubscribers() > 0 || metaPub_->get_subscription_count() != 0) {
-      if (!cameraRunning_) {
-        startCamera();
+      if (!cameraStreaming_) {
+        startStreaming();
       }
     } else {
-      if (cameraRunning_) {
-        stopCamera();
+      if (cameraStreaming_) {
+        stopStreaming();
       }
     }
   }
@@ -231,6 +407,12 @@ void Camera::readParameters()
   if (!quiet_) {
     LOG_INFO("reading ros parameters for camera with serial: " << serial_);
   }
+  incompleteLevels_ = DiagnosticLevels<int>(
+    safe_declare<int>(prefix_ + "diagnostic_incompletes_warn", 1),
+    safe_declare<int>(prefix_ + "diagnostic_incompletes_error", 2));
+  dropLevels_ = DiagnosticLevels<int>(
+    safe_declare<int>(prefix_ + "diagnostic_drops_warn", 1),
+    safe_declare<int>(prefix_ + "diagnostic_drops_error", 2));
   debug_ = safe_declare<bool>(prefix_ + "debug", false);
   adjustTimeStamp_ = safe_declare<bool>(prefix_ + "adjust_timestamp", false);
   useIEEE1588_ = safe_declare<bool>(prefix_ + "use_ieee_1588", false);
@@ -244,18 +426,18 @@ void Camera::readParameters()
   }
   minIEEE1588Offset_ = safe_declare<double>(prefix_ + "min_ieee_1588_offset", 0);
   maxIEEE1588Offset_ = safe_declare<double>(prefix_ + "max_ieee_1588_offset", 0.1);
-  cameraInfoURL_ = safe_declare<std::string>(prefix_ + "camerainfo_url", "");
-  frameId_ = safe_declare<std::string>(prefix_ + "frame_id", node_->get_name());
+  frameId_ = safe_declare<std::string>(prefix_ + "frame_id", name());
   dumpNodeMap_ = safe_declare<bool>(prefix_ + "dump_node_map", false);
   qosDepth_ = safe_declare<int>(prefix_ + "image_queue_size", 4);
   maxBufferQueueSize_ = static_cast<size_t>(safe_declare<int>(prefix_ + "buffer_queue_size", 4));
   computeBrightness_ = safe_declare<bool>(prefix_ + "compute_brightness", false);
   acquisitionTimeout_ = safe_declare<double>(prefix_ + "acquisition_timeout", 3.0);
   parameterFile_ = safe_declare<std::string>(prefix_ + "parameter_file", "parameters.yaml");
-  connectWhileSubscribed_ = safe_declare<bool>(prefix_ + "connect_while_subscribed", false);
+  streamOnlyWhileSubscribed_ = safe_declare<bool>(prefix_ + "connect_while_subscribed", false);
   enableExternalControl_ = safe_declare<bool>(prefix_ + "enable_external_control", false);
-  callbackHandle_ = node_->add_on_set_parameters_callback(
+  callbackHandle_ = node_parameters_interface_->add_on_set_parameters_callback(
     std::bind(&Camera::parameterChanged, this, std::placeholders::_1));
+  cameraInfoURL_ = safe_declare<std::string>(prefix_ + "camerainfo_url", "");
 }
 
 bool Camera::readParameterDefinitionFile()
@@ -519,6 +701,9 @@ void Camera::processImage(const ImageConstPtr & im)
     } else {
       droppedCount_++;
     }
+    if (imageArrivalDiagnostic_) {
+      imageArrivalDiagnostic_->tick();
+    }
   }
 }
 
@@ -673,108 +858,128 @@ void Camera::doPublish(const ImageConstPtr & im)
     metaMsg_.camera_time = im->imageTime_;
     metaPub_->publish(metaMsg_);
   }
+  numIncompletes_ += im->numIncomplete_;
+  if (lastFrameId_ == 0) {
+    lastFrameId_ = im->frameId_;
+  }
+  if (im->frameId_ != 0) {
+    numDrops_ += (im->frameId_ > lastFrameId_) ? (im->frameId_ - lastFrameId_ - 1) : 0;
+  }
+  lastFrameId_ = im->frameId_;
+  if (topicDiagnostic_) {
+    topicDiagnostic_->tick(t);
+  }
 }
 
 void Camera::printCameraInfo()
 {
-  if (cameraRunning_) {
+  if (wrapper_ && cameraStreaming_) {
     LOG_INFO("camera has pixel format: " << wrapper_->getPixelFormat());
   }
 }
 
-void Camera::startCamera()
+bool Camera::deactivate()
 {
-  if (!cameraRunning_) {
-    spinnaker_camera_driver::SpinnakerWrapper::Callback cb =
-      std::bind(&Camera::processImage, this, std::placeholders::_1);
-    cameraRunning_ = wrapper_->startCamera(cb);
-    if (!cameraRunning_) {
-      LOG_ERROR("failed to start camera!");
-    } else {
-      printCameraInfo();
-    }
+  stopTimers();
+  stopStreaming();
+  {
+    std::unique_lock<std::mutex> lock(mutex_);
+    keepRunning_ = false;
+    cv_.notify_all();
+  }
+  if (thread_) {
+    thread_->join();
+    thread_.reset();
+  }
+  return (true);
+}
+
+bool Camera::deconfigure()
+{
+  destroySubscribers();
+  closeDevice();
+  destroyPublishers();
+  return (true);
+}
+
+void Camera::destroySubscribers() { controlSub_.reset(); }
+
+void Camera::destroyPublishers()
+{
+  metaPub_.reset();
+  pub_.shutdown();
+}
+
+void Camera::startDiagnostics()
+{
+  const double period = safe_declare<double>("diagnostic_period", -1.0);
+  if (period <= 0) {
+    return;
+  }
+  updater_ = std::make_shared<diagnostic_updater::Updater>(
+    node_base_interface_, node_clock_interface_, node_logging_interface_,
+    node_parameters_interface_, node_timers_interface_, node_topics_interface_, period);
+  updater_->setHardwareID(serial_);
+  minFreqDiag_ = safe_declare<double>("diagnostic_min_freq", -1.0);
+  maxFreqDiag_ = safe_declare<double>("diagnostic_max_freq", -1.0);
+  if (minFreqDiag_ < 0 || maxFreqDiag_ < 0) {
+    BOMB_OUT("must set diagnostic_min_freq and diagnostic_max_freq parameters!");
+  }
+  const int window_size = safe_declare<int>("diagnostic_window", 10);
+  const double min_ts_diff = -1.0 / minFreqDiag_;
+  const double max_ts_diff = 1.0 / minFreqDiag_;
+  topicDiagnostic_ = std::make_shared<diagnostic_updater::TopicDiagnostic>(
+    topicPrefix_ + "image_raw", *updater_,
+    diagnostic_updater::FrequencyStatusParam(&minFreqDiag_, &maxFreqDiag_, 0, window_size),
+    diagnostic_updater::TimeStampStatusParam(min_ts_diff, max_ts_diff));
+  imageArrivalDiagnostic_ = std::make_shared<diagnostic_updater::FrequencyStatus>(
+    diagnostic_updater::FrequencyStatusParam(&minFreqDiag_, &maxFreqDiag_, 0, window_size),
+    "image_arrival");
+  updater_->add(*imageArrivalDiagnostic_);
+  updater_->add(imageTask_);
+  updater_->add(acquisitionErrorTask_);
+}
+
+void Camera::updateDiagnosticsStatus(
+  DiagnosticStatusWrapper & status, const std::string & label, const int val,
+  const DiagnosticLevels<int> & levels)
+{
+  if (val < levels.warning) {
+    status.summary(Status::OK, label + " is ok.");
+  } else if (val < levels.error) {
+    status.summary(Status::WARN, label + " is high!");
+  } else {
+    status.summary(Status::ERROR, label + " too high!");
   }
 }
 
-bool Camera::start()
+void Camera::incompleteDiagnostics(DiagnosticStatusWrapper & status)
 {
-  readParameters();
-  try {
-    if (!readParameterDefinitionFile()) {
-      return (false);
-    }
-  } catch (const YAML::Exception & e) {
-    LOG_ERROR("error reading parameter definitions: " << e.what());
-    return (false);
-  }
+  updateDiagnosticsStatus(
+    status, "incompletes", static_cast<int>(numIncompletes_), incompleteLevels_);
+  numIncompletes_ = 0;
+}
 
-  infoManager_ = std::make_shared<camera_info_manager::CameraInfoManager>(
-    node_, name_.empty() ? node_->get_name() : name_, cameraInfoURL_);
-  if (enableExternalControl_) {
-    controlSub_ = node_->create_subscription<flir_camera_msgs::msg::CameraControl>(
-      "~/" + topicPrefix_ + "control", 10,
-      std::bind(&Camera::controlCallback, this, std::placeholders::_1));
-  }
-  metaPub_ =
-    node_->create_publisher<flir_camera_msgs::msg::ImageMetaData>("~/" + topicPrefix_ + "meta", 1);
+void Camera::droppedDiagnostics(DiagnosticStatusWrapper & status)
+{
+  updateDiagnosticsStatus(status, "drops", static_cast<int>(numDrops_), dropLevels_);
+  numDrops_ = 0;
+}
 
-  cameraInfoMsg_ = infoManager_->getCameraInfo();
-  imageMsg_.header.frame_id = frameId_;
-  cameraInfoMsg_.header.frame_id = frameId_;
-  metaMsg_.header.frame_id = frameId_;
-
-  pub_ = imageTransport_->advertiseCamera("~/" + topicPrefix_ + "image_raw", qosDepth_);
-
-  wrapper_ = std::make_shared<spinnaker_camera_driver::SpinnakerWrapper>();
-  wrapper_->setDebug(debug_);
-  wrapper_->setComputeBrightness(computeBrightness_);
-  wrapper_->setAcquisitionTimeout(acquisitionTimeout_);
-  wrapper_->useIEEE1588(useIEEE1588_);
-
-  LOG_INFO("using spinnaker lib version: " + wrapper_->getLibraryVersion());
-  bool foundCamera = false;
-  for (int retry = 1; retry < 6; retry++) {
-    wrapper_->refreshCameraList();
-    const auto camList = wrapper_->getSerialNumbers();
-    if (std::find(camList.begin(), camList.end(), serial_) == camList.end()) {
-      LOG_WARN("no camera found with serial: " << serial_ << " on try # " << retry);
-      for (const auto & cam : camList) {
-        LOG_WARN(" found cameras: " << cam);
-      }
-      std::this_thread::sleep_for(chrono::seconds(1));
-    } else {
-      LOG_INFO("found camera with serial number: " << serial_);
-      foundCamera = true;
-      break;
-    }
-  }
-  if (!foundCamera) {
-    LOG_ERROR("giving up, camera " << serial_ << " not found!");
-    return (false);
-  }
-  keepRunning_ = true;
-  thread_ = std::make_shared<std::thread>(&Camera::run, this);
-
-  if (wrapper_->initCamera(serial_)) {
-    if (dumpNodeMap_) {
-      LOG_INFO("dumping node map!");
-      std::string nm = wrapper_->getNodeMapAsString();
-      std::cout << nm;
-    }
-    // Must first create the camera parameters before acquisition is started.
-    // Some parameters (like blackfly s chunk control) cannot be set once
-    // the camera is running.
-    createCameraParameters();
-    if (!connectWhileSubscribed_) {
-      startCamera();
-    } else {
-      checkSubscriptionsTimer_ = rclcpp::create_timer(
-        node_, node_->get_clock(), rclcpp::Duration(1, 0),
-        std::bind(&Camera::checkSubscriptions, this));
-    }
+void Camera::acquisitionDiagnostics(DiagnosticStatusWrapper & status)
+{
+  if (acquisitionTimeouts_ != 0 || acquisitionError_) {
+    status.summary(Status::ERROR, "acquisition error!");
   } else {
-    LOG_ERROR("init camera failed for cam: " << serial_);
+    status.summary(Status::OK, "acquisition ok!");
   }
-  return (true);
+  acquisitionTimeouts_ = 0;  // clear number of timeouts
+}
+
+void Camera::stopDiagnostics()
+{
+  updater_.reset();
+  topicDiagnostic_.reset();
+  imageArrivalDiagnostic_.reset();
 }
 }  // namespace spinnaker_camera_driver

@@ -19,6 +19,7 @@
 #include <SpinGenApi/SpinnakerGenApi.h>
 #include <Spinnaker.h>
 
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <rclcpp/rclcpp.hpp>
@@ -33,7 +34,7 @@ namespace spinnaker_camera_driver
 class SpinnakerWrapperImpl : public Spinnaker::ImageEventHandler
 {
 public:
-  SpinnakerWrapperImpl();
+  explicit SpinnakerWrapperImpl(rclcpp::Logger logger);
   ~SpinnakerWrapperImpl();
   // ------- inherited methods
   // from ImageEventHandler
@@ -51,8 +52,7 @@ public:
   bool startCamera(const SpinnakerWrapper::Callback & cb);
   bool stopCamera();
 
-  double getReceiveFrameRate() const;
-  double getIncompleteRate();
+  void getAndClearStatistics(SpinnakerWrapper::Stats * stats);
 
   std::string getNodeMapAsString();
   // methods for setting camera params
@@ -68,18 +68,19 @@ public:
   std::string getIEEE1588Status() const;
 
 private:
+  using Lock = std::unique_lock<std::mutex>;
   void setPixelFormat(const std::string & pixFmt);
   bool setInINodeMap(double f, const std::string & field, double * fret);
   void monitorStatus();
 
-  rclcpp::Logger get_logger() { return rclcpp::get_logger("Spinnaker Wrapper"); }
+  auto & get_logger() const { return (logger_); }
 
   // ----- variables --
+  rclcpp::Logger logger_;
   Spinnaker::SystemPtr system_;
   Spinnaker::CameraList cameraList_;
   Spinnaker::CameraPtr camera_;
   SpinnakerWrapper::Callback callback_;
-  double avgTimeInterval_{0};
   uint64_t lastTime_{0};
   bool cameraRunning_{false};
   bool debug_{false};
@@ -90,11 +91,13 @@ private:
   Spinnaker::GenApi::CFloatPtr exposureTimeNode_;
   bool keepRunning_{true};
   std::shared_ptr<std::thread> thread_;
-  std::mutex mutex_;
+  std::mutex statusMonitorMutex_;
+  std::condition_variable statusMonitorCv_;
+  std::mutex cameraMutex_;
   uint64_t acquisitionTimeout_{10000000000ULL};
+  SpinnakerWrapper::Stats stats_;
   size_t numIncompleteImages_{0};
-  size_t numImagesTotal_{0};
-  size_t numIncompleteImagesTotal_{0};
+  size_t lastFrameId_{0};
   Spinnaker::GevIEEE1588StatusEnums ptpStatus_{Spinnaker::GevIEEE1588Status_Disabled};
 };
 }  // namespace spinnaker_camera_driver

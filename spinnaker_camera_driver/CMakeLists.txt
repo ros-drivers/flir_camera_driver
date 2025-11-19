@@ -26,7 +26,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -67,6 +67,7 @@ find_package(SPINNAKER REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
 find_package(camera_info_manager REQUIRED)
+find_package(diagnostic_updater REQUIRED)
 find_package(flir_camera_msgs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -75,6 +76,11 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
+if(${image_transport_VERSION} VERSION_GREATER_EQUAL "6.4.0")
+  add_definitions(-DIMAGE_TRANSPORT_SUPPORTS_NODE_INTERFACES)
+  add_definitions(-DIMAGE_TRANSPORT_SUPPORTS_LIFECYCLE_NODE)
+endif()
+
 include_directories(SYSTEM
   ${SPINNAKER_INCLUDE_DIRS})
 
@@ -82,6 +88,7 @@ include_directories(SYSTEM
 
 set(ROS_DEPENDENCIES
   camera_info_manager::camera_info_manager
+  diagnostic_updater::diagnostic_updater
   ${flir_camera_msgs_TARGETS}
   image_transport::image_transport
   rclcpp::rclcpp
@@ -101,6 +108,7 @@ add_library(camera_driver SHARED
   src/image.cpp
   src/pixel_format.cpp
   src/genicam_utils.cpp
+  src/utils.cpp
 )
 
 target_link_libraries(camera_driver
@@ -109,6 +117,7 @@ target_link_libraries(camera_driver
   yaml-cpp
   PRIVATE
   Spinnaker::Spinnaker)
+
 
 target_include_directories(camera_driver
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

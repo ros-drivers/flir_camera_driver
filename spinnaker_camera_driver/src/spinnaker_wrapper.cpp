@@ -22,7 +22,10 @@
 
 namespace spinnaker_camera_driver
 {
-SpinnakerWrapper::SpinnakerWrapper() { wrapperImpl_.reset(new SpinnakerWrapperImpl()); }
+SpinnakerWrapper::SpinnakerWrapper(rclcpp::Logger logger)
+{
+  wrapperImpl_.reset(new SpinnakerWrapperImpl(logger));
+}
 
 std::string SpinnakerWrapper::getLibraryVersion() const
 {
@@ -48,11 +51,11 @@ bool SpinnakerWrapper::startCamera(const Callback & cb) { return wrapperImpl_->s
 bool SpinnakerWrapper::stopCamera() { return wrapperImpl_->stopCamera(); }
 
 std::string SpinnakerWrapper::getPixelFormat() const { return wrapperImpl_->getPixelFormat(); }
-double SpinnakerWrapper::getReceiveFrameRate() const
+
+void SpinnakerWrapper::getAndClearStatistics(Stats * stats)
 {
-  return (wrapperImpl_->getReceiveFrameRate());
+  wrapperImpl_->getAndClearStatistics(stats);
 }
-double SpinnakerWrapper::getIncompleteRate() { return (wrapperImpl_->getIncompleteRate()); }
 
 std::string SpinnakerWrapper::getNodeMapAsString() { return (wrapperImpl_->getNodeMapAsString()); }
 

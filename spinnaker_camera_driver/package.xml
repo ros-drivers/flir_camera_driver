@@ -29,6 +29,7 @@
   <depend>yaml-cpp</depend> <!-- parameter definition file parsing -->
 
   <depend>camera_info_manager</depend>
+  <depend>diagnostic_updater</depend>
   <depend>flir_camera_msgs</depend>
   <depend>image_transport</depend>
   <depend>rclcpp</depend>

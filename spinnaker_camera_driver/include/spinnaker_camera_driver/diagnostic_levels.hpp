@@ -13,18 +13,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
-#include <rclcpp/rclcpp.hpp>
-#include <spinnaker_camera_driver/camera_driver.hpp>
+#ifndef SPINNAKER_CAMERA_DRIVER__DIAGNOSTIC_LEVELS_HPP_
+#define SPINNAKER_CAMERA_DRIVER__DIAGNOSTIC_LEVELS_HPP_
 
-int main(int argc, char * argv[])
+namespace spinnaker_camera_driver
 {
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<spinnaker_camera_driver::CameraDriver>(rclcpp::NodeOptions());
-
-  RCLCPP_INFO(node->get_logger(), "camera driver node started up!");
-  rclcpp::spin(node->get_node_base_interface());  // should not return
-  node.reset();
-  rclcpp::shutdown();
-  return 0;
-}
+template <class T>
+struct DiagnosticLevels
+{
+public:
+  explicit DiagnosticLevels(T w = 0, T e = 0) : warning(w), error(e) {}
+  T warning{0};
+  T error{0};
+};
+}  // namespace spinnaker_camera_driver
+#endif  // SPINNAKER_CAMERA_DRIVER__DIAGNOSTIC_LEVELS_HPP_

@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <memory>
+#include <rclcpp/rclcpp.hpp>
 #include <spinnaker_camera_driver/image.hpp>
 #include <string>
 #include <vector>
@@ -28,6 +29,26 @@ class SpinnakerWrapperImpl;
 class SpinnakerWrapper
 {
 public:
+  struct Stats
+  {
+    Stats() = default;
+    explicit Stats(size_t nr, size_t ni, size_t ns, size_t nt)
+    : numberReceived(nr), numberIncomplete(ni), numberSkipped(ns), acquisitionTimeouts(nt)
+    {
+    }
+    void clear()
+    {
+      numberReceived = 0;
+      numberIncomplete = 0;
+      numberSkipped = 0;
+      acquisitionTimeouts = 0;
+    }
+    size_t numberReceived{0};
+    size_t numberIncomplete{0};
+    size_t numberSkipped{0};
+    size_t acquisitionTimeouts{0};
+    bool acquisitionError{false};
+  };
   struct Exception : public std::exception
   {
     explicit Exception(const std::string & what) : what_(what) {}
@@ -38,7 +59,7 @@ public:
   };
   using Callback = std::function<void(const ImageConstPtr & img)>;
 
-  SpinnakerWrapper();
+  explicit SpinnakerWrapper(rclcpp::Logger logger);
 
   std::string getLibraryVersion() const;
   void refreshCameraList();
@@ -52,11 +73,9 @@ public:
   void setComputeBrightness(bool b);
   void setAcquisitionTimeout(double sec);
   void useIEEE1588(bool b);
+  void getAndClearStatistics(Stats * stats);
   std::string getIEEE1588Status() const;
-
   std::string getPixelFormat() const;
-  double getReceiveFrameRate() const;
-  double getIncompleteRate();
   std::string getNodeMapAsString();
   std::string setEnum(const std::string & nodeName, const std::string & val, std::string * retVal);
   std::string setDouble(const std::string & nodeName, double val, double * retVal);

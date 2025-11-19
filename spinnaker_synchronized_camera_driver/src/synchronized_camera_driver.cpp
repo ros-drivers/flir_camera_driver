@@ -17,6 +17,8 @@
 #include <rclcpp/node_options.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 #include <spinnaker_camera_driver/exposure_controller.hpp>
+#include <spinnaker_camera_driver/lifecycle_types.hpp>
+#include <spinnaker_camera_driver/utils.hpp>
 #include <spinnaker_synchronized_camera_driver/exposure_controller_factory.hpp>
 #include <spinnaker_synchronized_camera_driver/logging.hpp>
 #include <spinnaker_synchronized_camera_driver/synchronized_camera_driver.hpp>
@@ -25,27 +27,93 @@
 namespace spinnaker_synchronized_camera_driver
 {
 SynchronizedCameraDriver::SynchronizedCameraDriver(const rclcpp::NodeOptions & options)
-: Node("sync_cam_driver", options), timeEstimator_(new TimeEstimator())
+: NodeType("sync_cam_driver", options), timeEstimator_(new TimeEstimator())
 {
-  imageTransport_ = std::make_shared<image_transport::ImageTransport>(
-    std::shared_ptr<SynchronizedCameraDriver>(this, [](auto *) {}));
-  createExposureControllers();  // before cams so they can refer to it
-  createCameras();
-  // start cameras only when all synchronizer state has been set up!
-  for (auto & c : cameras_) {
-    c.second->start();
+#ifdef IMAGE_TRANSPORT_SUPPORTS_LIFECYCLE_NODE
+  imageTransport_ = std::make_shared<ImageTransport>(image_transport::RequiredInterfaces(*this));
+  get_node_base_interface()->get_context()->add_pre_shutdown_callback(
+    std::bind(&SynchronizedCameraDriver::preShutdown, this));
+  if (declare_parameter("auto_start", true)) {
+    // defer because one cannot call some of the required methods inside the constructor
+    timer_ = create_wall_timer(std::chrono::microseconds(0), [this]() -> void {
+      timer_->cancel();
+      rclcpp_lifecycle::LifecycleNode::configure();
+      rclcpp_lifecycle::LifecycleNode::activate();
+    });
   }
+#else
+  imageTransport_ = std::make_shared<ImageTransport>(
+    std::shared_ptr<SynchronizedCameraDriver>(this, [](auto *) {}));
+  if (configure()) {
+    activate();
+  }
+#endif
+}
 
+SynchronizedCameraDriver::~SynchronizedCameraDriver() { shutdown(); }
+
+bool SynchronizedCameraDriver::configure()
+{
+  if (!createExposureControllers()) {
+    return (false);
+  }
+  if (!createCameras()) {
+    return (false);
+  }
+  for (auto & c : cameras_) {
+    if (!c.second->configure()) {
+      return (false);
+    }
+  }
+  return (true);
+}
+
+bool SynchronizedCameraDriver::activate()
+{
+  for (auto & c : cameras_) {
+    if (!c.second->activate()) {
+      return (false);
+    }
+  }
   statusTimer_ = rclcpp::create_timer(
     this, this->get_clock(), rclcpp::Duration(5, 0),
     std::bind(&SynchronizedCameraDriver::printStatus, this));
+  return (true);
 }
 
-SynchronizedCameraDriver::~SynchronizedCameraDriver()
+bool SynchronizedCameraDriver::deactivate()
 {
-  if (!statusTimer_->is_canceled()) {
+  for (auto & c : cameras_) {
+    if (!c.second->deactivate()) {
+      return (false);
+    }
+  }
+  if (statusTimer_ && !statusTimer_->is_canceled()) {
     statusTimer_->cancel();
   }
+  return (true);
+}
+
+bool SynchronizedCameraDriver::deconfigure()
+{
+  for (auto & c : cameras_) {
+    if (!c.second->deconfigure()) {
+      return (false);
+    }
+  }
+  destroyCameras();
+  destroyExposureControllers();
+  return (true);
+}
+
+void SynchronizedCameraDriver::shutdown()
+{
+  if (timer_) {
+    timer_->cancel();
+    timer_->reset();
+  }
+  (void)deactivate();
+  (void)deconfigure();
 }
 
 void SynchronizedCameraDriver::printStatus()
@@ -88,14 +156,16 @@ void SynchronizedCameraDriver::printStatus()
   }
 }
 
-void SynchronizedCameraDriver::createExposureControllers()
+bool SynchronizedCameraDriver::createExposureControllers()
 {
   using svec = std::vector<std::string>;
   const svec controllers = this->declare_parameter<svec>("exposure_controllers", svec());
   for (const auto & c : controllers) {
     const std::string type = this->declare_parameter<std::string>(c + ".type", "");
     if (!type.empty()) {
-      exposureControllers_.insert({c, exposure_controller_factory::newInstance(type, c, this)});
+      exposureControllers_.insert(
+        {c,
+         exposure_controller_factory::newInstance(type, c, this->get_node_parameters_interface())});
       LOG_INFO("created exposure controller: " << c);
     } else {
       BOMB_OUT("no controller type specified for controller " << c);
@@ -105,9 +175,10 @@ void SynchronizedCameraDriver::createExposureControllers()
   for (auto & c : exposureControllers_) {
     c.second->link(exposureControllers_);
   }
+  return (true);
 }
 
-void SynchronizedCameraDriver::createCameras()
+bool SynchronizedCameraDriver::createCameras()
 {
   using svec = std::vector<std::string>;
   const svec cameras = this->declare_parameter<svec>("cameras", svec());
@@ -116,8 +187,19 @@ void SynchronizedCameraDriver::createCameras()
   }
   for (size_t i = 0; i < cameras.size(); i++) {
     const auto & c = cameras[i];
-    auto cam =
-      std::make_shared<spinnaker_camera_driver::Camera>(this, imageTransport_.get(), c, false);
+#ifdef IMAGE_TRANSPORT_SUPPORTS_NODE_INTERFACES
+    auto mgr = spinnaker_camera_driver::utils::makeCameraInfoManager(
+      get_node_base_interface(), get_node_parameters_interface(), get_node_logging_interface(),
+      get_node_services_interface(), c, c + ".camerainfo_url", 10);
+#else
+    auto mgr =
+      spinnaker_camera_driver::utils::makeCameraInfoManager(this, c, c + ".camerainfo_url");
+#endif
+    infoManagers_.push_back(mgr);
+    auto cam = std::make_shared<spinnaker_camera_driver::Camera>(
+      get_node_base_interface(), get_node_parameters_interface(), get_node_logging_interface(),
+      get_node_timers_interface(), get_node_clock_interface(), get_node_topics_interface(),
+      get_node_services_interface(), imageTransport_.get(), mgr.get(), c, c, false);
     cameras_.insert({c, cam});
     timeKeepers_.push_back(std::make_shared<TimeKeeper>(i, c, this));
     cam->setSynchronizer(timeKeepers_.back());
@@ -133,6 +215,16 @@ void SynchronizedCameraDriver::createCameras()
     }
   }
   numUpdatesRequired_ = cameras.size() * 3;
+  return (true);
+}
+
+void SynchronizedCameraDriver::destroyExposureControllers() { exposureControllers_.clear(); }
+
+void SynchronizedCameraDriver::destroyCameras()
+{
+  cameras_.clear();
+  timeKeepers_.clear();
+  infoManagers_.clear();
 }
 
 bool SynchronizedCameraDriver::update(
@@ -155,6 +247,72 @@ bool SynchronizedCameraDriver::update(
   const bool gotTime = timeEstimator_->update(idx, hostTime, frameTime);
   return (gotTime);
 }
+
+#ifdef IMAGE_TRANSPORT_SUPPORTS_LIFECYCLE_NODE
+
+void SynchronizedCameraDriver::preShutdown()
+{
+  LOG_INFO("running preShutdown()");
+  rclcpp_lifecycle::LifecycleNode::shutdown();
+}
+
+CbReturn SynchronizedCameraDriver::on_configure(const LCState & s)
+{
+  LOG_INFO("requested configure()");
+  const auto ret = NodeType::on_configure(s);
+  if (ret != CbReturn::SUCCESS) {
+    return (ret);
+  }
+  return (configure() ? CbReturn::SUCCESS : CbReturn::FAILURE);
+}
+
+CbReturn SynchronizedCameraDriver::on_activate(const LCState & s)
+{
+  LOG_INFO("requested activate()");
+  const auto ret = NodeType::on_activate(s);
+  if (ret != CbReturn::SUCCESS) {
+    return (ret);
+  }
+  return (activate() ? CbReturn::SUCCESS : CbReturn::FAILURE);
+}
+
+CbReturn SynchronizedCameraDriver::on_deactivate(const LCState & s)
+{
+  LOG_INFO("requested deactivate()");
+  const auto ret = NodeType::on_deactivate(s);
+  if (ret != CbReturn::SUCCESS) {
+    return (ret);
+  }
+  return (deactivate() ? CbReturn::SUCCESS : CbReturn::FAILURE);
+}
+
+CbReturn SynchronizedCameraDriver::on_cleanup(const LCState & s)
+{
+  LOG_INFO("requested cleanup()");
+  const auto ret = NodeType::on_cleanup(s);
+  if (ret != CbReturn::SUCCESS) {
+    return (ret);
+  }
+  return (deconfigure() ? CbReturn::SUCCESS : CbReturn::FAILURE);
+}
+
+CbReturn SynchronizedCameraDriver::on_shutdown(const LCState & state)
+{
+  LOG_INFO("requested shutdown()");
+  auto ret = NodeType::on_shutdown(state);
+  if (ret != CbReturn::SUCCESS) {
+    return (ret);
+  }
+  shutdown();
+  return CbReturn::SUCCESS;
+}
+
+CbReturn SynchronizedCameraDriver::on_error(const LCState & state)
+{
+  LOG_ERROR("got error state: " << state.label());
+  return (CbReturn::FAILURE);
+}
+#endif
 
 }  // namespace spinnaker_synchronized_camera_driver
 

@@ -93,12 +93,12 @@ static bool set_acquisition_mode_continuous(GenApi::INodeMap & nodeMap)
   return false;
 }
 
-SpinnakerWrapperImpl::SpinnakerWrapperImpl()
+SpinnakerWrapperImpl::SpinnakerWrapperImpl(rclcpp::Logger logger) : logger_(logger)
 {
   system_ = Spinnaker::System::GetInstance();
   if (!system_) {
-    std::cerr << "cannot instantiate spinnaker driver!" << std::endl;
-    throw std::runtime_error("failed to get spinnaker driver!");
+    LOG_ERROR("cannot instantiate spinnaker SDK!");
+    throw std::runtime_error("failed to instantiate spinnaker SDK!");
   }
   refreshCameraList();
 }
@@ -116,7 +116,7 @@ SpinnakerWrapperImpl::~SpinnakerWrapperImpl()
   keepRunning_ = false;
   stopCamera();
   deInitCamera();
-  camera_ = 0;  // call destructor, may not be needed
+  camera_ = nullptr;  // call destructor, may not be needed
   cameraList_.Clear();
   if (system_) {
     system_->ReleaseInstance();
@@ -144,6 +144,7 @@ std::vector<std::string> SpinnakerWrapperImpl::getSerialNumbers() const
 std::string SpinnakerWrapperImpl::setEnum(
   const std::string & nodeName, const std::string & val, std::string * retVal)
 {
+  Lock lock(cameraMutex_);
   *retVal = "UNKNOWN";
   const auto np = genicam_utils::find_node(nodeName, camera_, debug_);
   if (!np) {
@@ -168,12 +169,12 @@ std::string SpinnakerWrapperImpl::setEnum(
       }
     }
     if (debug_) {
-      std::cout << "node " << nodeName << " invalid enum: " << val << std::endl;
-      std::cout << "allowed enum values: " << std::endl;
+      LOG_WARN("node " << nodeName << " invalid enum: " << val);
+      LOG_WARN("allowed enum values: ");
       GenApi::StringList_t validValues;
       p->GetSymbolics(validValues);
       for (const auto & ve : validValues) {
-        std::cout << "  " << ve << std::endl;
+        LOG_WARN("  " << ve);
       }
     }
     return ("node " + nodeName + " invalid enum: " + val);
@@ -231,23 +232,27 @@ static std::string set_parameter(
 std::string SpinnakerWrapperImpl::setDouble(const std::string & nn, double val, double * retVal)
 {
   *retVal = std::nan("");
+  Lock lock(cameraMutex_);
   return (set_parameter<GenApi::CFloatPtr, double>(nn, val, retVal, camera_, debug_));
 }
 
 std::string SpinnakerWrapperImpl::setBool(const std::string & nn, bool val, bool * retVal)
 {
+  Lock lock(cameraMutex_);
   *retVal = !val;
   return (set_parameter<GenApi::CBooleanPtr, bool>(nn, val, retVal, camera_, debug_));
 }
 
 std::string SpinnakerWrapperImpl::setInt(const std::string & nn, int val, int * retVal)
 {
+  Lock lock(cameraMutex_);
   *retVal = -1;
   return (set_parameter<GenApi::CIntegerPtr, int>(nn, val, retVal, camera_, debug_));
 }
 
 std::string SpinnakerWrapperImpl::execute(const std::string & nn)
 {
+  Lock lock(cameraMutex_);
   const auto np = genicam_utils::find_node(nn, camera_, debug_, true);
   if (!np) {
     return ("node " + nn + " not found!");
@@ -261,20 +266,6 @@ std::string SpinnakerWrapperImpl::execute(const std::string & nn)
   }
   p->Execute();
   return ("OK");
-}
-
-double SpinnakerWrapperImpl::getReceiveFrameRate() const
-{
-  return (avgTimeInterval_ > 0 ? (1.0 / avgTimeInterval_) : 0);
-}
-
-double SpinnakerWrapperImpl::getIncompleteRate()
-{
-  const double r =
-    numImagesTotal_ == 0 ? 0 : (numIncompleteImagesTotal_ / static_cast<double>(numImagesTotal_));
-  numImagesTotal_ = 0;
-  numIncompleteImagesTotal_ = 0;
-  return (r);
 }
 
 static int int_ceil(size_t x, int y)
@@ -319,28 +310,27 @@ std::string SpinnakerWrapperImpl::getIEEE1588Status() const
   return (it == clockStatusMap.end() ? "INV" : it->second);
 }
 
+void SpinnakerWrapperImpl::getAndClearStatistics(SpinnakerWrapper::Stats * stats)
+{
+  // lock down the statistics
+  Lock lock(statusMonitorMutex_);
+  *stats = stats_;
+  stats_.clear();
+}
+
 void SpinnakerWrapperImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
 {
+  // make sure the status monitor is not modifying the camera
+  // or other shared state like lastTime_
+  Lock lock(statusMonitorMutex_);
   // update frame rate
   auto now = chrono::high_resolution_clock::now();
   const uint64_t t = chrono::duration_cast<chrono::nanoseconds>(now.time_since_epoch()).count();
-  if (avgTimeInterval_ == 0) {
-    if (lastTime_ != 0) {
-      avgTimeInterval_ = (t - lastTime_) * 1e-9;
-    }
-  } else {
-    const double dt = (t - lastTime_) * 1e-9;
-    const double alpha = 0.01;
-    avgTimeInterval_ = avgTimeInterval_ * (1.0 - alpha) + dt * alpha;
-  }
-  {
-    std::unique_lock<std::mutex> lock(mutex_);
-    lastTime_ = t;
-  }
-  numImagesTotal_++;
+  lastTime_ = t;
+  stats_.numberReceived++;
   if (imgPtr->IsIncomplete()) {
+    stats_.numberIncomplete++;
     numIncompleteImages_++;
-    numIncompleteImagesTotal_++;
   } else {
     float expTime = 0;
     float gain = 0;
@@ -358,6 +348,7 @@ void SpinnakerWrapperImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
     const uint32_t maxExpTime =
       static_cast<uint32_t>(is_readable(exposureTimeNode_) ? exposureTimeNode_->GetMax() : 0);
     if (useIEEE1588_) {
+      Lock lock(cameraMutex_);
       ptpStatus_ = camera_->GevIEEE1588Status();
     }
 #if 0
@@ -386,6 +377,11 @@ void SpinnakerWrapperImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
       imgPtr->GetImageStatus(), imgPtr->GetData(), imgPtr->GetWidth(), imgPtr->GetHeight(),
       imgPtr->GetStride(), imgPtr->GetBitsPerPixel(), imgPtr->GetNumChannels(),
       imgPtr->GetFrameID(), pixelFormat_, numIncompleteImages_));
+    const size_t fid = imgPtr->GetFrameID();
+    if (lastFrameId_ != 0 && fid > lastFrameId_) {
+      stats_.numberSkipped += fid - lastFrameId_ - 1;
+    }
+    lastFrameId_ = fid;
     numIncompleteImages_ = 0;
     callback_(img);
   }
@@ -393,6 +389,7 @@ void SpinnakerWrapperImpl::OnImageEvent(Spinnaker::ImagePtr imgPtr)
 
 bool SpinnakerWrapperImpl::initCamera(const std::string & serialNumber)
 {
+  Lock lock(cameraMutex_);
   if (camera_) {
     return false;
   }
@@ -445,6 +442,7 @@ bool SpinnakerWrapperImpl::initCamera(const std::string & serialNumber)
 
 bool SpinnakerWrapperImpl::deInitCamera()
 {
+  Lock lock(cameraMutex_);
   if (!camera_) {
     return (false);
   }
@@ -454,6 +452,7 @@ bool SpinnakerWrapperImpl::deInitCamera()
 
 bool SpinnakerWrapperImpl::startCamera(const SpinnakerWrapper::Callback & cb)
 {
+  Lock lock(cameraMutex_);
   if (!camera_ || cameraRunning_) {
     return false;
   }
@@ -463,19 +462,23 @@ bool SpinnakerWrapperImpl::startCamera(const SpinnakerWrapper::Callback & cb)
   if (set_acquisition_mode_continuous(nodeMap)) {
     camera_->RegisterEventHandler(*this);
     camera_->BeginAcquisition();
-    thread_ = std::make_shared<std::thread>(&SpinnakerWrapperImpl::monitorStatus, this);
-    cameraRunning_ = true;
+    {
+      Lock lock(statusMonitorMutex_);
+      keepRunning_ = true;
+      thread_ = std::make_shared<std::thread>(&SpinnakerWrapperImpl::monitorStatus, this);
+      cameraRunning_ = true;
+    }
 
     GenApi::CEnumerationPtr ptrPixelFormat = nodeMap.GetNode("PixelFormat");
     if (GenApi::IsAvailable(ptrPixelFormat)) {
       setPixelFormat(ptrPixelFormat->GetCurrentEntry()->GetSymbolic().c_str());
     } else {
       setPixelFormat("BayerRG8");
-      std::cerr << "WARNING: driver could not read pixel format!" << std::endl;
+      LOG_WARN("driver could not read pixel format!");
     }
     exposureTimeNode_ = nodeMap.GetNode("ExposureTime");
   } else {
-    std::cerr << "failed to switch on continuous acquisition!" << std::endl;
+    LOG_ERROR("failed to switch on continuous acquisition!");
     return (false);
   }
   callback_ = cb;
@@ -484,18 +487,44 @@ bool SpinnakerWrapperImpl::startCamera(const SpinnakerWrapper::Callback & cb)
 
 bool SpinnakerWrapperImpl::stopCamera()
 {
-  if (camera_ && cameraRunning_) {
-    if (thread_) {
-      keepRunning_ = false;
-      thread_->join();
-      thread_ = 0;
-    }
-    camera_->EndAcquisition();  // before unregistering the event handler!
-    camera_->UnregisterEventHandler(*this);
-
-    cameraRunning_ = false;
-    return true;
+  if (!cameraRunning_) {
+    return (true);
+  } else {
+    LOG_INFO("stopping camera...");
   }
+  Lock statusLock(statusMonitorMutex_);
+  Lock cameraLock(cameraMutex_);
+  int numRetries = 10;
+  for (int i = 0; i < numRetries; i++) {
+    if (camera_ && cameraRunning_) {
+      if (thread_) {
+        keepRunning_ = false;
+        statusMonitorCv_.notify_all();
+        statusLock.unlock();  // so the status thread can grab it
+        thread_->join();
+        thread_ = 0;
+        statusLock.lock();  // status thread is done
+      }
+      try {
+        // unregister the event handler first to avoid the case
+        // where the driver is in OnImageEvent() when EndAcquisition() is called.
+        try {
+          camera_->UnregisterEventHandler(*this);
+        } catch (const Spinnaker::Exception & e) {
+          // ignore complaints that no events are registered
+        }
+        camera_->EndAcquisition();  // before unregistering the event handler!
+        cameraRunning_ = false;
+        LOG_INFO("camera stopped successfully.");
+        return true;
+      } catch (const std::exception & e) {
+        LOG_ERROR(
+          "failed to stop camera: " << e.what() << " will retry " << numRetries - 1 - i
+                                    << " more times.");
+      }
+    }
+  }
+  LOG_WARN("cannot stop camera");
   return (false);
 }
 
@@ -518,23 +547,42 @@ std::string SpinnakerWrapperImpl::getNodeMapAsString()
 
 void SpinnakerWrapperImpl::monitorStatus()
 {
+  Lock statusLock(statusMonitorMutex_);
+  const int monitor_period_sec = 1;
   while (keepRunning_) {
-    std::this_thread::sleep_for(chrono::seconds(1));
-    uint64_t lastTime;
-    {
-      std::unique_lock<std::mutex> lock(mutex_);
-      lastTime = lastTime_;
-    }
-    auto now = chrono::high_resolution_clock::now();
-    uint64_t t = chrono::duration_cast<chrono::nanoseconds>(now.time_since_epoch()).count();
-    if (t - lastTime > acquisitionTimeout_ && camera_) {
-      std::cout << "WARNING: acquisition timeout, restarting!" << std::endl;
-      // Mucking with the camera in this thread without proper
-      // locking does not feel good. Expect some rare crashes.
-      camera_->EndAcquisition();
-      camera_->BeginAcquisition();
+    statusMonitorCv_.wait_until(
+      statusLock, chrono::system_clock::now() + chrono::seconds(monitor_period_sec));
+    const uint64_t t_now =
+      chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch())
+        .count();
+    if (t_now - lastTime_ > acquisitionTimeout_ && keepRunning_) {
+      Lock lock(cameraMutex_);
+      if (camera_) {
+        LOG_WARN("Acquisition timeout, restarting streaming!");
+        try {
+          try {
+            camera_->UnregisterEventHandler(*this);
+          } catch (const Spinnaker::Exception & e) {
+            // ignore complaints that no events are registered
+          }
+          try {
+            camera_->EndAcquisition();
+          } catch (const Spinnaker::Exception & e) {
+            // ignore complaints that acquisition is not running
+          }
+          camera_->RegisterEventHandler(*this);
+          camera_->BeginAcquisition();
+        } catch (const Spinnaker::Exception & e) {
+          LOG_WARN("restart attempt failed with error: " << e.what());
+        }
+      }
+      stats_.acquisitionTimeouts++;
+      stats_.acquisitionError = true;
+    } else {
+      stats_.acquisitionError = false;
     }
   }
+  LOG_INFO("status monitoring thread exited.");
 }
 
 }  // namespace spinnaker_camera_driver

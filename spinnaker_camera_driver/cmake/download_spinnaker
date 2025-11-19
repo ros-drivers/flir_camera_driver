@@ -53,11 +53,11 @@ ARCH_LINUX_ARCH = {
 arch = sys.argv[1]
 destination_folder = sys.argv[2]
 os_code_name = sys.argv[3]
-spinnaker_version='4.2.0.46'
+spinnaker_version='4.2.0.88'
 
 linux_arch = ARCH_LINUX_ARCH[arch]
 os_version = OS_LIBRARY_VERSION[os_code_name]
-archive_url = f'https://pfrommer.us/Spinnaker/spinnaker-{spinnaker_version}-{linux_arch}-pkg-{os_version}.tar.gz'
+archive_url = f'https://eventvisionresearch.com/Spinnaker/spinnaker-{spinnaker_version}-{linux_arch}-{os_version}-pkg.tar.gz'
 print('archive url: ', archive_url)
 folder_name = f'spinnaker-{spinnaker_version}-{linux_arch}'
 
