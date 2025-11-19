@@ -2,6 +2,11 @@
 Changelog for package spinnaker_synchronized_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* added lifecycle node support, handling of acquisition errors
+* Contributors: Bernd Pfrommer
+
 3.0.3 (2025-07-14)
 ------------------
 
