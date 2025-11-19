@@ -2,8 +2,8 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.0.4 (2025-11-19)
+------------------
 * new location and version of spinnaker sdk
 * added lifecycle node support, handling of acquisition errors
 * implemented support for diagnostics
