@@ -2,6 +2,12 @@
 Changelog for package spinnaker_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* modifications to compile on Ubuntu 26.04
+* Add configuration file for FLIR Firefly FFy U3162C camera
+* Contributors: Bernd Pfrommer, Jacopo Vivaldi
+
 3.0.4 (2025-11-19)
 ------------------
 * new location and version of spinnaker sdk

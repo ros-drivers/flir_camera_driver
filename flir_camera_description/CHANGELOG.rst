@@ -2,6 +2,11 @@
 Changelog for package flir_camera_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* modifications to compile on Ubuntu 26.04
+* Contributors: Bernd Pfrommer
+
 3.0.4 (2025-11-19)
 ------------------
 
