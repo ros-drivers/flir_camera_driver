@@ -2,8 +2,8 @@
 Changelog for package spinnaker_synchronized_camera_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.0.5 (2026-05-08)
+------------------
 * guard against min_exposure_time = max_exposure_time
 * Contributors: Bernd Pfrommer
 
