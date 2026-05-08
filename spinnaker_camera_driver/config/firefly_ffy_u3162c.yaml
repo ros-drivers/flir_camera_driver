@@ -1,0 +1,224 @@
+#
+# config file for Firefly FFY-U3-162C cameras (USB3 and GigE)
+#
+# This file maps the ros parameters to the corresponding Spinnaker "nodes" in the camera.
+# For more details on how to modify this file, see the README on camera configuration files.
+
+parameters:
+  #
+  # -------- user set control
+  #
+  - name: default_user_set
+    type: enum
+    # allowed values: UserSet0 UserSet1
+    node: UserSetControl/DefaultUserSet
+  - name: user_set_selector
+    type: enum
+    # allowed values: UserSet0 UserSet1
+    node: UserSetControl/UserSetSelector
+  - name: user_set_load
+    type: command
+    node: UserSetControl/UserSetLoad
+  #
+  # -------- image format control
+  #
+  - name: pixel_format
+    type: enum
+    # Valid values: "Mono8", "Mono16", "RGB8Packed", "BayerBG8", "BGR8", "BayerBG16"
+    node: ImageFormatControl/PixelFormat
+  - name: binning_selector
+    type: enum
+    # Valid values: "All", "Sensor"
+    node: ImageFormatControl/BinningSelector
+  - name: binning_x
+    type: int
+    node: ImageFormatControl/BinningHorizontal
+  - name: binning_y
+    type: int
+    node: ImageFormatControl/BinningVertical
+  - name: image_width
+    type: int
+    node: ImageFormatControl/Width
+  - name: image_height
+    type: int
+    node: ImageFormatControl/Height
+  - name: offset_x # offset must come after image width reduction!
+    type: int
+    node: ImageFormatControl/OffsetX
+  - name: offset_y
+    type: int
+    node: ImageFormatControl/OffsetY
+  - name: reverse_x
+    type: bool
+    node: ImageFormatControl/ReverseX
+  - name: reverse_y
+    type: bool
+    node: ImageFormatControl/ReverseY
+
+  #
+  # -------- analog control
+  #
+  - name: gain_auto
+    type: enum
+    # valid values are "Continuous", "Once", "Off"
+    node: AnalogControl/GainAuto
+  - name: gain
+    type: float
+    node: AnalogControl/Gain
+  - name: black_level_selector
+    type: enum
+    # valid values: "All", "Analog", "Digital"
+    node: AnalogControl/BlackLevelSelector
+  - name: black_level
+    type: float
+    node: AnalogControl/BlackLevel
+  - name: black_level_clamping_enable
+    type: bool
+    node: AnalogControl/BlackLevelClampingEnable
+  - name: balance_ratio_selector
+    type: enum
+    # valid values: "Red", "Blue"
+    node: AnalogControl/BalanceRatioSelector
+  - name: balance_ratio
+    type: float
+    node: AnalogControl/BalanceRatio
+  - name: balance_white_auto
+    type: enum # valid values: Off, Once, Continuous
+    node: AnalogControl/BalanceWhiteAuto
+  - name: gamma
+    type: float
+    node: AnalogControl/Gamma
+  - name: gamma_enable
+    type: bool
+    node: AnalogControl/GammaEnable
+  - name: sharpening_enable
+    type: bool
+    node: AnalogControl/ShaperningEnable
+  - name: denoise_enable
+    type: bool
+    node: AnalogControl/DenoiseEnable
+  # #
+  # # -------- device link throughput limiting
+  # #
+  # - name: device_link_throughput_limit
+  #   type: int
+  #   node: DeviceControl/DeviceLinkThroughputLimit
+  # #
+  # # -------- transport layer control (GigE)
+  # #
+  # - name: gev_scps_packet_size
+  #   type: int
+  #   # default is 1400. Set to 9000 to enable jumbo frames, ensure NIC MTU set >= 9000
+  #   node: TransportLayerControl/GigEVision/GevSCPSPacketSize
+  # - name: gev_ieee_1588  # enable/disable PTP
+  #   type: bool
+  #   node: TransportLayerControl/GigEVision/GevIEEE1588
+  # - name: gev_ieee_1588_mode  # PTP mode
+  #   type: enum   # valid values: "Auto","SlaveOnly"
+  #   node: TransportLayerControl/GigEVision/GevIEEE1588Mode
+  #
+  # -------- digital IO control
+  #
+  - name: line0_selector # black wire: opto-isolated input
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line1_selector # white wire: opto-isolated output
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line1_linemode # valid values: "Input", "Output"
+    type: enum
+    node: DigitalIOControl/LineMode
+  - name: line2_selector # red wire: non-isolated input/output
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line2_v33enable # red wire: 3.3V power
+    type: bool
+    node: DigitalIOControl/V3_3Enable
+  - name: line3_selector # green wire: aux voltage input and non-isolated input
+    type: enum
+    node: DigitalIOControl/LineSelector
+  - name: line3_linemode # valid values: "Input", "Output"
+    type: enum
+    node: DigitalIOControl/LineMode
+  #
+  # -------- acquisition control
+  #
+  # valid values are "Continuous", "SingleFrame", "MultiFrame"
+  - name: exposure_time
+    type: enum
+    node: AcquisitionControl/AcquisitionMode
+  - name: exposure_auto
+    type: enum
+    # valid values are "Off", "Once", "Continuous"
+    node: AcquisitionControl/ExposureAuto
+  - name: exposure_mode
+    type: enum
+    # valid values are "Timed:", "TriggerWidth"
+    node: AcquisitionControl/ExposureMode
+  - name: exposure_time
+    type: float
+    node: AcquisitionControl/ExposureTime
+  - name: frame_rate_enable
+    type: bool
+    node: AcquisitionControl/AcquisitionFrameRateEnable
+  - name: frame_rate
+    type: float
+    node: AcquisitionControl/AcquisitionFrameRate
+  - name: trigger_selector
+    type: enum
+    # valid values are e.g. "FrameStart", "AcquisitionStart", "FrameBurstStart"
+    node: AcquisitionControl/TriggerSelector
+  - name: trigger_mode
+    type: enum
+    # valid values are "On" and "Off"
+    node: AcquisitionControl/TriggerMode
+  - name: trigger_source
+    type: enum
+    # valid values are "Line<0,1,2,3>"
+    node: AcquisitionControl/TriggerSource
+  # - name: trigger_activation
+  #   type: enum
+  #   # valid values: "LevelLow", "LevelHigh", "FallingEdge", "RisingEdge", "AnyEdge",
+  #   node: AcquisitionControl/TriggerActivation
+  #
+  # --------- chunk control
+  #
+  - name: chunk_mode_active
+    type: bool
+    node: ChunkDataControl/ChunkModeActive
+  - name: chunk_selector_frame_id
+    type: enum
+    # valid values: "FrameID", "Image", "OffsetX", "OffsetY", "Width", "Height", 
+    # "ExposureTime", "Gain", "BlackLevel", "PixelFormat", "Timestamp", "SerialData"
+    node: ChunkDataControl/ChunkSelector
+  # - name: chunk_enable_frame_id
+  #   type: bool
+  #   node: ChunkDataControl/ChunkEnable
+  # - name: chunk_selector_exposure_time
+  #   type: enum
+  #   # valid values: "ExposureTime"
+  #   node: ChunkDataControl/ChunkSelector
+  # - name: chunk_enable_exposure_time
+  #   type: bool
+  #   node: ChunkDataControl/ChunkEnable
+  # - name: chunk_selector_gain
+  #   type: enum
+  #   # valid values: "Gain"
+  #   node: ChunkDataControl/ChunkSelector
+  # - name: chunk_enable_gain
+  #   type: bool
+  #   node: ChunkDataControl/ChunkEnable
+  # - name: chunk_selector_timestamp
+  #   type: enum
+  #   # valid values: "Timestamp"
+  #   node: ChunkDataControl/ChunkSelector
+  # - name: chunk_enable_timestamp
+  #   type: bool
+  #   node: ChunkDataControl/ChunkEnable
+  #
+  # ------- stream layer
+  #
+  - name: "stream_buffer_handling_mode"
+    type: enum
+    # valid values: "NewestFirst", "OldestFirst", "NewestOnly", "OldestFirstOverwrite"
+    node: BufferHandlingControl/StreamBufferHandlingMode

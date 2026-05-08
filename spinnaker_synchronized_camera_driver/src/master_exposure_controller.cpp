@@ -33,8 +33,10 @@ MasterExposureController::MasterExposureController(
   brightnessTarget_ = std::min(std::max(declare_param<int>("brightness_target", 120), 1), 255);
   currentBrightness_ = brightnessTarget_;
   brightnessTolerance_ = declare_param<int>("brightness_tolerance", 5);
-  maxExposureTime_ = std::max(declare_param<int>("max_exposure_time", 1000), 1);
-  minExposureTime_ = std::max(declare_param<int>("min_exposure_time", 10), 1);
+  minExposureTime_ =
+    std::max(static_cast<double>(declare_param<int>("min_exposure_time", 10)), 1.0);
+  maxExposureTime_ = std::max(
+    static_cast<double>(declare_param<int>("max_exposure_time", 1000)), minExposureTime_ + 1);
   maxGain_ = declare_param<double>("max_gain", 10);
   gainPriority_ = declare_param<bool>("gain_priority", false);
   maxFramesSkip_ = declare_param<int>("max_frames_skip", 10);  // number of frames to wait
