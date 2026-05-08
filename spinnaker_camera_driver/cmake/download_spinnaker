@@ -40,9 +40,10 @@ import urllib
 logging.basicConfig(level=logging.INFO)
 
 OS_LIBRARY_VERSION = {
-    'focal': '20.04',
-    'jammy': '22.04',
-    'noble': '24.04',
+    'focal': {'os': '20.04', 'version': '4.2.0.88'},
+    'jammy': {'os': '22.04', 'version': '4.2.0.88'},
+    'noble': {'os': '24.04', 'version': '4.4.0.99'},
+    'resolute': {'os': '26.04', 'version': '4.4.0.99'},
 }
 
 ARCH_LINUX_ARCH = {
@@ -53,10 +54,10 @@ ARCH_LINUX_ARCH = {
 arch = sys.argv[1]
 destination_folder = sys.argv[2]
 os_code_name = sys.argv[3]
-spinnaker_version='4.2.0.88'
 
 linux_arch = ARCH_LINUX_ARCH[arch]
-os_version = OS_LIBRARY_VERSION[os_code_name]
+os_version = OS_LIBRARY_VERSION[os_code_name]['os']
+spinnaker_version = OS_LIBRARY_VERSION[os_code_name]['version']
 archive_url = f'https://eventvisionresearch.com/Spinnaker/spinnaker-{spinnaker_version}-{linux_arch}-{os_version}-pkg.tar.gz'
 print('archive url: ', archive_url)
 folder_name = f'spinnaker-{spinnaker_version}-{linux_arch}'
