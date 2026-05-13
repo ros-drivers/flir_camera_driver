@@ -36,11 +36,11 @@ submit a pull request with the camera config file you have created.
 Platforms
 ---------
 
--  ROS2 Galactic under Ubuntu 20.04 LTS (no longer actively tested)
--  ROS2 Humble/Iron under Ubuntu 22.04 LTS
-   ROS2 Rolling/Jazzy under Ubuntu 24.04 LTS
--  Spinnaker 3.1.0.79 (other versions may work as well but this is what
-   the continuous integration builds are using)
+-  ROS2 Humble under Ubuntu 22.04 LTS
+-  ROS2 Jazzy under Ubuntu 24.04 LTS
+-  ROS2 Lyrical/Rolling under Ubuntu 26.04 LTS
+-  Spinnaker 4.2.0.88 (Ubuntu 22.04) and 4.4.0.99 (beta).
+   Other versions may work as well but this is what the continuous integration builds are using.
 
 How to install
 ==============
