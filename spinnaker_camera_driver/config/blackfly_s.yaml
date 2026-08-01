@@ -182,6 +182,15 @@ parameters:
     type: bool
     node: ChunkDataControl/ChunkEnable
   #
+  # ------- auto algo control
+  #
+  - name: auto_exposure_time_lower_limit
+    type: float
+    node: AutoAlgorithmControl/AutoExposureExposureTimeLowerLimit
+  - name: auto_exposure_time_upper_limit
+    type: float
+    node: AutoAlgorithmControl/AutoExposureExposureTimeUpperLimit
+  #
   # ------- stream layer
   #
   - name: "stream_buffer_handling_mode"
