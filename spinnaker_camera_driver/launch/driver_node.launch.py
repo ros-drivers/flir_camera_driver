@@ -173,7 +173,9 @@ def launch_setup(context, *args, **kwargs):
         parameters=[
             example_parameters[camera_type],
             {
-                'ffmpeg_image_transport.encoding': 'hevc_nvenc',
+                'flir_camera.image_raw.ffmpeg.encoder': 'hevc_nvenc',
+                'flir_camera.image_raw.ffmpeg.bit_rate': 10000000,
+                'flir_camera.image_raw.ffmpeg.encoder': 'libx264',
                 'parameter_file': parameter_file,
                 'serial_number': [LaunchConfig('serial')],
             },
