@@ -26,6 +26,7 @@
 #include <sensor_msgs/image_encodings.hpp>
 #include <spinnaker_camera_driver/camera_driver.hpp>
 #include <spinnaker_camera_driver/exposure_controller.hpp>
+#include <spinnaker_camera_driver/ip_address.hpp>
 #include <spinnaker_camera_driver/logging.hpp>
 #include <type_traits>
 
@@ -274,11 +275,30 @@ void Camera::openDevice()
   wrapper_->useIEEE1588(useIEEE1588_);
 
   LOG_INFO("using spinnaker lib version: " + wrapper_->getLibraryVersion());
+  uint32_t ipAddress = 0;
+  if (!ipAddress_.empty() && !ip_address::parse(ipAddress_, &ipAddress)) {
+    LOG_ERROR("ip_address is not a dotted-quad IPv4 address: " << ipAddress_);
+    throw std::runtime_error("invalid ip_address " + ipAddress_);
+  }
   bool foundCamera = false;
-  for (int retry = 1; retry < 6; retry++) {
+  for (int retry = 1; retryAttempts_ < 0 || retry <= retryAttempts_; retry++) {
     wrapper_->refreshCameraList();
     const auto camList = wrapper_->getSerialNumbers();
-    if (std::find(camList.begin(), camList.end(), serial_) == camList.end()) {
+    if (!ipAddress_.empty()) {
+      const auto ipList = wrapper_->getIpAddresses();
+      const int idx = ip_address::find(ipList, ipAddress);
+      if (idx >= 0 && static_cast<size_t>(idx) < camList.size()) {
+        serial_ = camList[idx];
+        LOG_INFO("found camera with ip address " << ipAddress_ << ", serial number: " << serial_);
+        foundCamera = true;
+        break;
+      }
+      LOG_WARN("no camera found with ip address: " << ipAddress_ << " on try # " << retry);
+      for (size_t i = 0; i < camList.size() && i < ipList.size(); i++) {
+        LOG_WARN(" instead found camera: " << camList[i] << " at ip address: " << ipList[i]);
+      }
+      std::this_thread::sleep_for(chrono::seconds(1));
+    } else if (std::find(camList.begin(), camList.end(), serial_) == camList.end()) {
       LOG_WARN("no camera found with serial: " << serial_ << " on try # " << retry);
       for (const auto & cam : camList) {
         LOG_WARN(" instead found camera: " << cam);
@@ -291,8 +311,9 @@ void Camera::openDevice()
     }
   }
   if (!foundCamera) {
-    LOG_ERROR("giving up, camera " << serial_ << " not found!");
-    throw std::runtime_error("camera " + serial_ + " not found!");
+    const auto & id = ipAddress_.empty() ? serial_ : ipAddress_;
+    LOG_ERROR("giving up, camera " << id << " not found!");
+    throw std::runtime_error("camera " + id + " not found!");
   }
   if (!wrapper_->initCamera(serial_)) {
     LOG_ERROR("camera " << serial_ << " init failed!");
@@ -403,9 +424,26 @@ void Camera::checkSubscriptions()
 void Camera::readParameters()
 {
   quiet_ = safe_declare<bool>(prefix_ + "quiet", false);
-  serial_ = safe_declare<std::string>(prefix_ + "serial_number", "missing_serial_number");
+  serial_ = safe_declare<std::string>(prefix_ + "serial_number", "");
+  ipAddress_ = safe_declare<std::string>(prefix_ + "ip_address", "");
+  if (!serial_.empty() && !ipAddress_.empty()) {
+    LOG_WARN("both serial_number and ip_address are set, ignoring ip_address " << ipAddress_);
+    ipAddress_.clear();
+  }
+  retryAttempts_ = safe_declare<int>(prefix_ + "retry_attempts", 5);
+  if (retryAttempts_ == 0 || retryAttempts_ < -1) {
+    LOG_ERROR("retry_attempts must be positive, or -1 to retry forever: " << retryAttempts_);
+    throw std::runtime_error("invalid retry_attempts " + std::to_string(retryAttempts_));
+  }
+  if (serial_.empty() && ipAddress_.empty()) {
+    serial_ = "missing_serial_number";
+  }
   if (!quiet_) {
-    LOG_INFO("reading ros parameters for camera with serial: " << serial_);
+    if (ipAddress_.empty()) {
+      LOG_INFO("reading ros parameters for camera with serial: " << serial_);
+    } else {
+      LOG_INFO("reading ros parameters for camera with ip address: " << ipAddress_);
+    }
   }
   incompleteLevels_ = DiagnosticLevels<int>(
     safe_declare<int>(prefix_ + "diagnostic_incompletes_warn", 1),

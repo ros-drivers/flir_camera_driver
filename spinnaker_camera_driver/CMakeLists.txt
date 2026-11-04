@@ -109,6 +109,7 @@ add_library(camera_driver SHARED
   src/pixel_format.cpp
   src/genicam_utils.cpp
   src/utils.cpp
+  src/ip_address.cpp
 )
 
 target_link_libraries(camera_driver
@@ -214,6 +215,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_pep257 REQUIRED)
   find_package(ament_cmake_clang_format REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
+  find_package(ament_cmake_gtest REQUIRED)
 
   ament_copyright()
   ament_cppcheck(LANGUAGE c++)
@@ -223,6 +225,9 @@ if(BUILD_TESTING)
   ament_pep257()
   ament_clang_format(CONFIG_FILE .clang-format)
   ament_xmllint()
+
+  ament_add_gtest(test_ip_address test/test_ip_address.cpp src/ip_address.cpp)
+  target_include_directories(test_ip_address PRIVATE include)
 endif()
 
 ament_package()

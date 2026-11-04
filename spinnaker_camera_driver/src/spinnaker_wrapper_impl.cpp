@@ -18,6 +18,7 @@
 #include <chrono>
 #include <cmath>
 #include <iostream>
+#include <spinnaker_camera_driver/ip_address.hpp>
 #include <spinnaker_camera_driver/logging.hpp>
 #include <string>
 #include <vector>
@@ -72,6 +73,13 @@ static std::string get_serial(Spinnaker::CameraPtr cam)
   const auto & nodeMap = cam->GetTLDeviceNodeMap();
   const Spinnaker::GenApi::CStringPtr psn = nodeMap.GetNode("DeviceSerialNumber");
   return is_readable(psn) ? std::string(psn->GetValue()) : "";
+}
+
+static std::string get_ip_address(Spinnaker::CameraPtr cam)
+{
+  const auto & nodeMap = cam->GetTLDeviceNodeMap();
+  const Spinnaker::GenApi::CIntegerPtr pip = nodeMap.GetNode("GevDeviceIPAddress");
+  return is_readable(pip) ? ip_address::format(static_cast<uint32_t>(pip->GetValue())) : "";
 }
 
 static bool set_acquisition_mode_continuous(GenApi::INodeMap & nodeMap)
@@ -139,6 +147,15 @@ std::vector<std::string> SpinnakerWrapperImpl::getSerialNumbers() const
     sn.push_back(get_serial(cam));
   }
   return sn;
+}
+
+std::vector<std::string> SpinnakerWrapperImpl::getIpAddresses() const
+{
+  std::vector<std::string> ips;
+  for (size_t cam_idx = 0; cam_idx < cameraList_.GetSize(); cam_idx++) {
+    ips.push_back(get_ip_address(cameraList_.GetByIndex(cam_idx)));
+  }
+  return ips;
 }
 
 std::string SpinnakerWrapperImpl::setEnum(
