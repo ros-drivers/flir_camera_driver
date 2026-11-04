@@ -17,6 +17,7 @@
 
 #include <spinnaker_camera_driver/spinnaker_wrapper.hpp>
 #include <string>
+#include <vector>
 
 #include "./spinnaker_wrapper_impl.hpp"
 
@@ -37,6 +38,11 @@ void SpinnakerWrapper::refreshCameraList() { wrapperImpl_->refreshCameraList(); 
 std::vector<std::string> SpinnakerWrapper::getSerialNumbers() const
 {
   return wrapperImpl_->getSerialNumbers();
+}
+
+std::vector<std::string> SpinnakerWrapper::getIpAddresses() const
+{
+  return wrapperImpl_->getIpAddresses();
 }
 
 bool SpinnakerWrapper::initCamera(const std::string & serialNumber)
