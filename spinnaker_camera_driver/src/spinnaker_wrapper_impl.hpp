@@ -44,6 +44,7 @@ public:
   std::string getLibraryVersion() const;
   void refreshCameraList();
   std::vector<std::string> getSerialNumbers() const;
+  std::vector<std::string> getIpAddresses() const;
   std::string getPixelFormat() const;
 
   bool initCamera(const std::string & serialNumber);

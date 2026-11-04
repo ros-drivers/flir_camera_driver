@@ -176,6 +176,8 @@ private:
   image_transport::CameraPublisher pub_;
   rclcpp::Publisher<flir_camera_msgs::msg::ImageMetaData>::SharedPtr metaPub_;
   std::string serial_;
+  std::string ipAddress_;  // empty if the camera is selected by serial_
+  int retryAttempts_{5};   // attempts to find the camera, -1 to retry forever
   std::string logName_;
   std::string name_;
   std::string cameraInfoURL_;

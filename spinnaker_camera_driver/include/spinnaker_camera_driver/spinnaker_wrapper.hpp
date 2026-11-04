@@ -64,6 +64,8 @@ public:
   std::string getLibraryVersion() const;
   void refreshCameraList();
   std::vector<std::string> getSerialNumbers() const;
+  /// IP addresses of the cameras in the order of getSerialNumbers(), empty if a camera has none.
+  std::vector<std::string> getIpAddresses() const;
 
   bool initCamera(const std::string & serialNumber);
   bool deInitCamera();
