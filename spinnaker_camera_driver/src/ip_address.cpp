@@ -1,5 +1,5 @@
 // -*-c++-*--------------------------------------------------------------------
-// Copyright 2023 Bernd Pfrommer <bernd.pfrommer@gmail.com>
+// Copyright 2026 David Tarazi <davidtarazi@icloud.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <arpa/inet.h>
+
 #include <cstdio>
 #include <spinnaker_camera_driver/ip_address.hpp>
 #include <string>
@@ -24,33 +26,11 @@ namespace ip_address
 {
 bool parse(const std::string & text, uint32_t * address)
 {
-  uint32_t value = 0;
-  size_t pos = 0;
-  for (int octet = 0; octet < 4; octet++) {
-    if (octet > 0) {
-      if (pos >= text.size() || text[pos] != '.') {
-        return false;
-      }
-      pos++;
-    }
-    const size_t first = pos;
-    uint32_t number = 0;
-    while (pos < text.size() && text[pos] >= '0' && text[pos] <= '9') {
-      number = number * 10 + static_cast<uint32_t>(text[pos] - '0');
-      if (number > 255) {
-        return false;
-      }
-      pos++;
-    }
-    if (pos == first) {
-      return false;
-    }
-    value = (value << 8) | number;
-  }
-  if (pos != text.size()) {
+  in_addr parsed;
+  if (1 != inet_pton(AF_INET, text.c_str(), &parsed)) {
     return false;
   }
-  *address = value;
+  *address = ntohl(parsed.s_addr);
   return true;
 }
 
