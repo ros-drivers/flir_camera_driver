@@ -436,7 +436,8 @@ void Camera::readParameters()
     throw std::runtime_error("invalid retry_attempts " + std::to_string(retryAttempts_));
   }
   if (serial_.empty() && ipAddress_.empty()) {
-    serial_ = "missing_serial_number";
+    LOG_ERROR("one of serial_number or ip_address must be set");
+    throw std::runtime_error("neither serial_number nor ip_address is set");
   }
   if (!quiet_) {
     if (ipAddress_.empty()) {
