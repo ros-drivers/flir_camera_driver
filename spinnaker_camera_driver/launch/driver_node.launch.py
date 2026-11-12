@@ -150,6 +150,26 @@ example_parameters = {
         'image_adjust_method': 'PlateauHistogram',
         'video_orientation': 'Normal',  # "Normal" "Invert" "Revert" "InvertRevert"
     },
+        'adk_gige': {
+        'debug': False,
+        'compute_brightness': False,
+        'adjust_timestamp': True,
+        'dump_node_map': False,
+        # PTP for GigE cameras
+        # 'gev_ieee_1588': True,
+        # 'gev_ieee_1588_mode': 'SlaveOnly', # 'SlaveOnly',  #'Auto',
+        # 'use_ieee_1588' : True,
+        # --- Set parameters defined in adk_gige.yaml
+        'pixel_format': 'Mono8', # 'Mono8', 'Mono16'
+        'frame_rate_auto': 'Off',
+        'frame_rate': 59.8, # up to 59.8 (60 in theory)
+        'frame_rate_enable': True,
+        'chunk_mode_active': True,
+        'chunk_selector_frame_id': 'FrameID',
+        'chunk_enable_frame_id': True,
+        'chunk_selector_timestamp': 'Timestamp',
+        'chunk_enable_timestamp': True,
+    },
 }
 
 
